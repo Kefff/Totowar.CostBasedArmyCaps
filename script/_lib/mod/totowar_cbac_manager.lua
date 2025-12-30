@@ -13,14 +13,21 @@ local TotowarCbacManager = {
 ---Displays the army cost of on a unit card.
 ---@param unitUIComponent UIC Unit UI component.
 local function displayUnitArmyCost(unitUIComponent)
-    TotowarCbacManager.logger:logDebug("Displaying cost for unit %s", unitUIComponent:GetTooltipText())
+    local unitContextId = unitUIComponent:GetContextObjectId("CcoMainUnitRecord")
+    local unitContext = cco("CcoMainUnitRecord", unitContextId)
 
-    local recruitmentCostUIComponent = find_uicomponent(unitUIComponent, "external_holder", "RecruitmentCost")
+    unitName = unitContext:Call("Name")
+    unitBaseCost = tonumber(unitContext:Call("BaseCost"))
+
+    TotowarCbacManager.logger:logDebug("Displaying cost (%s) for unit \"%s\" (%s)", unitBaseCost, unitName, unitContextId)
+
+    local recruitmentCostUIComponent = find_uicomponent(unitUIComponent, "external_holder", "UpkeepCost")
     local armyCostUIComponent = UIComponent(recruitmentCostUIComponent:CopyComponent(armyCostUIComponentName))
-    local costUIComponent = find_uicomponent(armyCostUIComponent, "Cost")
-    armyCostUIComponent:SetDockOffset(0, -19)
-    costUIComponent:SetText("Hello", "Hello")
-    costUIComponent:SetImagePath("ui/skins/default/wulfhart_imperial_supplies.png", 1);
+    local upkeepUIComponent = find_uicomponent(armyCostUIComponent, "Upkeep")
+    upkeepUIComponent:DestroyChildren()
+    armyCostUIComponent:SetDockOffset(0, -100)
+    upkeepUIComponent:SetText(tostring(unitBaseCost), tostring(unitBaseCost))
+    upkeepUIComponent:SetImagePath("ui/skins/default/wulfhart_imperial_supplies.png", 0, false);
 end
 
 ---Displays the army cost of all the units in a recruitment UI (global or local).

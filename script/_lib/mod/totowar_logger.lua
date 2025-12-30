@@ -27,6 +27,14 @@ function TotowarLogger.new(modName, logFileName, isDebug)
     instance.logFileName = logFileName
     instance.modName = modName
 
+    -- Resetting the file
+    local file = io.open(instance.logFileName, "w")
+
+    if file then
+        file:write("")
+        file:close()
+    end
+
     instance:logInfo("Logger created")
 
     return instance
@@ -38,7 +46,13 @@ end
 ---@param message string Message to log.
 ---@param ... any Message parameters.
 local function log(instance, severity, message, ...)
-    message = string.format(message, ...)
+    parameters = {}
+
+    for i, value in ipairs({ ... }) do
+        parameters[i] = tostring(value)
+    end
+
+    message = string.format(message, unpack(parameters))
     fullLog = string.format("[%s] %s | %s: %s", instance.modName, os.date("%c"), severity, message)
     ModLog(fullLog)
 
