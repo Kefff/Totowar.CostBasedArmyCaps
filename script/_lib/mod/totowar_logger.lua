@@ -7,24 +7,27 @@ local TotowarLoggerSeverity = {
 
 ---@class TotowarLogger
 TotowarLogger = {
-    ---@type boolean
-    isDebug = false,
+    --- Log file name
     ---@type string
-    logFileName = nil,
+    logFileName = "totowar_logs.txt",
+
+    --- Mod name.
     ---@type string
-    modName = nil
+    modName = "totowar_utils"
 }
 TotowarLogger.__index = TotowarLogger
 
 ---Initializes a new instance.
 ---@param modName string Mod name.
----@param logFileName string Log file name.
----@param isDebug boolean Indicates whether debug logs are taken into consideration.
+---@param logFileName string? Log file name.
 ---@return TotowarLogger
-function TotowarLogger.new(modName, logFileName, isDebug)
+function TotowarLogger.new(modName, logFileName)
     local instance = setmetatable({}, TotowarLogger)
-    instance.isDebug = isDebug
-    instance.logFileName = logFileName
+
+    if logFileName then
+        instance.logFileName = logFileName
+    end
+
     instance.modName = modName
 
     -- Resetting the file
@@ -35,7 +38,7 @@ function TotowarLogger.new(modName, logFileName, isDebug)
         file:close()
     end
 
-    instance:logInfo("Logger created")
+    instance:logInfo("Logger: Initialized")
 
     return instance
 end
@@ -68,7 +71,7 @@ end
 ---@param message string Message to log.
 ---@param ... any Message parameters.
 function TotowarLogger:logDebug(message, ...)
-    if self.isDebug then
+    if TotoWarUtils.isDebug then
         log(self, TotowarLoggerSeverity.debug, message, ...)
     end
 end
