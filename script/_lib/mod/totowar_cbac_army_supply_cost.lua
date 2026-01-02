@@ -2,7 +2,7 @@
 TotoWarArmySupplyCost = {
     ---Total army supply cost detailed by unit type.
     ---@type TotoWarUnitArmySupplyCost[]
-    details = {},
+    details = nil,
 
     ---Total army supply cost
     ---@type number
@@ -17,6 +17,7 @@ function TotoWarArmySupplyCost.new(army)
     local instance = setmetatable({}, TotoWarArmySupplyCost)
 
     local units = army:unit_list()
+    local details = {}
 
     for i = 0, units:num_items() - 1, 1 do
         local unit = units:item_at(i)
@@ -25,7 +26,7 @@ function TotoWarArmySupplyCost.new(army)
         ---@type TotoWarUnitArmySupplyCost
         local unitArmySupplyCost = nil
 
-        for index, detail in ipairs(instance.details) do
+        for index, detail in ipairs(details) do
             if detail.unitKey == unit:unit_key() then
                 unitArmySupplyCost = detail
                 break
@@ -34,13 +35,15 @@ function TotoWarArmySupplyCost.new(army)
 
         if not unitArmySupplyCost then
             unitArmySupplyCost = TotoWarUnitArmySupplyCost.new(unit:unit_key(), unitCost)
-            table.insert(instance.details, unitArmySupplyCost)
+            table.insert(details, unitArmySupplyCost)
         else
             unitArmySupplyCost:addUnit()
         end
 
         instance.totalCost = instance.totalCost + unitCost
     end
+
+    instance.details = details
 
     return instance
 end
@@ -113,6 +116,8 @@ end
 function TotoWarUnitArmySupplyCost:addUnit()
     self.totalCost = self.totalCost + self.unitCost
     self.unitCount = self.unitCount + 1
+
+    TotoWarUtils.logger:logDebug("TEST: %s, %s", tostring(self.totalCost), tostring(self.unitCount))
 end
 
 ---Gets a unit army cost as a tooltip string.
