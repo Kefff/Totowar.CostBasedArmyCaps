@@ -1,0 +1,6 @@
+key	text	tooltip
+#Loc;1;text/totowar_cost_based_army_caps.loc		
+totowar_cbac_army_supply_cost_tooltip	Army supplies||Amount of supplies the army can provide to sustain recruited units.||Army supply: %s[[img:icon_merc]]||Consumed by units: %s[[img:icon_merc]]||Available for recruitment: %s[[img:icon_merc]]||%s	true
+totowar_cbac_army_supply_cost_tooltip_detail	[[col:yellow]]%s[[/col]]: %s[[img:icon_merc]]	true
+totowar_cbac_army_supply_cost_tooltip_detail_multiple	[[col:yellow]]%s[[/col]]: %s[[img:icon_merc]] ([[col:alliance_ally]]%s[[/col]] x %s[[img:icon_merc]])	true
+totowar_cbac_unit_army_supply_cost_tooltip	Army supplies||This unit consumes this amount of [[img:icon_merc]][[/img]]Army supplies.	true

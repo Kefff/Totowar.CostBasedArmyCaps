@@ -1,58 +1,50 @@
 totowarCbacModName = "totowar_cost_based_army_caps"
 
 local armySupplyCostUIComponentHeight = 24
-local armySupplyCostUIComponentName = "totowar_cbac_army_cost"
+local armySupplyCostUIComponentName = "totowar_cbac_army_supply_cost"
 local armySupplyIcon = "ui/skins/default/wulfhart_imperial_supplies.png"
-local unitArmySupplyCostUIComponentName = "totowar_cbac_unit_army_cost"
+local defaultArmySupply = 12400 -- Cannot be read from DB table (mp_budgets_table)
+local unitArmySupplyCostUIComponentName = "totowar_cbac_unit_army_supply_cost"
 local unitArmySupplyCostUIComponentOffsetY = -18
 
 ---Manager of the Totowar Cost-Based Army Caps.
----@class TotowarCbacManager
-local TotowarCbacManager = {
+---@class TotoWarCbacManager
+local TotoWarCbacManager = {
+    ---Army supply
+    ---@type number
+    armySupply = defaultArmySupply,
+
     ---Logger.
-    ---@type TotowarLogger
-    logger = nil
+    ---@type TotoWarLogger
+    logger = nil,
+
+    ---Selected general.
+    ---@type CHARACTER_SCRIPT_INTERFACE
+    selectedGeneral = nil,
+
+    ---Selected general army cost.
+    ---@type TotoWarArmySupplyCost
+    selectedGeneralArmySupplyCost = nil
 }
 
-core:add_static_object(totowarCbacModName, TotowarCbacManager)
-
----Gets the army supply cost of an army.
----@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@return number
-local function getArmySupplyCost(army)
-    TotowarCbacManager.logger:logDebug("Get army supply cost (%s): Started", army:general_character():cqi())
-
-    local armyCost = 0
-    local units = army:unit_list()
-
-    for i = 0, units:num_items() - 1, 1 do
-        local unit = units:item_at(i)
-        local unitCost = unit:get_unit_custom_battle_cost()
-        armyCost = armyCost + unitCost
-    end
-
-    TotowarCbacManager.logger:logDebug("Get army supply cost (%s, %s): Completed", army:general_character():cqi(),
-        armyCost)
-
-    return armyCost
-end
+core:add_static_object(totowarCbacModName, TotoWarCbacManager)
 
 ---Gets the unit panel army supply cost UI component.
 ---@return UIC
 local function getUnitsPanelArmySupplyCostUIComponent()
-    TotowarCbacManager.logger:logDebug("Get unit panel army supply cost UI component: Started")
+    TotoWarCbacManager.logger:logDebug("Get unit panel army supply cost UI component: Started")
 
     local unitsPanelIconListUIComponent = TotoWarUtils.UI:getUnitsPanelIconListUIComponent()
     local armyCostUIComponent = find_uicomponent(unitsPanelIconListUIComponent, armySupplyCostUIComponentName)
 
-    TotowarCbacManager.logger:logDebug("Get unit panel army supply cost UI component: Completed")
+    TotoWarCbacManager.logger:logDebug("Get unit panel army supply cost UI component: Completed")
 
     return armyCostUIComponent
 end
 
 ---Destroys the army supply cost UI component.
 local function hideArmySupplyCostUIComponent()
-    TotowarCbacManager.logger:logDebug("Destroy army supply cost UI component: Started")
+    TotoWarCbacManager.logger:logDebug("Destroy army supply cost UI component: Started")
 
     local armyCostUIComponent = getUnitsPanelArmySupplyCostUIComponent()
 
@@ -60,32 +52,35 @@ local function hideArmySupplyCostUIComponent()
         armyCostUIComponent:SetVisible(false)
     end
 
-    TotowarCbacManager.logger:logDebug("Destroy army supply cost UI component: Completed")
+    TotoWarCbacManager.logger:logDebug("Destroy army supply cost UI component: Completed")
 end
 
 ---Displays of updates (when switching between generals) the army supply cost of the army of the selected player faction general.
 ---@param general CHARACTER_SCRIPT_INTERFACE Player faction general.
 local function displayOrUpdateUnitsPanelArmySupplyCost(general)
-    TotowarCbacManager.logger:logDebug("Display or update army supply cost: Started")
+    TotoWarCbacManager.logger:logDebug("Display or update army supply cost: Started")
 
-    local armyCost = getArmySupplyCost(general:military_force())
-    local armyCostUIComponent = getUnitsPanelArmySupplyCostUIComponent()
+    local armySupplyCostUIComponent = getUnitsPanelArmySupplyCostUIComponent()
 
-    if not armyCostUIComponent then
+    if not armySupplyCostUIComponent then
         -- Copying the upkeep cost UI component to create the army supply cost UI component
         local unitsPanelIconListUIComponent = TotoWarUtils.UI:getUnitsPanelIconListUIComponent()
         local upkeepUIComponent = find_uicomponent(unitsPanelIconListUIComponent, "dy_upkeep")
-        armyCostUIComponent = UIComponent(upkeepUIComponent:CopyComponent(armySupplyCostUIComponentName))
-        armyCostUIComponent:SetImagePath(armySupplyIcon, 1, false)
-        armyCostUIComponent:SetTooltipText(
-            "TODO LOCALIZE Army supplies||Total amount of supplies the army can provide to sustain recruited units.",
+        armySupplyCostUIComponent = UIComponent(upkeepUIComponent:CopyComponent(armySupplyCostUIComponentName))
+        armySupplyCostUIComponent:SetImagePath(armySupplyIcon, 1, false)
+        armySupplyCostUIComponent:SetTooltipText(
+            TotoWarCbacManager.selectedGeneralArmySupplyCost:toTooltipText(TotoWarCbacManager.armySupply),
             true)
     end
 
-    armyCostUIComponent:SetText(tostring(armyCost) .. " / " .. "TODO", "")
-    armyCostUIComponent:SetVisible(true)
+    armySupplyCostUIComponent:SetText(
+        tostring(TotoWarCbacManager.selectedGeneralArmySupplyCost.totalCost) .. " / " .. TotoWarCbacManager.armySupply,
+        "")
+    armySupplyCostUIComponent:SetVisible(true)
 
-    TotowarCbacManager.logger:logDebug("Display or update army supply cost (%s): Completed", armyCost)
+    TotoWarCbacManager.logger:logDebug(
+        "Display or update army supply cost (%s): Completed",
+        TotoWarCbacManager.selectedGeneralArmySupplyCost.totalCost)
 end
 
 ---Displays the army supply cost of on a unit card.
@@ -98,7 +93,7 @@ local function displayRecruitableUnitArmySupplyCost(unitUIComponent)
     local unitName = unitContext:Call("Name")
     local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
 
-    TotowarCbacManager.logger:logDebug("Display unit army supply cost (\"%s\", %s): Started", unitName, unitBaseCost)
+    TotoWarCbacManager.logger:logDebug("Display unit army supply cost (\"%s\", %s): Started", unitName, unitBaseCost)
 
     local externalHolderUIComponent = find_uicomponent(unitUIComponent, "external_holder")
     TotoWarUtils.UI:resizeUIComponent(unitUIComponent, 0, armySupplyCostUIComponentHeight)
@@ -113,22 +108,22 @@ local function displayRecruitableUnitArmySupplyCost(unitUIComponent)
     -- Copying the recruitment cost UI component to create the army supply cost UI component
     local armyCostUIComponent = UIComponent(recruitmentCostUIComponent:CopyComponent(unitArmySupplyCostUIComponentName))
     armyCostUIComponent:SetDockOffset(xPadding, unitArmySupplyCostUIComponentOffsetY)
+    armyCostUIComponent:SetTooltipText(
+        common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip"),
+        true)
 
     local costUIComponent = find_uicomponent(armyCostUIComponent, "Cost")
     costUIComponent:DestroyChildren() -- Removing the price change arrow copied from
     costUIComponent:SetText(tostring(unitBaseCost), "")
-    costUIComponent:SetTooltipText(
-        "TODO LOCALIZE Army supplies||This unit consumes this amount of [[img:wulfhart_imperial_supplies]][[/img]]Army supplies.",
-        true)
     costUIComponent:SetImagePath(armySupplyIcon, 0, false)
 
-    TotowarCbacManager.logger:logDebug("Display unit army supply cost (\"%s\", %s): Completed", unitName, unitBaseCost)
+    TotoWarCbacManager.logger:logDebug("Display unit army supply cost (\"%s\", %s): Completed", unitName, unitBaseCost)
 end
 
 ---Displays the army supply cost of all the units in a recruitment pool UI (global or local).
 ---@param recruitmentUIComponent UIC Global or local recruitment pool UI component.
 local function displayRecruitmentPoolArmySupplyCost(recruitmentUIComponent)
-    TotowarCbacManager.logger:logDebug(
+    TotoWarCbacManager.logger:logDebug(
         "Display recruitable units army supply cost in recruitment pool (\"%s\"): Started",
         recruitmentUIComponent:Id())
 
@@ -152,14 +147,14 @@ local function displayRecruitmentPoolArmySupplyCost(recruitmentUIComponent)
         displayRecruitableUnitArmySupplyCost(unitUIComponent)
     end
 
-    TotowarCbacManager.logger:logDebug(
+    TotoWarCbacManager.logger:logDebug(
         "Display recruitable units army supply cost in recruitment pool (\"%s\"): Completed",
         recruitmentUIComponent:Id())
 end
 
 ---Displays the army supply costs in the recruitment panel.
 local function displayRecruitmentPanelArmySupplyCosts()
-    TotowarCbacManager.logger:logDebug("Display recruitment panel army supply costs: Started")
+    TotoWarCbacManager.logger:logDebug("Display recruitment panel army supply costs: Started")
 
     local globalRecruitmentUIComponent = TotoWarUtils.UI:getGlobalRecruitmentPoolUIComponent()
     local localRecruitmentUIComponent = TotoWarUtils.UI:getLocalRecruitmentPoolUIComponent()
@@ -167,44 +162,83 @@ local function displayRecruitmentPanelArmySupplyCosts()
     displayRecruitmentPoolArmySupplyCost(globalRecruitmentUIComponent)
     displayRecruitmentPoolArmySupplyCost(localRecruitmentUIComponent)
 
-    TotowarCbacManager.logger:logDebug("Display recruitment panel army supply costs: Completed")
+    TotoWarCbacManager.logger:logDebug("Display recruitment panel army supply costs: Completed")
+end
+
+---Sets the selected general and calculate the price of its army
+---@param general? CHARACTER_SCRIPT_INTERFACE Selected general.
+local function setSelectedGeneral(general)
+    if general then
+        TotoWarCbacManager.logger:logDebug("Set selected general (%s): Started", general:cqi())
+
+        TotoWarCbacManager.selectedGeneral = general
+        TotoWarCbacManager.selectedGeneralArmySupplyCost = TotoWarArmySupplyCost.new(general:military_force())
+
+        TotoWarCbacManager.logger:logDebug("Set selected general (%s): Completed", general:cqi())
+    else
+        TotoWarCbacManager.logger:logDebug("Set selected general (nil): Started")
+
+        TotoWarCbacManager.selectedGeneral = nil
+        TotoWarCbacManager.selectedGeneralArmySupplyCost = nil
+
+        TotoWarCbacManager.logger:logDebug("Set selected general (nil): Completed")
+    end
+end
+
+---Reacts to a character being deselected.
+local function onCharacterDeselected()
+    setSelectedGeneral(nil)
 end
 
 ---Reacts to a character being selected.
 ---@param character CHARACTER_SCRIPT_INTERFACE Selected character.
-function onCharacterSelected(character)
-    TotowarCbacManager.logger:logDebug("Event character selected (%s): Started", character:cqi())
+local function onCharacterSelected(character)
+    TotoWarCbacManager.logger:logDebug("Event character selected (%s): Started", character:cqi())
 
     local canRecruit =
         TotoWarUtils:isPlayerFactionGeneral(character)
         and TotoWarUtils:canArmyRecruit(character:military_force())
 
     if canRecruit then
+        setSelectedGeneral(character)
         displayOrUpdateUnitsPanelArmySupplyCost(character)
     else
+        setSelectedGeneral(nil)
         hideArmySupplyCostUIComponent()
     end
 
-    TotowarCbacManager.logger:logDebug("Event character selected (%s): Completed", character:cqi())
+    TotoWarCbacManager.logger:logDebug("Event character selected (%s): Completed", character:cqi())
 end
 
 ---Reacts to a panel being opened.
 ---@param panelId string
-function onPanelOpened(panelId)
-    TotowarCbacManager.logger:logDebug("Event panel opened (\"%s\"): Started", panelId)
+local function onPanelOpened(panelId)
+    TotoWarCbacManager.logger:logDebug("Event panel opened (\"%s\"): Started", panelId)
 
-    if panelId == "recruitment_options" then
+    if panelId == TotoWarUtils.Enums.Panel.recruitmentOptions then
         displayRecruitmentPanelArmySupplyCosts()
     end
 
-    TotowarCbacManager.logger:logDebug("Event panel opened (\"%s\"): Completed", panelId)
+    TotoWarCbacManager.logger:logDebug("Event panel opened (\"%s\"): Completed", panelId)
 end
 
 ---Adds listeners for events that will display UI elements and trigger cost verifications.
 local function addListeners()
-    TotowarCbacManager.logger:logDebug("Add listeners: Started")
+    TotoWarCbacManager.logger:logDebug("Add listeners: Started")
 
-    TotowarCbacManager.logger:logDebug(
+    TotoWarCbacManager.logger:logDebug(
+        "Add listener to event \"%s\"",
+        TotoWarUtils.Enums.Event.characterDeselected)
+    core:add_listener(
+        "totowar_cbac_character_deselected",
+        TotoWarUtils.Enums.Event.characterDeselected,
+        true,
+        function(context)
+            cm:callback(onCharacterDeselected, TotoWarUtils.eventCallbackTriggerDelay)
+        end,
+        true)
+
+    TotoWarCbacManager.logger:logDebug(
         "Add listener to event \"%s\"",
         TotoWarUtils.Enums.Event.characterSelected)
     core:add_listener(
@@ -222,7 +256,7 @@ local function addListeners()
         end,
         true)
 
-    TotowarCbacManager.logger:logDebug(
+    TotoWarCbacManager.logger:logDebug(
         "Add listener to event \"%s\"",
         TotoWarUtils.Enums.Event.panelOpenedCampaign)
     core:add_listener(
@@ -239,12 +273,12 @@ local function addListeners()
         end,
         true)
 
-    TotowarCbacManager.logger:logDebug("Add listeners: Completed")
+    TotoWarCbacManager.logger:logDebug("Add listeners: Completed")
 end
 
 ---Initializes the mod.
-function TotowarCbacManager:initialize()
-    self.logger = TotowarLogger.new(totowarCbacModName)
+function TotoWarCbacManager:initialize()
+    self.logger = TotoWarLogger.new(totowarCbacModName)
     self.logger:logInfo("Initialize mod: Started")
 
     addListeners()

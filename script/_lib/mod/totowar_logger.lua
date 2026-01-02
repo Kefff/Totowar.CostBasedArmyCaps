@@ -1,12 +1,12 @@
-local TotowarLoggerSeverity = {
+local TotoWarLoggerSeverity = {
     debug = "DEBUG",
     info = "INFO ",
     warning = "WARN ",
     error = "ERROR"
 }
 
----@class TotowarLogger
-TotowarLogger = {
+---@class TotoWarLogger
+TotoWarLogger = {
     ---Indicates whether the logger is enabled.
     ---@type boolean
     isEnabled = true,
@@ -19,14 +19,14 @@ TotowarLogger = {
     ---@type string
     modName = nil
 }
-TotowarLogger.__index = TotowarLogger
+TotoWarLogger.__index = TotoWarLogger
 
----Initializes a new instance.
+---Initializes a new instance of TotoWarLogger.
 ---@param modName string Mod name.
 ---@param logFileName string? Log file name.
----@return TotowarLogger
-function TotowarLogger.new(modName, logFileName)
-    local instance = setmetatable({}, TotowarLogger)
+---@return TotoWarLogger
+function TotoWarLogger.new(modName, logFileName)
+    local instance = setmetatable({}, TotoWarLogger)
 
     if logFileName then
         instance.logFileName = logFileName
@@ -48,7 +48,7 @@ function TotowarLogger.new(modName, logFileName)
 end
 
 ---Logs a message.
----@param instance TotowarLogger Logger instance.
+---@param instance TotoWarLogger Logger instance.
 ---@param severity string Severity.
 ---@param message string Message to log.
 ---@param ... any Message parameters.
@@ -78,29 +78,29 @@ end
 ---Logs a debug message.
 ---@param message string Message to log.
 ---@param ... any Message parameters.
-function TotowarLogger:logDebug(message, ...)
+function TotoWarLogger:logDebug(message, ...)
     if TotoWarUtils.isDebug then
-        log(self, TotowarLoggerSeverity.debug, message, ...)
+        log(self, TotoWarLoggerSeverity.debug, message, ...)
     end
 end
 
 ---Logs an error message.
 ---@param message string Message to log.
 ---@param ... any Message parameters.
-function TotowarLogger:logError(message, ...)
-    log(self, TotowarLoggerSeverity.error, message, ...)
+function TotoWarLogger:logError(message, ...)
+    log(self, TotoWarLoggerSeverity.error, message, ...)
 end
 
 ---Logs an information message.
 ---@param message string Message to log.
 ---@param ... any Message parameters.
-function TotowarLogger:logInfo(message, ...)
-    log(self, TotowarLoggerSeverity.info, message, ...)
+function TotoWarLogger:logInfo(message, ...)
+    log(self, TotoWarLoggerSeverity.info, message, ...)
 end
 
 ---Logs an warning message.
 ---@param message string Message to log.
 ---@param ... any Message parameters.
-function TotowarLogger:logWarning(message, ...)
-    log(self, TotowarLoggerSeverity.warning, message, ...)
+function TotoWarLogger:logWarning(message, ...)
+    log(self, TotoWarLoggerSeverity.warning, message, ...)
 end

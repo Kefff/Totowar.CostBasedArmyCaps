@@ -40,11 +40,14 @@ TotoWarUtils = {
             characterDeselected = "CharacterDeselected",
             characterSelected = "CharacterSelected",
             panelOpenedCampaign = "PanelOpenedCampaign",
+        },
+        Panel = {
+            recruitmentOptions = "recruitment_options"
         }
     },
 
     ---Logger for utility tools.
-    logger = TotowarLogger.new(totowarUtils),
+    logger = TotoWarLogger.new(totowarUtils),
 
     ---Player faction name.
     ---@type string
@@ -70,6 +73,14 @@ function TotoWarUtils:canArmyRecruit(army)
     TotoWarUtils.logger:logDebug("Can recruit (%s): Completed", canRecruit)
 
     return canRecruit
+end
+
+---Gets the caption of a unit.
+---@param unitKey string Unit key.
+function TotoWarUtils:getUnitCaption(unitKey)
+    local caption = common.get_context_value("CcoMainUnitRecord", unitKey, "Name")
+
+    return caption
 end
 
 ---Indicates whether a faction is the faction of the player.

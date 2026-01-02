@@ -5,6 +5,6 @@ cm:add_first_tick_callback(
         TotoWarUtils.logger.isEnabled = false
         -- /TEST
 
-        local totowarCbacManager = core:get_static_object(totowarCbacModName)
-        totowarCbacManager:initialize()
+        local totoWarCbacManager = core:get_static_object(totowarCbacModName)
+        totoWarCbacManager:initialize()
     end)
