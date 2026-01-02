@@ -17,6 +17,12 @@ TotoWarUtils = {
 
     ---Enumerations
     Enums = {
+        ---Colors.
+        Color = {
+            blue = "alliance_ally",
+            red = "alliance_enemy",
+            yellow = "yellow"
+        },
         ---Component context object type IDs.
         CcoContextTypeId = {
             ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
@@ -40,6 +46,9 @@ TotoWarUtils = {
             characterDeselected = "CharacterDeselected",
             characterSelected = "CharacterSelected",
             panelOpenedCampaign = "PanelOpenedCampaign",
+        },
+        Icon = {
+
         },
         Panel = {
             recruitmentOptions = "recruitment_options"
