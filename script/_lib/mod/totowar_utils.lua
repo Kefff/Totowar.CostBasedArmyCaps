@@ -1,3 +1,5 @@
+local totowarUtils = "totowar_utils"
+
 ---UI utility tools for Totowar mods.
 ---@class UI
 local UI = {}
@@ -17,6 +19,7 @@ TotoWarUtils = {
     Enums = {
         ---Component context object type IDs.
         CcoContextTypeId = {
+            ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
             ccoCampaignCharacter = "CcoCampaignCharacter",
             ccoMainUnitRecord = "CcoMainUnitRecord"
         },
@@ -34,10 +37,14 @@ TotoWarUtils = {
         },
         ---Events.
         Event = {
+            characterDeselected = "CharacterDeselected",
             characterSelected = "CharacterSelected",
             panelOpenedCampaign = "PanelOpenedCampaign",
         }
     },
+
+    ---Logger for utility tools.
+    logger = TotowarLogger.new(totowarUtils),
 
     ---Player faction name.
     ---@type string
@@ -48,21 +55,51 @@ TotoWarUtils = {
     UI = UI
 }
 
+---Indicates whether an army can recruit units.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
+---@return boolean
+function TotoWarUtils:canArmyRecruit(army)
+    TotoWarUtils.logger:logDebug("Can recruit: Started")
+
+    local canRecruit =
+        army:has_general()
+        and not army:is_armed_citizenry()
+        and not army:is_set_piece_battle_army()
+        and not army:force_type():has_feature("unable_to_recruit_units")
+
+    TotoWarUtils.logger:logDebug("Can recruit (%s): Completed", canRecruit)
+
+    return canRecruit
+end
+
 ---Indicates whether a faction is the faction of the player.
 ---@param factionName string name.
 ---@return boolean
 function TotoWarUtils:isPlayerFaction(factionName)
-    TotowarLogger:logDebug("Is player faction (\"%s\"): Completed", factionName)
+    TotoWarUtils.logger:logDebug("Is player faction (\"%s\"): Started", factionName)
 
     if TotoWarUtils.playerFactionName == nil then
         TotoWarUtils.playerFactionName = cm:get_local_faction_name()
     end
 
-    isPlayerFaction = factionName == TotoWarUtils.playerFactionName
+    isPlayerFactionGeneral = factionName == TotoWarUtils.playerFactionName
 
-    TotowarLogger:logDebug("Is player faction (\"%s\", %s): Started", factionName, isPlayerFaction)
+    TotoWarUtils.logger:logDebug("Is player faction (\"%s\", %s): Completed", factionName, isPlayerFactionGeneral)
 
-    return isPlayerFaction
+    return isPlayerFactionGeneral
+end
+
+---Indicates whether a character is general that belongs to the faction of the player.
+---@param character CHARACTER_SCRIPT_INTERFACE character.
+---@return boolean
+function TotoWarUtils:isPlayerFactionGeneral(character)
+    TotoWarUtils.logger:logDebug("Is player faction general (%s): Started", character:cqi())
+
+    isPlayerFactionGeneral = character:has_military_force() and TotoWarUtils:isPlayerFaction(character:faction():name())
+
+    TotoWarUtils.logger:logDebug("Is player faction general (%s, %s): Completed", character:cqi(), isPlayerFactionGeneral)
+
+    return isPlayerFactionGeneral
 end
 
 ---Gets a context object of a UI component.
@@ -70,12 +107,14 @@ end
 ---@param ccoContextTypeId string ID of the context object.
 ---@return ComponentContextObject
 function UI:getComponentContextObject(uiComponent, ccoContextTypeId)
-    TotowarLogger:logDebug("Get component context object (\"%s\", \"%s\"): Started", uiComponent:Id(), ccoContextTypeId)
+    TotoWarUtils.logger:logDebug("Get component context object (\"%s\", \"%s\"): Started", uiComponent:Id(),
+        ccoContextTypeId)
 
     local contextId = uiComponent:GetContextObjectId(ccoContextTypeId)
     local componentContextObject = cco(ccoContextTypeId, contextId)
 
-    TotowarLogger:logDebug("Get component context object (\"%s\", \"%s\"): Completed", uiComponent:Id(), ccoContextTypeId)
+    TotoWarUtils.logger:logDebug("Get component context object (\"%s\", \"%s\"): Completed", uiComponent:Id(),
+        ccoContextTypeId)
 
     return componentContextObject
 end
@@ -83,11 +122,11 @@ end
 ---Gets the global recruitment pool UI component.
 ---@return UIC
 function UI:getGlobalRecruitmentPoolUIComponent()
-    TotowarLogger:logDebug("Get global recruitment pool UI component: Started")
+    TotoWarUtils.logger:logDebug("Get global recruitment pool UI component: Started")
 
+    local unitsPanelUIComponent = UI:getUnitsPanelUIComponent()
     local globalRecruitmentUIComponent = find_uicomponent(
-        core:get_ui_root(),
-        "units_panel",
+        unitsPanelUIComponent,
         "main_units_panel",
         "recruitment_docker",
         "recruitment_options",
@@ -97,7 +136,7 @@ function UI:getGlobalRecruitmentPoolUIComponent()
         "list_box",
         "global")
 
-    TotowarLogger:logDebug("Get global recruitment pool UI component: Completed")
+    TotoWarUtils.logger:logDebug("Get global recruitment pool UI component: Completed")
 
     return globalRecruitmentUIComponent
 end
@@ -105,11 +144,11 @@ end
 ---Gets the local recruitment pool UI component.
 ---@return UIC
 function UI:getLocalRecruitmentPoolUIComponent()
-    TotowarLogger:logDebug("Get local recruitment pool UI component: Started")
+    TotoWarUtils.logger:logDebug("Get local recruitment pool UI component: Started")
 
+    local unitsPanelUIComponent = UI:getUnitsPanelUIComponent()
     local localRecruitmentUIComponent = find_uicomponent(
-        core:get_ui_root(),
-        "units_panel",
+        unitsPanelUIComponent,
         "main_units_panel",
         "recruitment_docker",
         "recruitment_options",
@@ -119,25 +158,37 @@ function UI:getLocalRecruitmentPoolUIComponent()
         "list_box",
         "local1")
 
-    TotowarLogger:logDebug("Get local recruitment pool UI component: Completed")
+    TotoWarUtils.logger:logDebug("Get local recruitment pool UI component: Completed")
 
     return localRecruitmentUIComponent
+end
+
+---Gets the UI component for the units panel.
+---@return UIC
+function UI:getUnitsPanelUIComponent()
+    TotoWarUtils.logger:logDebug("Get units panel UI component: Started")
+
+    local unitsPanelUIComponent = find_uicomponent(core:get_ui_root(), "units_panel")
+
+    TotoWarUtils.logger:logDebug("Get units panel UI component: Completed")
+
+    return unitsPanelUIComponent
 end
 
 ---Gets the UI component for the list of icons of the units panel.
 ---@return UIC
 function UI:getUnitsPanelIconListUIComponent()
-    TotowarLogger:logDebug("Get units panel icon list UI component: Started")
+    TotoWarUtils.logger:logDebug("Get units panel icon list UI component: Started")
 
-    local unitsPanelIconList = find_uicomponent(
-        core:get_ui_root(),
-        "units_panel",
+    local unitsPanelUIComponent = UI:getUnitsPanelUIComponent()
+    local unitsPanelIconListUIComponent = find_uicomponent(
+        unitsPanelUIComponent,
         "main_units_panel",
         "icon_list")
 
-    TotowarLogger:logDebug("Get units panel icon list UI component: Completed")
+    TotoWarUtils.logger:logDebug("Get units panel icon list UI component: Completed")
 
-    return unitsPanelIconList
+    return unitsPanelIconListUIComponent
 end
 
 ---Offsets the children of a UI component.
@@ -145,12 +196,12 @@ end
 ---@param offsetX number X offset.
 ---@param offsetY number Y offset.
 function UI:offsetUIComponent(uiComponent, offsetX, offsetY)
-    TotowarLogger:logDebug("Offset UI components (\"%s\"): Started", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Offset UI components (\"%s\"): Started", uiComponent:Id())
 
     local uiComponentOffsetX, uiComponentOffsetY = uiComponent:GetDockOffset()
     uiComponent:SetDockOffset(uiComponentOffsetX + offsetX, uiComponentOffsetY + offsetY)
 
-    TotowarLogger:logDebug("Offset UI components (\"%s\"): Completed", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Offset UI components (\"%s\"): Completed", uiComponent:Id())
 end
 
 ---Offsets the children of a UI component.
@@ -158,14 +209,14 @@ end
 ---@param offsetX number X offset.
 ---@param offsetY number Y offset.
 function UI:offsetChildUIComponents(uiComponent, offsetX, offsetY)
-    TotowarLogger:logDebug("Offset child UI components (\"%s\"): Started", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Offset child UI components (\"%s\"): Started", uiComponent:Id())
 
     for i = 0, uiComponent:ChildCount() - 1, 1 do
         local childUIComponent = find_child_uicomponent_by_index(uiComponent, i)
         UI:offsetUIComponent(childUIComponent, offsetX, offsetY)
     end
 
-    TotowarLogger:logDebug("Offset child UI components (\"%s\"): Completed", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Offset child UI components (\"%s\"): Completed", uiComponent:Id())
 end
 
 ---Resizes a UI component.
@@ -173,14 +224,14 @@ end
 ---@param widthToAdd number Width to add.
 ---@param heightToAdd number Height to add.
 function UI:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
-    TotowarLogger:logDebug("Resize UI component (\"%s\"): Started", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Resize UI component (\"%s\"): Started", uiComponent:Id())
 
     local uiComponentWidth, uiComponentHeight = uiComponent:Dimensions()
     uiComponent:SetCanResizeWidth(true)
     uiComponent:SetCanResizeHeight(true)
     uiComponent:Resize(uiComponentWidth + widthToAdd, uiComponentHeight + heightToAdd, false)
 
-    TotowarLogger:logDebug("Resize UI component (\"%s\"): Completed", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Resize UI component (\"%s\"): Completed", uiComponent:Id())
 end
 
 ---A UI components and its children listed in a path.
@@ -189,7 +240,7 @@ end
 ---@param heightToAdd number Height to add.
 ---@param ... string Path containing the names of the child UI components to resize.
 function UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, ...)
-    TotowarLogger:logDebug("Resize UI component and children (\"%s\"): Started", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Resize UI component and children (\"%s\"): Started", uiComponent:Id())
 
     local childUIComponentsPath = { ... }
     local currentChildUIComponentPath = {}
@@ -202,5 +253,5 @@ function UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, .
         UI:resizeUIComponent(childUIComponent, widthToAdd, heightToAdd)
     end
 
-    TotowarLogger:logDebug("Resize UI component and children (\"%s\"): Completed", uiComponent:Id())
+    TotoWarUtils.logger:logDebug("Resize UI component and children (\"%s\"): Completed", uiComponent:Id())
 end

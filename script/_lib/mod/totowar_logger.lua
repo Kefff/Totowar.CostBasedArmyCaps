@@ -7,13 +7,17 @@ local TotowarLoggerSeverity = {
 
 ---@class TotowarLogger
 TotowarLogger = {
-    --- Log file name
+    ---Indicates whether the logger is enabled.
+    ---@type boolean
+    isEnabled = true,
+
+    ---Log file name.
     ---@type string
     logFileName = "totowar_logs.txt",
 
-    --- Mod name.
+    ---Mod name.
     ---@type string
-    modName = "totowar_utils"
+    modName = nil
 }
 TotowarLogger.__index = TotowarLogger
 
@@ -49,6 +53,10 @@ end
 ---@param message string Message to log.
 ---@param ... any Message parameters.
 local function log(instance, severity, message, ...)
+    if not instance.isEnabled then
+        return
+    end
+
     parameters = {}
 
     for i, value in ipairs({ ... }) do
