@@ -1,3 +1,6 @@
+local _defaultLogFileName = "totowar_logs.txt"
+
+---Log severities.
 local TotoWarLoggerSeverity = {
     debug = "DEBUG",
     info = "INFO ",
@@ -5,6 +8,7 @@ local TotoWarLoggerSeverity = {
     error = "ERROR"
 }
 
+---Logger for TotoWar mods.
 ---@class TotoWarLogger
 TotoWarLogger = {
     ---Indicates whether the logger is enabled.
@@ -13,7 +17,7 @@ TotoWarLogger = {
 
     ---Log file name.
     ---@type string
-    logFileName = "totowar_logs.txt",
+    logFileName = nil,
 
     ---Mod name.
     ---@type string
@@ -21,28 +25,32 @@ TotoWarLogger = {
 }
 TotoWarLogger.__index = TotoWarLogger
 
----Initializes a new instance of TotoWarLogger.
+---Initializes a new instance.
 ---@param modName string Mod name.
----@param logFileName string? Log file name.
+---@param logFileName string? Log file name. If `nil`, the default log file name is used.
+---@param resetLogFile boolean? Indicates whether the log file should be reset. If `nil`, `false`.
 ---@return TotoWarLogger
-function TotoWarLogger.new(modName, logFileName)
+function TotoWarLogger.new(modName, logFileName, resetLogFile)
     local instance = setmetatable({}, TotoWarLogger)
 
     if logFileName then
         instance.logFileName = logFileName
+    else
+        instance.logFileName = _defaultLogFileName
+    end
+
+    if resetLogFile then
+        local file = io.open(instance.logFileName, "w")
+
+        if file then
+            file:write("")
+            file:close()
+        end
     end
 
     instance.modName = modName
 
-    -- Resetting the file
-    local file = io.open(instance.logFileName, "w")
-
-    if file then
-        file:write("")
-        file:close()
-    end
-
-    instance:logInfo("Logger: Initialized")
+    instance:logInfo("Logger instance created")
 
     return instance
 end
@@ -79,7 +87,7 @@ end
 ---@param message string Message to log.
 ---@param ... any Message parameters.
 function TotoWarLogger:logDebug(message, ...)
-    if TotoWarUtils.isDebug then
+    if TotoWar().isDebug then
         log(self, TotoWarLoggerSeverity.debug, message, ...)
     end
 end
