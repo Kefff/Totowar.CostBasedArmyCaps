@@ -72,7 +72,7 @@ local function log(instance, severity, message, ...)
     end
 
     message = string.format(message, unpack(parameters))
-    fullLog = string.format("[%s] %s | %s: %s", instance.modName, os.date("%c"), severity, message)
+    fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.modName, message)
     ModLog(fullLog)
 
     local file = io.open(instance.logFileName, "a")

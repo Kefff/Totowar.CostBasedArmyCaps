@@ -23,7 +23,7 @@ function TotoWarModsManager.new()
     return instance
 end
 
----Find a registered mod.
+---Finds a registered mod.
 ---@param modName string Mod name.
 ---@return TotoWarMod | nil
 function TotoWarModsManager:findMod(modName)

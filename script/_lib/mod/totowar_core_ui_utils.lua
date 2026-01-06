@@ -1,7 +1,9 @@
+---@class TotoWarUIUtils_PanelCategory
 local _panelCategories = {
     hasRecruitmentUnitList = "hasRecruitmentUnitList"
 }
 
+---@class TotoWarUIUtils_UIComponentQuery
 local _uiComponentQueries = {
     alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recruitment_display", "recruitment_holder", "unit_list" },
     globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
@@ -18,6 +20,7 @@ TotoWarUIUtils = {
     ---Enums.
     enums = {
         ---Component context object type IDs.
+        ---@class TotoWarUIUtils_CcoContextTypeIdEnum
         ccoContextTypeId = {
             ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
             ccoCampaignCharacter = "CcoCampaignCharacter",
@@ -25,6 +28,7 @@ TotoWarUIUtils = {
         },
 
         ---Docking points.
+        ---@class TotoWarUIUtils_DockingPoint
         dockingPoint = {
             topLeft = 1,
             topMiddle = 2,
@@ -49,7 +53,6 @@ TotoWarUIUtils = {
     logger = nil,
 
     --Panels.
-    ---@type table<string, TotoWarUIPanelInfo>
     panels = {
         alliedRecruitment = TotoWarUIPanelInfo.new(
             "allied_recruitment",
@@ -61,7 +64,7 @@ TotoWarUIUtils = {
             { _uiComponentQueries.mercenaryRecruitmentPool }),
         recruitmentOptions = TotoWarUIPanelInfo.new(
             "recruitment_options",
-            { _panelCategories.hasRecruitmentUnitList },
+            {},
             { _uiComponentQueries.recruitmentOptions }),
         unitsRecruitment = TotoWarUIPanelInfo.new(
             "units_recruitment",
@@ -216,20 +219,19 @@ end
 ---@param uiComponent UIC UI component to resize.
 ---@param widthToAdd number Width to add.
 ---@param heightToAdd number Height to add.
----@param ... string Path containing the names of the child UI components to resize.
-function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, ...)
+---@param query string[] Path containing the names of the child UI components to resize.
+function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, query)
     self.logger:logDebug(
         "TotoWarUIUtils:resizeUIComponentAndChildren(%s, %s, %s): STARTED",
         uiComponent:Id(),
         widthToAdd,
         heightToAdd)
 
-    local childUIComponentsPath = { ... }
     local currentChildUIComponentPath = {}
 
     self:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
 
-    for i, childUIComponentName in ipairs(childUIComponentsPath) do
+    for i, childUIComponentName in ipairs(query) do
         currentChildUIComponentPath[i] = childUIComponentName
         local childUIComponent = find_uicomponent(uiComponent, unpack(currentChildUIComponentPath))
         self:resizeUIComponent(childUIComponent, widthToAdd, heightToAdd)

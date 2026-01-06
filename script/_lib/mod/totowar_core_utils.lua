@@ -4,6 +4,7 @@ TotoWarUtils = {
     ---Enumerations
     enums = {
         ---Colors.
+        ---@class TotoWarUtilsColorEnum
         color = {
             blue = "alliance_ally",
             red = "alliance_enemy",
@@ -11,10 +12,12 @@ TotoWarUtils = {
         },
 
         ---Events.
+        ---@class TotoWarUtilsEventEnum
         event = {
             characterDeselected = "CharacterDeselected",
             characterSelected = "CharacterSelected",
             panelOpenedCampaign = "PanelOpenedCampaign",
+            unitDisbanded = "UnitDisbanded"
         }
     },
 
