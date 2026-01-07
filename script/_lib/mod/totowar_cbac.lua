@@ -145,13 +145,45 @@ function TotoWarCbac:addListeners()
         "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
         TotoWar().utils.enums.event.unitDisbanded)
     core:add_listener(
-        "totowar_cbac_unit_destroyed",
+        "totowar_cbac_unit_disbanded",
         TotoWar().utils.enums.event.unitDisbanded,
         true,
         function(context)
             cm:callback(
                 function()
                     self:onUnitDisbanded()
+                end,
+                TotoWar().utils.eventCallbackTriggerDelay)
+        end,
+        true)
+
+    self.logger:logDebug(
+        "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
+        TotoWar().utils.enums.event.unitMergedAndDestroyed)
+    core:add_listener(
+        "totowar_cbac_unit_merged_and_destroyed",
+        TotoWar().utils.enums.event.unitMergedAndDestroyed,
+        true,
+        function(context)
+            cm:callback(
+                function()
+                    self:onUnitMergedAndDestroyed()
+                end,
+                TotoWar().utils.eventCallbackTriggerDelay)
+        end,
+        true)
+
+    self.logger:logDebug(
+        "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
+        TotoWar().utils.enums.event.unitTrained)
+    core:add_listener(
+        "totowar_cbac_unit_trained",
+        TotoWar().utils.enums.event.unitTrained,
+        true,
+        function(context)
+            cm:callback(
+                function()
+                    self:onUnitTrained()
                 end,
                 TotoWar().utils.eventCallbackTriggerDelay)
         end,
@@ -434,6 +466,28 @@ function TotoWarCbac:onUnitDisbanded()
     end
 
     self.logger:logDebug("TotoWarCbac:onUnitDisbanded(): COMPLETED")
+end
+
+---Reacts to a unit being merged and destroyed.
+function TotoWarCbac:onUnitMergedAndDestroyed()
+    self.logger:logDebug("TotoWarCbac:onUnitMergedAndDestroyed(): STARTED")
+
+    if self.selectedGeneral then
+        self:updateSelectedGeneralArmySuppliesCost()
+    end
+
+    self.logger:logDebug("TotoWarCbac:onUnitMergedAndDestroyed(): COMPLETED")
+end
+
+---Reacts to a unit being trained.
+function TotoWarCbac:onUnitTrained()
+    self.logger:logDebug("TotoWarCbac:onUnitTrained(): STARTED")
+
+    if self.selectedGeneral then
+        self:updateSelectedGeneralArmySuppliesCost()
+    end
+
+    self.logger:logDebug("TotoWarCbac:onUnitTrained(): COMPLETED")
 end
 
 ---Sets the selected general and calculate the price of its army.

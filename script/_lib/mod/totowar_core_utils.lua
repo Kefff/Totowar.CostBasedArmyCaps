@@ -17,7 +17,9 @@ TotoWarUtils = {
             characterDeselected = "CharacterDeselected",
             characterSelected = "CharacterSelected",
             panelOpenedCampaign = "PanelOpenedCampaign",
-            unitDisbanded = "UnitDisbanded"
+            unitDisbanded = "UnitDisbanded",
+            unitMergedAndDestroyed = "UnitMergedAndDestroyed",
+            unitTrained = "UnitTrained"
         }
     },
 
