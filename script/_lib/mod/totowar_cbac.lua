@@ -10,14 +10,6 @@ local _armySuppliesCostUIComponentHeight = 24
 ---@type string
 local _armySuppliesCostUIComponentName = "totowar_cbac_army_supply_cost"
 
----ID of the army supplies icon.
----@type string
-local _armySuppliesIconId = "icon_merc"
-
----Path of the army supplies icon.
----@type string
-local _armySuppliesIconPath = "ui/skins/default/merc.png"
-
 ---ID of the depleted army supplies warning icon.
 ---@type string
 local _armySuppliesDepletedWarningIconId = "totowar_cbac_army_supply_depleted"
@@ -26,6 +18,14 @@ local _armySuppliesDepletedWarningIconId = "totowar_cbac_army_supply_depleted"
 ---@type string
 local _armySuppliesDepletedWarningIconPath = "ui/skins/warhammer2/icon_status_alert_high.png"
 
+---ID of the army supplies icon.
+---@type string
+local _armySuppliesIconId = "icon_merc"
+
+---Path of the army supplies icon.
+---@type string
+local _armySuppliesIconPath = "ui/skins/default/merc.png"
+
 ---Default amount of army supplies per army.
 ---Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.
 ---@type number
@@ -33,17 +33,17 @@ local _defaultArmySupplies = 12400
 
 ---Queries for searching TotoWar Cost-Based Army Caps UI components.
 ---@type string[][]
-local UIComponentQuery = {
+local _uiComponentQuery = {
     unitsPanelArmySuppliesCost = { "units_panel", "main_units_panel", "icon_list", _armySuppliesCostUIComponentName }
 }
 
 ---Name of the UI component that displays unit army supplies cost.
 ---@type string
-local unitArmySuppliesCostUIComponentName = "totowar_cbac_unit_army_supply_cost"
+local _unitArmySuppliesCostUIComponentName = "totowar_cbac_unit_army_supply_cost"
 
 ---Y offset of the UI component that displays unit army supplies cost.
 ---@type number
-local unitArmySuppliesCostUIComponentOffsetY = -18
+local _unitArmySuppliesCostUIComponentOffsetY = -18
 
 ---TotoWar mod form managing cost-Based army caps.
 ---@class TotoWarCbac
@@ -246,35 +246,41 @@ function TotoWarCbac:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
 
     self.logger:logDebug("TotoWarCbac:displayRecruitableUnitArmySuppliesCost() => (%s, %s)", unitName, unitBaseCost)
 
-    TotoWar().utils.ui:resizeUIComponent(unitUIComponent, 0, _armySuppliesCostUIComponentHeight)
+    local armyCostUIComponent = TotoWar().utils.ui:findUIComponentChild(
+        unitUIComponent,
+        { "external_holder", _unitArmySuppliesCostUIComponentName })
 
-    local externalHolderUIComponent = TotoWar().utils.ui:findUIComponentChild(unitUIComponent, { "external_holder" })
+    if not armyCostUIComponent then
+        TotoWar().utils.ui:resizeUIComponent(unitUIComponent, 0, _armySuppliesCostUIComponentHeight)
 
-    if not externalHolderUIComponent then
-        return
+        local externalHolderUIComponent = TotoWar().utils.ui:findUIComponentChild(unitUIComponent, { "external_holder" })
+
+        if not externalHolderUIComponent then
+            return
+        end
+
+        TotoWar().utils.ui:resizeUIComponent(externalHolderUIComponent, 0, _armySuppliesCostUIComponentHeight)
+
+        local recruitmentCostUIComponent = TotoWar().utils.ui:findUIComponentChild(
+            externalHolderUIComponent,
+            { "RecruitmentCost" })
+
+        if not recruitmentCostUIComponent then
+            return
+        end
+
+        local xPadding = recruitmentCostUIComponent:GetDockOffset()
+
+        -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
+        TotoWar().utils.ui:offsetChildUIComponents(externalHolderUIComponent, 0, -_armySuppliesCostUIComponentHeight)
+
+        -- Copying the recruitment cost UI component to create the army supplies cost UI component
+        armyCostUIComponent = UIComponent(recruitmentCostUIComponent:CopyComponent(_unitArmySuppliesCostUIComponentName))
+        armyCostUIComponent:SetDockOffset(xPadding, _unitArmySuppliesCostUIComponentOffsetY)
+        armyCostUIComponent:SetTooltipText(
+            common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip"),
+            true)
     end
-
-    TotoWar().utils.ui:resizeUIComponent(externalHolderUIComponent, 0, _armySuppliesCostUIComponentHeight)
-
-    local recruitmentCostUIComponent = TotoWar().utils.ui:findUIComponentChild(
-        externalHolderUIComponent,
-        { "RecruitmentCost" })
-
-    if not recruitmentCostUIComponent then
-        return
-    end
-
-    local xPadding = recruitmentCostUIComponent:GetDockOffset()
-
-    -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
-    TotoWar().utils.ui:offsetChildUIComponents(externalHolderUIComponent, 0, -_armySuppliesCostUIComponentHeight)
-
-    -- Copying the recruitment cost UI component to create the army supplies cost UI component
-    local armyCostUIComponent = UIComponent(recruitmentCostUIComponent:CopyComponent(unitArmySuppliesCostUIComponentName))
-    armyCostUIComponent:SetDockOffset(xPadding, unitArmySuppliesCostUIComponentOffsetY)
-    armyCostUIComponent:SetTooltipText(
-        common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip"),
-        true)
 
     local unitBaseCostText = tostring(unitBaseCost)
     local availableArmySupplies = self.armySupplies - self.selectedGeneralArmySuppliesCost.totalCost
@@ -283,15 +289,15 @@ function TotoWarCbac:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
         unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", TotoWar().utils.enums.color.red, unitBaseCostText)
     end
 
-    local costUIComponent = TotoWar().utils.ui:findUIComponentChild(armyCostUIComponent, { "Cost" })
+    local armyCostUIComponentDetailUIComponent = TotoWar().utils.ui:findUIComponentChild(armyCostUIComponent, { "Cost" })
 
-    if not costUIComponent then
+    if not armyCostUIComponentDetailUIComponent then
         return
     end
 
-    costUIComponent:DestroyChildren() -- Removing the price change arrow copied from
-    costUIComponent:SetText(unitBaseCostText, "")
-    costUIComponent:SetImagePath(_armySuppliesIconPath, 0, false)
+    armyCostUIComponentDetailUIComponent:DestroyChildren() -- Removing the price change arrow copied from
+    armyCostUIComponentDetailUIComponent:SetText(unitBaseCostText, "")
+    armyCostUIComponentDetailUIComponent:SetImagePath(_armySuppliesIconPath, 0, false)
 
     self.logger:logDebug(
         "TotoWarCbac:displayRecruitableUnitArmySuppliesCost(): COMPLETED => %s, %s",
@@ -414,7 +420,7 @@ end
 function TotoWarCbac:displaySelectedGeneralArmySuppliesCost()
     self.logger:logDebug("TotoWarCbac:displaySelectedGeneralArmySuppliesCost: STARTED")
 
-    local armySuppliesCostUIComponent = TotoWar().utils.ui:findUIComponent(UIComponentQuery.unitsPanelArmySuppliesCost)
+    local armySuppliesCostUIComponent = TotoWar().utils.ui:findUIComponent(_uiComponentQuery.unitsPanelArmySuppliesCost)
 
     if not armySuppliesCostUIComponent then
         -- When the recruitment panel was not already open,
@@ -467,7 +473,7 @@ end
 function TotoWarCbac:hideArmySuppliesCostUIComponent()
     self.logger:logDebug("TotoWarCbac:hideArmySuppliesCostUIComponent(): STARTED")
 
-    local armyCostUIComponent = TotoWar().utils.ui:findUIComponent(UIComponentQuery.unitsPanelArmySuppliesCost)
+    local armyCostUIComponent = TotoWar().utils.ui:findUIComponent(_uiComponentQuery.unitsPanelArmySuppliesCost)
 
     if armyCostUIComponent then
         armyCostUIComponent:SetVisible(false)
@@ -496,12 +502,8 @@ function TotoWarCbac:onCharacterSelected(character)
         and TotoWar().utils:canRecruitUnits(character:military_force())
 
     if canRecruit then
-        -- If the recruitment panel is open, we are force to close it here because the panelOpened
-        -- event it triggered before the characterChanged event.
-        -- This means that when then panelOpened event is triggered, the previous general is still
-        -- selected so army supplies prices are not up to date with the selected general.
-        self:closeRecruitmentPanel()
         self:setSelectedGeneral(character)
+        self:displayRecruitableUnitsArmySuppliesCost()
     else
         self:setSelectedGeneral(nil)
         self:hideArmySuppliesCostUIComponent()
