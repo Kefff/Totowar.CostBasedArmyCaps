@@ -51,7 +51,7 @@ function TotoWarCbacUnitArmySuppliesCost:addUnit()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
 end
 
----Gets a unit army cost as a tooltip string.
+---Gets a unit army supplies cost as a tooltip string.
 ---@return string
 function TotoWarCbacUnitArmySuppliesCost:toTooltipText()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: STARTED")

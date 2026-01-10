@@ -52,6 +52,10 @@ TotoWarCbac = {
     ---@type number
     armySupplies = nil,
 
+    ---Indicates whether recruitment panel has been resized to be able to display army supplies cost under each unit price.
+    ---It only needs to be resized once per recruitment panel opening.
+    hasStandardUnitsRecruitmentPanelBeenResized = false,
+
     ---Logger.
     ---@type TotoWarLogger
     logger = nil,
@@ -60,13 +64,13 @@ TotoWarCbac = {
     ---@type CHARACTER_SCRIPT_INTERFACE
     selectedGeneral = nil,
 
-    ---Selected general army cost.
+    ---Army supplies cost of the army of the selected general.
     ---@type TotoWarCbacArmySuppliesCost
     selectedGeneralArmySuppliesCost = nil,
 
-    ---Selected general amount of action points before being blocked due to depleted army supplies.
-    ---Restored when army supplies are no longer depleted.
-    selectedGeneralActionPointsPercentageBeforeBlock = nil,
+    ---Army supplies cost of the units being recruited in the selected general army.
+    ---@type TotoWarCbacArmySuppliesCost
+    selectedGeneralCurrentRecruitmentArmySuppliesCost = nil,
 }
 TotoWarCbac.__index = TotoWarCbac
 
@@ -126,10 +130,10 @@ function TotoWarCbac:addListeners()
 
     self.logger:logDebug(
         "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
-        TotoWar().utils.enums.event.panelOpenedCampaign)
+        TotoWar().utils.enums.event.panelOpened)
     core:add_listener(
-        "totowar_cbac_recruitment_panel_opened",
-        TotoWar().utils.enums.event.panelOpenedCampaign,
+        "totowar_cbac_panel_opened",
+        TotoWar().utils.enums.event.panelOpened,
         true,
         function(context)
             local panelName = context.string
@@ -159,10 +163,10 @@ function TotoWarCbac:addListeners()
 
     self.logger:logDebug(
         "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
-        TotoWar().utils.enums.event.unitMergedAndDestroyed)
+        TotoWar().utils.enums.event.unitMerged)
     core:add_listener(
         "totowar_cbac_unit_merged_and_destroyed",
-        TotoWar().utils.enums.event.unitMergedAndDestroyed,
+        TotoWar().utils.enums.event.unitMerged,
         true,
         function(context)
             cm:callback(
@@ -173,78 +177,62 @@ function TotoWarCbac:addListeners()
         end,
         true)
 
-    self.logger:logDebug(
-        "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
-        TotoWar().utils.enums.event.unitTrained)
-    core:add_listener(
-        "totowar_cbac_unit_trained",
-        TotoWar().utils.enums.event.unitTrained,
-        true,
-        function(context)
-            cm:callback(
-                function()
-                    self:onUnitTrained()
-                end,
-                TotoWar().utils.eventCallbackTriggerDelay)
-        end,
-        true)
+    -- self.logger:logDebug(
+    --     "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
+    --     TotoWar().utils.enums.event.unitRecruitmentCancelled)
+    -- core:add_listener(
+    --     "totowar_cbac_recruitment_item_cancelled_by_player",
+    --     TotoWar().utils.enums.event.unitRecruitmentCancelled,
+    --     true,
+    --     ---@param context RecruitmentItemCancelledByPlayer
+    --     function(context)
+    --         local unitKey = context:main_unit_record()
+    --         cm:callback(
+    --             function()
+    --                 ---@diagnostic disable-next-line: param-type-mismatch
+    --                 self:onUnitRecruitmentCancelled(unitKey)
+    --             end,
+    --             TotoWar().utils.eventCallbackTriggerDelay)
+    --     end,
+    --     true)
+
+    -- self.logger:logDebug(
+    --     "TotoWarCbac:addListeners() => Add listener to event \"%s\"",
+    --     TotoWar().utils.enums.event.unitAddedToRecruitment)
+    -- core:add_listener(
+    --     "totowar_cbac_recruitment_item_issued_by_player",
+    --     TotoWar().utils.enums.event.unitAddedToRecruitment,
+    --     true,
+    --     ---@param context RecruitmentItemIssuedByPlayer
+    --     function(context)
+    --         local unitKey = context:main_unit_record()
+    --         cm:callback(
+    --             function()
+    --                 ---@diagnostic disable-next-line: param-type-mismatch
+    --                 self:onUnitAddedToRecruitment(unitKey)
+    --             end,
+    --             TotoWar().utils.eventCallbackTriggerDelay)
+    --     end,
+    --     true)
 
     self.logger:logDebug("TotoWarCbac:addListeners(): COMPLETED")
 end
 
----Displays of updates (when switching between generals) the army supplies cost of the army of the selected player faction general.
-function TotoWarCbac:displayOrUpdateUnitsPanelArmySuppliesCost()
-    self.logger:logDebug("TotoWarCbac:displayOrUpdateUnitsPanelArmySuppliesCost: STARTED")
+---Closes the recruitment panel if it is open.
+function TotoWarCbac:closeRecruitmentPanel()
+    local isOpen = cm:get_campaign_ui_manager():is_panel_open(TotoWar().utils.ui.panels.recruitmentOptions.name)
 
-    local armySuppliesCostUIComponent = TotoWar().utils.ui:findUIComponent(UIComponentQuery.unitsPanelArmySuppliesCost)
+    if isOpen then
+        local closeButton = TotoWar().utils.ui:findUIComponent(
+            TotoWar().utils.ui.uiComponentQuery.recruitmentPanelCloseButton)
 
-    if not armySuppliesCostUIComponent then
-        -- Copying the upkeep cost UI component to create the army supplies cost UI component
-        local unitsPanelIconListUIComponent = TotoWar().utils.ui:findUIComponent(
-            TotoWar().utils.ui.enums.uiComponentQuery.unitsPanelIconList)
-
-        if not unitsPanelIconListUIComponent then
-            return
+        if closeButton then
+            closeButton:SimulateLClick()
         end
-
-        local upkeepUIComponent = TotoWar().utils.ui:findUIComponentChild(unitsPanelIconListUIComponent, { "dy_upkeep" })
-
-        if not upkeepUIComponent then
-            return
-        end
-
-        armySuppliesCostUIComponent = UIComponent(upkeepUIComponent:CopyComponent(_armySuppliesCostUIComponentName))
-        armySuppliesCostUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
     end
-
-    local totalCostText = ""
-
-    if self.selectedGeneralArmySuppliesCost.totalCost > self.armySupplies then
-        totalCostText = string.format(
-            "[[col:%s]]%s[[/col]] / %s [[img:%s]][[/img]]",
-            TotoWar().utils.enums.color.red,
-            tostring(self.selectedGeneralArmySuppliesCost.totalCost),
-            self.armySupplies,
-            _armySuppliesDepletedWarningIconId)
-    else
-        totalCostText = string.format(
-            "%s / %s",
-            tostring(self.selectedGeneralArmySuppliesCost.totalCost),
-            self.armySupplies)
-    end
-
-    armySuppliesCostUIComponent:SetText(totalCostText, "")
-    armySuppliesCostUIComponent:SetTooltipText(
-        self.selectedGeneralArmySuppliesCost:toTooltipText(self.armySupplies),
-        true)
-    armySuppliesCostUIComponent:SetVisible(true)
-
-    self.logger:logDebug(
-        "TotoWarCbac:displayOrUpdateUnitsPanelArmySuppliesCost: COMPLETED",
-        self.selectedGeneralArmySuppliesCost.totalCost)
 end
 
----Displays the army supplies cost of on a unit card.
+---Displays the army supplies cost of on a recruitable unit card.
 ---@param unitUIComponent UIC Unit UI component.
 function TotoWarCbac:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
     self.logger:logDebug("TotoWarCbac:displayRecruitableUnitArmySuppliesCost(): STARTED")
@@ -289,8 +277,7 @@ function TotoWarCbac:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
         true)
 
     local unitBaseCostText = tostring(unitBaseCost)
-    local availableArmySupplies = self.armySupplies -
-        self.selectedGeneralArmySuppliesCost.totalCost
+    local availableArmySupplies = self.armySupplies - self.selectedGeneralArmySuppliesCost.totalCost
 
     if unitBaseCost > availableArmySupplies then
         unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", TotoWar().utils.enums.color.red, unitBaseCostText)
@@ -306,88 +293,174 @@ function TotoWarCbac:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
     costUIComponent:SetText(unitBaseCostText, "")
     costUIComponent:SetImagePath(_armySuppliesIconPath, 0, false)
 
-    self.logger:logDebug("TotoWarCbac:displayRecruitableUnitArmySuppliesCost(): COMPLETED => %s, %s", unitName,
+    self.logger:logDebug(
+        "TotoWarCbac:displayRecruitableUnitArmySuppliesCost(): COMPLETED => %s, %s",
+        unitName,
         unitBaseCost)
 end
 
----Displays the army supplies costs in the recruitment panel.
----@param panelInfo? TotoWarUIPanelInfo  Information on the recruitment panel. If `nil`, we search for the first recruitment UI component we find.
-function TotoWarCbac:displayRecruitmentPanelArmySuppliesCosts(panelInfo)
-    self.logger:logDebug("TotoWarCbac:displayRecruitmentPanelArmySuppliesCosts(): STARTED")
-
-    if not panelInfo then
+---Displays the army supplies costs on all the recruitable unit cards.
+---@param panel? TotoWarUIPanelInfo  Information on the recruitment panel. If `nil`, we search for the first recruitment UI component we find.
+function TotoWarCbac:displayRecruitableUnitsArmySuppliesCost(panel)
+    if not panel then
         for key, p in pairs(TotoWar().utils.ui.panels) do
-            if p:hasCategory(TotoWar().utils.ui.enums.panelCategory.hasRecruitmentUnitList)
+            if p:hasCategory(TotoWar().utils.ui.enums.panelCategory.hasRecruitmentUnitCards)
                 and cm:get_campaign_ui_manager():is_panel_open(p.name)
             then
-                panelInfo = p
+                panel = p
+
+                break
             end
         end
     end
 
-    if panelInfo then
-        for i, uiComponentQuery in ipairs(panelInfo.uiComponentQueries) do
-            local uiComponent = TotoWar().utils.ui:findUIComponent(uiComponentQuery)
+    if panel then
+        self.logger:logDebug("TotoWarCbac:displayRecruitableUnitsArmySuppliesCost(%s): STARTED", panel.name)
 
-            if uiComponent then
-                self:displayRecruitmentPoolArmySuppliesCost(uiComponent)
+        if panel.name == TotoWar().utils.ui.panels.alliedRecruitment.name then
+            local alliedRecruitmentPoolUIComponent = TotoWar().utils.ui:findUIComponent(
+                TotoWar().utils.ui.uiComponentQuery.alliedRecruitmentPool)
+
+            if alliedRecruitmentPoolUIComponent then
+                self:displayRecruitmentPoolArmySuppliesCost(panel.name, alliedRecruitmentPoolUIComponent)
             end
-        end
-    end
+        elseif panel.name == TotoWar().utils.ui.panels.mercenaryRecruitment.name then
+            local mercenaryRecruitmentPoolUIComponent = TotoWar().utils.ui:findUIComponent(
+                TotoWar().utils.ui.uiComponentQuery.mercenaryRecruitmentPool)
 
-    self.logger:logDebug("TotoWarCbac:displayRecruitmentPanelArmySuppliesCosts(): COMPLETED")
+            if mercenaryRecruitmentPoolUIComponent then
+                self:displayRecruitmentPoolArmySuppliesCost(panel.name, mercenaryRecruitmentPoolUIComponent)
+            end
+        elseif panel.name == TotoWar().utils.ui.panels.standardUnitsRecruitment.name then
+            local globalRecruitmentPoolUIComponent = TotoWar().utils.ui:findUIComponent(
+                TotoWar().utils.ui.uiComponentQuery.globalRecruitmentPool)
+
+            if globalRecruitmentPoolUIComponent then
+                if not self.hasStandardUnitsRecruitmentPanelBeenResized then
+                    -- The listview and its content needs to be resized once until the recruitment panel is closed
+                    TotoWar().utils.ui:resizeUIComponentAndChildren(
+                        globalRecruitmentPoolUIComponent,
+                        0,
+                        _armySuppliesCostUIComponentHeight,
+                        {
+                            "listview",
+                            "list_clip",
+                            "list_box"
+                        })
+                end
+
+                self:displayRecruitmentPoolArmySuppliesCost(panel.name, globalRecruitmentPoolUIComponent)
+            end
+
+            local localRecruitmentPoolUIComponent = TotoWar().utils.ui:findUIComponent(
+                TotoWar().utils.ui.uiComponentQuery.localRecruitmentPool)
+
+            if localRecruitmentPoolUIComponent then
+                if not self.hasStandardUnitsRecruitmentPanelBeenResized then
+                    -- The listview and its content needs to be resized once until the recruitment panel is closed
+                    TotoWar().utils.ui:resizeUIComponentAndChildren(
+                        localRecruitmentPoolUIComponent,
+                        0,
+                        _armySuppliesCostUIComponentHeight,
+                        {
+                            "listview",
+                            "list_clip",
+                            "list_box"
+                        })
+                end
+
+                self:displayRecruitmentPoolArmySuppliesCost(panel.name, localRecruitmentPoolUIComponent)
+            end
+
+            self.hasStandardUnitsRecruitmentPanelBeenResized = true
+        end
+
+        self.logger:logDebug("TotoWarCbac:displayRecruitableUnitsArmySuppliesCost(): COMPLETED")
+    end
 end
 
-local _hasUnitListBeenResized = false
-
 ---Displays the army supplies cost of all the units in a recruitment pool UI.
----@param recruitmentUIComponent UIC Global or local recruitment pool UI component.
-function TotoWarCbac:displayRecruitmentPoolArmySuppliesCost(recruitmentUIComponent)
+---@param panelName string Name of the recruitment panel.
+---@param recruitmentPoolUIComponent UIC UI component that contains the list of recruitable units.
+function TotoWarCbac:displayRecruitmentPoolArmySuppliesCost(panelName, recruitmentPoolUIComponent)
     self.logger:logDebug(
-        "TotoWarCbac:displayRecruitmentPoolArmySuppliesCost(%s): STARTED",
-        recruitmentUIComponent:Id())
+        "TotoWarCbac:displayRecruitmentPoolArmySuppliesCost(%s, %s): STARTED",
+        panelName,
+        recruitmentPoolUIComponent:Id())
 
-    if recruitmentUIComponent:Id() == "unit_list" and not _hasUnitListBeenResized then
-        -- The listview and its content only needs to be resized once until the recruitment panel is closed
-        TotoWar().utils.ui:resizeUIComponentAndChildren(
-            recruitmentUIComponent,
-            0,
-            _armySuppliesCostUIComponentHeight,
-            {
-                "listview",
-                "list_clip",
-                "list_box"
-            })
-        _hasUnitListBeenResized = true
-    elseif recruitmentUIComponent:Id() == "mercenary_recruitment" then
-        -- The listview and its content needs to be resized each time
-        listClipUIComponent = TotoWar().utils.ui:findUIComponentChild(recruitmentUIComponent, { "listview", "list_clip" })
-
-        if listClipUIComponent then
-            TotoWar().utils.ui:resizeUIComponent(listClipUIComponent, 0, _armySuppliesCostUIComponentHeight)
-        end
-    end
-
-    local unitListUIComponent = TotoWar().utils.ui:findUIComponentChild(
-        recruitmentUIComponent,
+    local listBoxUIComponent = TotoWar().utils.ui:findUIComponentChild(
+        recruitmentPoolUIComponent,
         {
             "listview",
             "list_clip",
             "list_box"
         })
 
-    if not unitListUIComponent then
+    if not listBoxUIComponent then
         return
     end
 
-    for i = 0, unitListUIComponent:ChildCount() - 1 do
-        local unitUIComponent = find_child_uicomponent_by_index(unitListUIComponent, i)
+    for i = 0, listBoxUIComponent:ChildCount() - 1 do
+        local unitUIComponent = find_child_uicomponent_by_index(listBoxUIComponent, i)
         self:displayRecruitableUnitArmySuppliesCost(unitUIComponent)
     end
 
     self.logger:logDebug(
         "TotoWarCbac:displayRecruitmentPoolArmySuppliesCost(%s): COMPLETED",
-        recruitmentUIComponent:Id())
+        recruitmentPoolUIComponent:Id())
+end
+
+---Displays the army supplies cost of the army of the selected player faction general.
+function TotoWarCbac:displaySelectedGeneralArmySuppliesCost()
+    self.logger:logDebug("TotoWarCbac:displaySelectedGeneralArmySuppliesCost: STARTED")
+
+    local armySuppliesCostUIComponent = TotoWar().utils.ui:findUIComponent(UIComponentQuery.unitsPanelArmySuppliesCost)
+
+    if not armySuppliesCostUIComponent then
+        -- When the recruitment panel was not already open,
+        -- copying the upkeep cost UI component to create the army supplies cost UI component
+        local unitsPanelIconListUIComponent = TotoWar().utils.ui:findUIComponent(
+            TotoWar().utils.ui.enums.uiComponentQuery.unitsPanelIconList)
+
+        if not unitsPanelIconListUIComponent then
+            return
+        end
+
+        local upkeepUIComponent = TotoWar().utils.ui:findUIComponentChild(unitsPanelIconListUIComponent, { "dy_upkeep" })
+
+        if not upkeepUIComponent then
+            return
+        end
+
+        armySuppliesCostUIComponent = UIComponent(upkeepUIComponent:CopyComponent(_armySuppliesCostUIComponentName))
+        armySuppliesCostUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
+    end
+
+    local totalCostText = ""
+
+    if self.selectedGeneralArmySuppliesCost.totalCost > self.armySupplies then
+        totalCostText = string.format(
+            "[[col:%s]]%s[[/col]] / %s [[img:%s]][[/img]]",
+            TotoWar().utils.enums.color.red,
+            tostring(self.selectedGeneralArmySuppliesCost.totalCost),
+            self.armySupplies,
+            _armySuppliesDepletedWarningIconId)
+    else
+        totalCostText = string.format(
+            "%s / %s",
+            tostring(self.selectedGeneralArmySuppliesCost.totalCost),
+            self.armySupplies)
+    end
+
+    armySuppliesCostUIComponent:SetText(totalCostText, "")
+    armySuppliesCostUIComponent:SetTooltipText(
+        self.selectedGeneralArmySuppliesCost:toTooltipText(self.armySupplies),
+        true)
+    armySuppliesCostUIComponent:SetVisible(true)
+
+    self.logger:logDebug(
+        "TotoWarCbac:displaySelectedGeneralArmySuppliesCost: COMPLETED",
+        self.selectedGeneralArmySuppliesCost.totalCost)
 end
 
 ---Hides the army supplies cost UI component.
@@ -417,19 +490,18 @@ end
 function TotoWarCbac:onCharacterSelected(character)
     self.logger:logDebug("TotoWarCbac:onCharacterSelected(%s): STARTED", character:cqi())
 
+    self.hasStandardUnitsRecruitmentPanelBeenResized = false
     local canRecruit =
         TotoWar().utils:isPlayerFactionGeneral(character)
         and TotoWar().utils:canRecruitUnits(character:military_force())
 
     if canRecruit then
+        -- If the recruitment panel is open, we are force to close it here because the panelOpened
+        -- event it triggered before the characterChanged event.
+        -- This means that when then panelOpened event is triggered, the previous general is still
+        -- selected so army supplies prices are not up to date with the selected general.
+        self:closeRecruitmentPanel()
         self:setSelectedGeneral(character)
-        self:displayOrUpdateUnitsPanelArmySuppliesCost()
-
-        -- When the recruitment options panel is open and we select the same or another character,
-        -- it is refreshed so we need to display the supplies costs again
-        if cm:get_campaign_ui_manager():is_panel_open(TotoWar().utils.ui.panels.recruitmentOptions.name) then
-            self:displayRecruitmentPanelArmySuppliesCosts()
-        end
     else
         self:setSelectedGeneral(nil)
         self:hideArmySuppliesCostUIComponent()
@@ -445,10 +517,9 @@ function TotoWarCbac:onPanelOpened(panelName)
 
     for key, panel in pairs(TotoWar().utils.ui.panels) do
         if panel.name == panelName
-            -- and panel:hasCategory(TotoWar().utils.ui.enums.panelCategory.hasRecruitmentUnitList)
-            and panel:hasCategory("hasRecruitmentUnitList")
+            and panel:hasCategory(TotoWar().utils.ui.enums.panelCategory.hasRecruitmentUnitCards)
         then
-            self:displayRecruitmentPanelArmySuppliesCosts(panel)
+            self:displayRecruitableUnitsArmySuppliesCost(panel)
 
             break
         end
@@ -461,9 +532,7 @@ end
 function TotoWarCbac:onUnitDisbanded()
     self.logger:logDebug("TotoWarCbac:onUnitDisbanded(): STARTED")
 
-    if self.selectedGeneral then
-        self:updateSelectedGeneralArmySuppliesCost()
-    end
+    self:updateSelectedGeneralArmySuppliesCost()
 
     self.logger:logDebug("TotoWarCbac:onUnitDisbanded(): COMPLETED")
 end
@@ -472,22 +541,29 @@ end
 function TotoWarCbac:onUnitMergedAndDestroyed()
     self.logger:logDebug("TotoWarCbac:onUnitMergedAndDestroyed(): STARTED")
 
-    if self.selectedGeneral then
-        self:updateSelectedGeneralArmySuppliesCost()
-    end
+    self:updateSelectedGeneralArmySuppliesCost()
 
     self.logger:logDebug("TotoWarCbac:onUnitMergedAndDestroyed(): COMPLETED")
 end
 
----Reacts to a unit being trained.
-function TotoWarCbac:onUnitTrained()
-    self.logger:logDebug("TotoWarCbac:onUnitTrained(): STARTED")
+---Reacts to a unit being added to the recruitment list of the selected general army.
+---@param unitKey string Unit key.
+function TotoWarCbac:onUnitAddedToRecruitment(unitKey)
+    self.logger:logDebug("TotoWarCbac:onUnitAddedToRecruitment(): STARTED")
 
-    if self.selectedGeneral then
-        self:updateSelectedGeneralArmySuppliesCost()
-    end
+    self:updateSelectedGeneralArmySuppliesCost()
 
-    self.logger:logDebug("TotoWarCbac:onUnitTrained(): COMPLETED")
+    self.logger:logDebug("TotoWarCbac:onUnitAddedToRecruitment(): COMPLETED")
+end
+
+---Reacts to a unit being removed from the recruitment list of the selected general army.
+---@param unitKey string Unit key.
+function TotoWarCbac:onUnitRecruitmentCancelled(unitKey)
+    self.logger:logDebug("TotoWarCbac:onUnitRecruitmentCancelled(): STARTED")
+
+    self:updateSelectedGeneralArmySuppliesCost()
+
+    self.logger:logDebug("TotoWarCbac:onUnitRecruitmentCancelled(): COMPLETED")
 end
 
 ---Sets the selected general and calculate the price of its army.
@@ -523,10 +599,14 @@ end
 
 ---Updates the army supplies cost of the selected general army.
 function TotoWarCbac:updateSelectedGeneralArmySuppliesCost()
+    if not self.selectedGeneral then
+        return
+    end
+
     self.logger:logDebug("TotoWarCbac:updateSelectedGeneralArmySuppliesCost: STARTED")
 
     self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(self.selectedGeneral:military_force())
-    self:displayOrUpdateUnitsPanelArmySuppliesCost()
+    self:displaySelectedGeneralArmySuppliesCost()
 
     if self.selectedGeneralArmySuppliesCost.totalCost > self.armySupplies then
         self.logger:logDebug(
@@ -534,7 +614,6 @@ function TotoWarCbac:updateSelectedGeneralArmySuppliesCost()
             self.selectedGeneralArmySuppliesCost.totalCost)
         cm:disable_movement_for_character("character_cqi:" .. self.selectedGeneral:cqi())
     else
-        -- Enabling movement
         cm:enable_movement_for_character("character_cqi:" .. self.selectedGeneral:cqi())
     end
 

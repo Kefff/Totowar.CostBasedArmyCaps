@@ -1,6 +1,6 @@
 ---@class TotoWarUIUtils_PanelCategory
 local _panelCategories = {
-    hasRecruitmentUnitList = "hasRecruitmentUnitList"
+    hasRecruitmentUnitCards = "hasRecruitmentUnitCards"
 }
 
 ---@class TotoWarUIUtils_UIComponentQuery
@@ -9,8 +9,7 @@ local _uiComponentQueries = {
     globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
     localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
     mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
-    recruitmentOptions = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options" },
-    unitsPanel = { "units_panel" },
+    recruitmentPanelCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
     unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" }
 }
 
@@ -53,27 +52,31 @@ TotoWarUIUtils = {
     logger = nil,
 
     --Panels.
+    ---@class TotoWarUIUtils_Panels
     panels = {
+        ---Allied recruitment from an allied outpost
         alliedRecruitment = TotoWarUIPanelInfo.new(
             "allied_recruitment",
-            { _panelCategories.hasRecruitmentUnitList },
-            { _uiComponentQueries.alliedRecruitmentPool }),
+            { _panelCategories.hasRecruitmentUnitCards }),
+
+        ---Mercenary recruitment panel (units of renown, dwarf grudge settlers, ...)
         mercenaryRecruitment = TotoWarUIPanelInfo.new(
             "mercenary_recruitment",
-            { _panelCategories.hasRecruitmentUnitList },
-            { _uiComponentQueries.mercenaryRecruitmentPool }),
+            { _panelCategories.hasRecruitmentUnitCards }),
+
+        ---Panel that contains the recruitment panels
         recruitmentOptions = TotoWarUIPanelInfo.new(
             "recruitment_options",
-            {},
-            { _uiComponentQueries.recruitmentOptions }),
-        unitsRecruitment = TotoWarUIPanelInfo.new(
+            {}),
+
+        ---Standard recruitment panel
+        standardUnitsRecruitment = TotoWarUIPanelInfo.new(
             "units_recruitment",
-            { _panelCategories.hasRecruitmentUnitList },
-            {
-                _uiComponentQueries.globalRecruitmentPool,
-                _uiComponentQueries.localRecruitmentPool
-            })
-    }
+            { _panelCategories.hasRecruitmentUnitCards })
+    },
+
+    ---Queries for finding UI components.
+    uiComponentQuery = _uiComponentQueries
 }
 TotoWarUIUtils.__index = TotoWarUIUtils
 

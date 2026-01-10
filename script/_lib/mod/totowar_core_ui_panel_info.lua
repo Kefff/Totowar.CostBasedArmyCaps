@@ -7,25 +7,19 @@ TotoWarUIPanelInfo = {
 
     ---Name of the panel.
     ---@type string
-    name = nil,
-
-    ---Queries for searching for the UI components of the panel.
-    ---@type string[][]
-    uiComponentQueries = nil
+    name = nil
 }
 TotoWarUIPanelInfo.__index = TotoWarUIPanelInfo
 
 ---Initializes a new instance.
 ---@param name string Name of the panel.
 ---@param categories string[] Categories indicating the purpose of the panel.
----@param uiComponentQueries string[][] Queries for searching for the UI components of the panel.
 ---@return TotoWarUIPanelInfo
-function TotoWarUIPanelInfo.new(name, categories, uiComponentQueries)
+function TotoWarUIPanelInfo.new(name, categories)
     local self = setmetatable({}, TotoWarUIPanelInfo)
 
     self.categories = categories
     self.name = name
-    self.uiComponentQueries = uiComponentQueries
 
     return self
 end

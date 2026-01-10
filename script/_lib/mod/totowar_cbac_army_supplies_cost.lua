@@ -52,7 +52,7 @@ function TotoWarCbacArmySuppliesCost.new(army)
     return instance
 end
 
----Gets the list of unit army costs as a tooltip string.
+---Gets the list of unit army supplies costs as a tooltip string.
 ---@param armySupplies number Army supplies.
 ---@return string
 function TotoWarCbacArmySuppliesCost:toTooltipText(armySupplies)

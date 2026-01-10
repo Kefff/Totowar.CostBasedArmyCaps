@@ -14,12 +14,27 @@ TotoWarUtils = {
         ---Events.
         ---@class TotoWarUtilsEventEnum
         event = {
+            ---Event triggered when a character is deselected.
+            ---Is not triggered when a character is already selected and the player selects another character.
             characterDeselected = "CharacterDeselected",
+
+            ---Event triggered when a character is selected.
             characterSelected = "CharacterSelected",
-            panelOpenedCampaign = "PanelOpenedCampaign",
+
+            ---Event triggered when a panel is opened.
+            panelOpened = "PanelOpenedCampaign",
+
+            ---Event triggered when a panel is closed.
+            panelClosed = "PanelClosedCampaign",
+
+            ---Event triggered when (a) unit(s) have been disbanded.
             unitDisbanded = "UnitDisbanded",
-            unitMergedAndDestroyed = "UnitMergedAndDestroyed",
-            unitTrained = "UnitTrained"
+
+            ---Event triggered when units are merged unit and some of them have been destroyed.
+            unitMerged = "UnitMergedAndDestroyed",
+
+            ---Event triggered when a unit has been recruited.
+            unitRecruited = "UnitTrained"
         }
     },
 
