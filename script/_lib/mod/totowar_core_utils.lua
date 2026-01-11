@@ -22,7 +22,7 @@ TotoWarUtils = {
             characterSelected = "CharacterSelected",
 
             ---Event triggered when a panel is opened.
-            panelOpened = "PanelOpenedCampaign",
+            panelOpenedOrRefreshed = "PanelOpenedCampaign",
 
             ---Event triggered when a panel is closed.
             panelClosed = "PanelClosedCampaign",
@@ -38,9 +38,9 @@ TotoWarUtils = {
         }
     },
 
-    ---Delay before triggering the callback of an event.
+    ---Delay in seconds before triggering the callback of an event.
     ---@type number
-    eventCallbackTriggerDelay = 0.1,
+    eventCallbackTriggerDelay = 0.2,
 
     ---Logger.
     ---@type TotoWarLogger
