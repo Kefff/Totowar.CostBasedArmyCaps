@@ -39,8 +39,10 @@ TotoWarUtils = {
     },
 
     ---Delay in seconds before triggering the callback of an event.
+    ---This is needed to wait for standard UI processes to finish before updating the UI,
+    ---otherwise changes made by mods may conflict.
     ---@type number
-    eventCallbackTriggerDelay = 0.2,
+    eventCallbackTriggerDelay = 0.1,
 
     ---Logger.
     ---@type TotoWarLogger

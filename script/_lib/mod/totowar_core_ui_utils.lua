@@ -5,7 +5,7 @@ local _panelCategories = {
 
 ---@class TotoWarUIUtils_UIComponentQuery
 local _uiComponentQueries = {
-    alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recruitment_display", "recruitment_holder", "unit_list" },
+    alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
     globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
     localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
     mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
@@ -106,18 +106,20 @@ end
 ---@param query string[] Query to the UI component from the parent UI component.
 ---@return UIC | nil
 function TotoWarUIUtils:findUIComponentChild(parentUIComponent, query)
-    local pathString = table.concat(query, "/")
+    local queryText = table.concat(query, "/")
 
     self.logger:logDebug(
         "TotoWarUIUtils:findUIComponentChild(%s/%s): STARTED",
         parentUIComponent:Id(),
-        pathString)
+        queryText)
 
     local uiComponent = find_uicomponent(parentUIComponent, unpack(query))
 
     if not uiComponent then
-        self.logger:logDebug("Find UI component (%s/%s): NOT FOUND", parentUIComponent:Id(),
-            pathString)
+        self.logger:logDebug(
+            "Find UI component (%s/%s): NOT FOUND",
+            parentUIComponent:Id(),
+            queryText)
 
         return nil
     end
@@ -125,8 +127,39 @@ function TotoWarUIUtils:findUIComponentChild(parentUIComponent, query)
     self.logger:logDebug(
         "TotoWarUIUtils:findUIComponentChild(%s/%s): COMPLETED",
         parentUIComponent:Id(),
-        pathString)
+        queryText)
 
+    return uiComponent
+end
+
+---Gets a UI component from the root.
+---If the UI component is not found, throws an error.
+---@param query string[] Query to the UI component from the root.
+---@return UIC
+function TotoWarUIUtils:getUIComponent(query)
+    local uiComponent = self:findUIComponent(query)
+
+    if not uiComponent then
+        self.logger:logError("Cannot find UI component %s", table.concat(query, "/"))
+    end
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return uiComponent
+end
+
+---Gets a UI component that is a child a parent UI component.
+---If the child UI component is not found, throws an error.
+---@param parentUIComponent UIC Parent UI component
+---@param query string[] Query to the UI component from the parent UI component.
+---@return UIC
+function TotoWarUIUtils:getUIComponentChild(parentUIComponent, query)
+    local uiComponent = self:findUIComponentChild(parentUIComponent, query)
+
+    if not uiComponent then
+        self.logger:logError("Cannot find UI component %s", table.concat(query, "/"))
+    end
+
+    ---@diagnostic disable-next-line: return-type-mismatch
     return uiComponent
 end
 
