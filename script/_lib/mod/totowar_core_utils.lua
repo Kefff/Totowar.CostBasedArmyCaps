@@ -21,6 +21,9 @@ TotoWarUtils = {
             ---Event triggered when a character is selected.
             characterSelected = "CharacterSelected",
 
+            ---Event triggered when the left click on a UI component is released.
+            componentLeftClick = "ComponentLClickUp",
+
             ---Event triggered when a panel is opened.
             panelOpenedOrRefreshed = "PanelOpenedCampaign",
 
@@ -42,7 +45,7 @@ TotoWarUtils = {
     ---This is needed to wait for standard UI processes to finish before updating the UI,
     ---otherwise changes made by mods may conflict.
     ---@type number
-    eventCallbackTriggerDelay = 0.1,
+    eventCallbackTriggerDelay = 0.2,
 
     ---Logger.
     ---@type TotoWarLogger

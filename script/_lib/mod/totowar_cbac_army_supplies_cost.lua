@@ -11,10 +11,65 @@ TotoWarCbacArmySuppliesCost = {
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
 ---Initializes a new instance.
----@param army MILITARY_FORCE_SCRIPT_INTERFACE
+---Calculates the cost of the provided unit list.
+---@param unitCardListUIComponent UIC UI components that contains the list of units of the selected army..
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new(army)
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.new(%s): STARTED", army:command_queue_index())
+function TotoWarCbacArmySuppliesCost.newFromUnitCardUIComponents(unitCardListUIComponent)
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.newFromUnitCardUIComponents(): STARTED")
+
+    local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
+
+    local details = {}
+
+    for i = 0, unitCardListUIComponent:ChildCount() - 1 do
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitCardListUIComponent, i)
+        local cardImageHolderUIComponent = TotoWar().utils.ui:getUIComponentChild(
+            unitCardUIComponent,
+            { "card_image_holder" })
+        local unitContext = TotoWar().utils.ui:getUIComponentCCO(
+            cardImageHolderUIComponent,
+            TotoWar().utils.ui.enums.ccoContextTypeId.ccoMainUnitRecord)
+
+        local unitName = unitContext:Call("Key")
+        local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
+
+        if not unitBaseCost then
+            unitBaseCost = 0
+        end
+
+        ---@type TotoWarCbacUnitArmySuppliesCost
+        local unitArmySuppliesCost = nil
+
+        for j, detail in ipairs(details) do
+            if detail.unitKey == unitName then
+                unitArmySuppliesCost = detail
+                break
+            end
+        end
+
+        if not unitArmySuppliesCost then
+            unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.new(unitName, unitBaseCost)
+            table.insert(details, unitArmySuppliesCost)
+        else
+            unitArmySuppliesCost:addUnit()
+        end
+
+        instance.totalCost = instance.totalCost + unitBaseCost
+    end
+
+    instance.details = details
+
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.newFromUnitCardUIComponents(): COMPLETED")
+
+    return instance
+end
+
+---Initializes a new instance.
+---Calculates the cost of the provided army.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army for which the cost is calculated.
+---@return TotoWarCbacArmySuppliesCost
+function TotoWarCbacArmySuppliesCost.newFromArmy(army)
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.newFromArmy(%s): STARTED", army:command_queue_index())
 
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
 
@@ -47,7 +102,7 @@ function TotoWarCbacArmySuppliesCost.new(army)
 
     instance.details = details
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.new(%s): COMPLETED", army:command_queue_index())
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.newFromArmy(%s): COMPLETED", army:command_queue_index())
 
     return instance
 end

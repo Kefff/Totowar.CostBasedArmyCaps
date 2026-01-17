@@ -1,7 +1,7 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
-totowar_cbac_army_supply_cost_tooltip	Army supplies||Amount of supplies the army can provide to sustain recruited units.|| ||Army supplies: %s[[img:icon_merc]][[/img]]||Consumed by units: %s[[img:icon_merc]]||Available for recruitment: %s[[img:icon_merc]]%s||%s	true
-totowar_cbac_army_supply_cost_tooltip_detail	[[col:yellow]]%s[[/col]]: %s[[img:icon_merc]][[/img]]	true
-totowar_cbac_army_supply_cost_tooltip_detail_multiple	[[col:yellow]]%s[[/col]]: %s[[img:icon_merc]][[/img]] ([[col:alliance_ally]]%s[[/col]] x %s[[img:icon_merc]][[/img]])	true
+totowar_cbac_army_supply_cost_tooltip	Army supplies||Amount of supplies the army can provide to sustain additional recruited units.|| ||Total army supplies: [[img:icon_merc]][[/img]]%s||Consumed by units: [[img:icon_merc]]%s||Available for recruitment: [[img:icon_merc]]%s%s||%s	true
+totowar_cbac_army_supply_cost_tooltip_detail	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
+totowar_cbac_army_supply_cost_tooltip_detail_multiple	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s ([[col:alliance_ally]]%s[[/col]] x [[img:icon_merc]][[/img]]%s)	true
 totowar_cbac_unit_army_supply_cost_tooltip	Army supplies||This unit consumes this amount of [[img:icon_merc]][[/img]]Army supplies.	true
 totowar_cbac_unit_army_supply_cost_tooltip_depleted	Insufficient [[img:icon_merc]][[/img]]Army supplies to sustain all recruited units.||The army cannot march until a unit is dismissed or transferred to another army.

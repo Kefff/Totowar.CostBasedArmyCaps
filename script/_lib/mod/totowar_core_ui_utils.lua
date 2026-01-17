@@ -10,7 +10,8 @@ local _uiComponentQueries = {
     localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
     mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
     recruitmentPanelCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-    unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" }
+    units = { "units_panel", "main_units_panel", "units" },
+    unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
 }
 
 ---UI utility tools for TotoWar mods.
@@ -175,6 +176,13 @@ function TotoWarUIUtils:getUIComponentCCO(uiComponent, ccoContextTypeId)
 
     local contextId = uiComponent:GetContextObjectId(ccoContextTypeId)
     local componentContextObject = cco(ccoContextTypeId, contextId)
+
+    if not componentContextObject then
+        self.logger:logDebug(
+            "TotoWarUIUtils:getUIComponentCCO(%s, %s): NOT FOUND",
+            uiComponent:Id(),
+            ccoContextTypeId)
+    end
 
     self.logger:logDebug(
         "TotoWarUIUtils:getUIComponentCCO(%s, %s): COMPLETED",
