@@ -24,19 +24,25 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 
 ---Initializes a new instance.
 ---@param unitKey string Unit key.
----@param unitCost number Unit cost.
+---@param unitArmySuppliesCost number Unit army supplies cost.
 ---@return TotoWarCbacUnitArmySuppliesCost
-function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitCost)
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.new(%s, %s): STARTED", unitKey, unitCost)
+function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
+    TotoWar().genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): STARTED",
+        unitKey,
+        unitArmySuppliesCost)
 
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
 
     instance.unitCaption = TotoWar().utils:getUnitCaption(unitKey)
-    instance.unitCost = unitCost
+    instance.unitCost = unitArmySuppliesCost
     instance.unitKey = unitKey
     instance:addUnit()
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.new(%s, %s): COMPLETED", unitKey, unitCost)
+    TotoWar().genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): COMPLETED",
+        unitKey,
+        unitArmySuppliesCost)
 
     return instance
 end
@@ -51,9 +57,19 @@ function TotoWarCbacUnitArmySuppliesCost:addUnit()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
 end
 
+---Removes one unit.
+function TotoWarCbacUnitArmySuppliesCost:removeUnit()
+    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): STARTED")
+
+    self.totalCost = self.totalCost - self.unitCost
+    self.unitCount = self.unitCount - 1
+
+    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): COMPLETED")
+end
+
 ---Gets a unit army supplies cost as a tooltip string.
 ---@return string
-function TotoWarCbacUnitArmySuppliesCost:toTooltipText()
+function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: STARTED")
 
     local tooltipText = ""

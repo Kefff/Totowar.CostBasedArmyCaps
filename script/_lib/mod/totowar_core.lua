@@ -1,6 +1,6 @@
 ---Name of the TotoWar base mod.
 ---@type string
-TotoWarCoreModName = "totowar_core"
+TotoWarCoreModName = "totowar"
 
 ---TotoWar base mod.
 ---@class TotoWarCore
@@ -18,32 +18,42 @@ TotoWarCore = {
 
     ---Utility tools for TotoWar mods.
     ---@type TotoWarUtils
-    utils = nil
+    utils = nil,
+
+    ---Utility tools for TotoWar mods.
+    ---@type TotoWarUIUtils
+    uiUtils = nil
 }
 TotoWarCore.__index = TotoWarCore
+
+---Instance.
+---@type TotoWarCore
+local _instance = nil
+
+---Gets the TotoWarCore mod instance.
+---Allows the use TotoWar mods.
+---@return TotoWarCore
+function TotoWar()
+    -- ---@type TotoWarCore
+    -- local totoWarCoreMod = core:get_static_object(TotoWarCoreModName)
+
+    -- return totoWarCoreMod
+    return _instance
+end
 
 ---Initializes a new instance.
 ---@return TotoWarCore
 function TotoWarCore.new()
-    local instance = setmetatable({}, TotoWarCore)
+    _instance = setmetatable({}, TotoWarCore)
 
-    core:add_static_object(TotoWarCoreModName, instance)
+    _instance.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
+    _instance.modsManager = TotoWarModsManager.new()
+    _instance.utils = TotoWarUtils.new()
+    _instance.uiUtils = TotoWarUIUtils.new()
 
-    instance.genericLogger = TotoWarLogger.new("totowar_generic", nil, true)
-    instance.modsManager = TotoWarModsManager.new()
-    instance.utils = TotoWarUtils.new()
+    -- core:add_static_object(TotoWarCoreModName, instance)
 
-    instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
+    _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 
-    return instance
-end
-
----Gets the TotoWar mod instance.
----Allows the use TotoWar mods.
----@return TotoWarCore
-function TotoWar()
-    ---@type TotoWarCore
-    local totoWarCoreMod = core:get_static_object(TotoWarCoreModName)
-
-    return totoWarCoreMod
+    return _instance
 end

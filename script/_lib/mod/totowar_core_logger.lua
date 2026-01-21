@@ -21,17 +21,19 @@ TotoWarLogger = {
 
     ---Mod name.
     ---@type string
-    modName = nil
+    loggerName = nil
 }
 TotoWarLogger.__index = TotoWarLogger
 
 ---Initializes a new instance.
----@param modName string Mod name.
+---@param loggerName string Logger name.
 ---@param logFileName string? Log file name. If `nil`, the default log file name is used.
 ---@param resetLogFile boolean? Indicates whether the log file should be reset. If `nil`, `false`.
 ---@return TotoWarLogger
-function TotoWarLogger.new(modName, logFileName, resetLogFile)
+function TotoWarLogger.new(loggerName, logFileName, resetLogFile)
     local instance = setmetatable({}, TotoWarLogger)
+
+    instance.loggerName = loggerName
 
     if logFileName then
         instance.logFileName = logFileName
@@ -47,8 +49,6 @@ function TotoWarLogger.new(modName, logFileName, resetLogFile)
             file:close()
         end
     end
-
-    instance.modName = modName
 
     instance:logInfo("Logger instance created")
 
@@ -72,7 +72,7 @@ local function log(instance, severity, message, ...)
     end
 
     message = string.format(message, unpack(parameters))
-    fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.modName, message)
+    fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.loggerName, message)
     ModLog(fullLog)
 
     local file = io.open(instance.logFileName, "a")

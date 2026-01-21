@@ -41,6 +41,38 @@ TotoWarUIUtils = {
             bottomRight = 9
         },
 
+        ---Events.
+        ---@class TotoWarUIUtilsEventEnum
+        event = {
+            ---Event triggered when a character is deselected.
+            ---Is not triggered when a character is already selected and the player selects another character.
+            characterDeselected = "CharacterDeselected",
+
+            ---Event triggered when a character is selected.
+            characterSelected = "CharacterSelected",
+
+            ---Event triggered when the left click on a UI component is released.
+            componentLeftClick = "ComponentLClickUp",
+
+            ---Event triggered when a panel is opened.
+            panelOpened = "PanelOpenedCampaign",
+
+            ---Event triggered when a panel is closed.
+            panelClosed = "PanelClosedCampaign",
+
+            ---Event triggered when a unit is removed from the recruitment queue.
+            unitRemovedFromRecruitment = "RecruitmentItemCancelledByPlayer",
+
+            ---Event triggered when a unit is added to the recruitment queue.
+            unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",
+
+            ---Event triggered when (a) unit(s) have been disbanded.
+            unitDisbanded = "UnitDisbanded",
+
+            ---Event triggered when units are merged unit and some of them have been destroyed.
+            unitMerged = "UnitMergedAndDestroyed"
+        },
+
         --Categories indicating the purpose of the panel.
         panelCategory = _panelCategories,
 
@@ -73,7 +105,12 @@ TotoWarUIUtils = {
         ---Standard recruitment panel
         standardUnitsRecruitment = TotoWarUIPanelInfo.new(
             "units_recruitment",
-            { _panelCategories.hasRecruitmentUnitCards })
+            { _panelCategories.hasRecruitmentUnitCards }),
+
+        ---Selected army unit list panel.
+        unitsPanel = TotoWarUIPanelInfo.new(
+            "units_panel",
+            {})
     },
 
     ---Queries for finding UI components.
@@ -86,9 +123,9 @@ TotoWarUIUtils.__index = TotoWarUIUtils
 function TotoWarUIUtils.new()
     local instance = setmetatable({}, TotoWarUIUtils)
 
-    instance.logger = TotoWarLogger.new("totowar_ui_utils")
+    instance.logger = TotoWarLogger.new("TotoWar_UIUtils")
 
-    instance.logger:logDebug("TotoWarUIUtils.new(): COMPLETED")
+    instance.logger:logDebug("new(): COMPLETED")
 
     return instance
 end
@@ -110,7 +147,7 @@ function TotoWarUIUtils:findUIComponentChild(parentUIComponent, query)
     local queryText = table.concat(query, "/")
 
     self.logger:logDebug(
-        "TotoWarUIUtils:findUIComponentChild(%s/%s): STARTED",
+        "findUIComponentChild(%s/%s): STARTED",
         parentUIComponent:Id(),
         queryText)
 
@@ -118,7 +155,7 @@ function TotoWarUIUtils:findUIComponentChild(parentUIComponent, query)
 
     if not uiComponent then
         self.logger:logDebug(
-            "Find UI component (%s/%s): NOT FOUND",
+            "findUIComponentChild(%s/%s): NOT FOUND",
             parentUIComponent:Id(),
             queryText)
 
@@ -126,7 +163,7 @@ function TotoWarUIUtils:findUIComponentChild(parentUIComponent, query)
     end
 
     self.logger:logDebug(
-        "TotoWarUIUtils:findUIComponentChild(%s/%s): COMPLETED",
+        "findUIComponentChild(%s/%s): COMPLETED",
         parentUIComponent:Id(),
         queryText)
 
@@ -170,7 +207,7 @@ end
 ---@return ComponentContextObject
 function TotoWarUIUtils:getUIComponentCCO(uiComponent, ccoContextTypeId)
     self.logger:logDebug(
-        "TotoWarUIUtils:getUIComponentCCO(%s, %s): STARTED",
+        "getUIComponentCCO(%s, %s): STARTED",
         uiComponent:Id(),
         ccoContextTypeId)
 
@@ -179,13 +216,13 @@ function TotoWarUIUtils:getUIComponentCCO(uiComponent, ccoContextTypeId)
 
     if not componentContextObject then
         self.logger:logDebug(
-            "TotoWarUIUtils:getUIComponentCCO(%s, %s): NOT FOUND",
+            "getUIComponentCCO(%s, %s): NOT FOUND",
             uiComponent:Id(),
             ccoContextTypeId)
     end
 
     self.logger:logDebug(
-        "TotoWarUIUtils:getUIComponentCCO(%s, %s): COMPLETED",
+        "getUIComponentCCO(%s, %s): COMPLETED",
         uiComponent:Id(),
         ccoContextTypeId)
 
@@ -198,7 +235,7 @@ end
 ---@param offsetY number Y offset.
 function TotoWarUIUtils:offsetUIComponent(uiComponent, offsetX, offsetY)
     self.logger:logDebug(
-        "TotoWarUIUtils:offsetUIComponent(%s, %s, %s): STARTED",
+        "offsetUIComponent(%s, %s, %s): STARTED",
         uiComponent:Id(),
         offsetX,
         offsetY)
@@ -207,7 +244,7 @@ function TotoWarUIUtils:offsetUIComponent(uiComponent, offsetX, offsetY)
     uiComponent:SetDockOffset(uiComponentOffsetX + offsetX, uiComponentOffsetY + offsetY)
 
     self.logger:logDebug(
-        "TotoWarUIUtils:offsetUIComponent(%s, %s, %s): COMPLETED",
+        "offsetUIComponent(%s, %s, %s): COMPLETED",
         uiComponent:Id(),
         offsetX,
         offsetY)
@@ -219,7 +256,7 @@ end
 ---@param offsetY number Y offset.
 function TotoWarUIUtils:offsetChildUIComponents(uiComponent, offsetX, offsetY)
     self.logger:logDebug(
-        "TotoWarUIUtils:offsetChildUIComponents(%s, %s, %s): STARTED",
+        "offsetChildUIComponents(%s, %s, %s): STARTED",
         uiComponent:Id(),
         offsetX,
         offsetY)
@@ -230,7 +267,7 @@ function TotoWarUIUtils:offsetChildUIComponents(uiComponent, offsetX, offsetY)
     end
 
     self.logger:logDebug(
-        "TotoWarUIUtils:offsetChildUIComponents(%s, %s, %s): COMPLETED",
+        "offsetChildUIComponents(%s, %s, %s): COMPLETED",
         uiComponent:Id(),
         offsetX,
         offsetY)
@@ -242,7 +279,7 @@ end
 ---@param heightToAdd number Height to add.
 function TotoWarUIUtils:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
     self.logger:logDebug(
-        "TotoWarUIUtils:resizeUIComponent(%s, %s, %s): STARTED",
+        "resizeUIComponent(%s, %s, %s): STARTED",
         uiComponent:Id(),
         widthToAdd,
         heightToAdd)
@@ -253,7 +290,7 @@ function TotoWarUIUtils:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
     uiComponent:Resize(uiComponentWidth + widthToAdd, uiComponentHeight + heightToAdd, false)
 
     self.logger:logDebug(
-        "TotoWarUIUtils:resizeUIComponent(%s, %s, %s): COMPLETED",
+        "resizeUIComponent(%s, %s, %s): COMPLETED",
         uiComponent:Id(),
         widthToAdd,
         heightToAdd)
@@ -266,7 +303,7 @@ end
 ---@param query string[] Path containing the names of the child UI components to resize.
 function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, query)
     self.logger:logDebug(
-        "TotoWarUIUtils:resizeUIComponentAndChildren(%s, %s, %s): STARTED",
+        "resizeUIComponentAndChildren(%s, %s, %s): STARTED",
         uiComponent:Id(),
         widthToAdd,
         heightToAdd)
@@ -282,7 +319,7 @@ function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, he
     end
 
     self.logger:logDebug(
-        "TotoWarUIUtils:resizeUIComponentAndChildren(%s, %s, %s): COMPLETED",
+        "resizeUIComponentAndChildren(%s, %s, %s): COMPLETED",
         uiComponent:Id(),
         widthToAdd,
         heightToAdd)

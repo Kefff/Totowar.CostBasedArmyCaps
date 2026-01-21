@@ -14,38 +14,10 @@ TotoWarUtils = {
         ---Events.
         ---@class TotoWarUtilsEventEnum
         event = {
-            ---Event triggered when a character is deselected.
-            ---Is not triggered when a character is already selected and the player selects another character.
-            characterDeselected = "CharacterDeselected",
-
-            ---Event triggered when a character is selected.
-            characterSelected = "CharacterSelected",
-
-            ---Event triggered when the left click on a UI component is released.
-            componentLeftClick = "ComponentLClickUp",
-
-            ---Event triggered when a panel is opened.
-            panelOpenedOrRefreshed = "PanelOpenedCampaign",
-
-            ---Event triggered when a panel is closed.
-            panelClosed = "PanelClosedCampaign",
-
-            ---Event triggered when (a) unit(s) have been disbanded.
-            unitDisbanded = "UnitDisbanded",
-
-            ---Event triggered when units are merged unit and some of them have been destroyed.
-            unitMerged = "UnitMergedAndDestroyed",
-
             ---Event triggered when a unit has been recruited.
             unitRecruited = "UnitTrained"
         }
     },
-
-    ---Delay in seconds before triggering the callback of an event.
-    ---This is needed to wait for standard UI processes to finish before updating the UI,
-    ---otherwise changes made by mods may conflict.
-    ---@type number
-    eventCallbackTriggerDelay = 0.2,
 
     ---Logger.
     ---@type TotoWarLogger
@@ -53,11 +25,7 @@ TotoWarUtils = {
 
     ---Player faction name.
     ---@type string
-    playerFactionName = nil,
-
-    ---UI utility tools.
-    ---@type TotoWarUIUtils
-    ui = nil
+    playerFactionName = nil
 }
 TotoWarUtils.__index = TotoWarUtils
 
@@ -66,10 +34,9 @@ TotoWarUtils.__index = TotoWarUtils
 function TotoWarUtils.new()
     local instance = setmetatable({}, TotoWarUtils)
 
-    instance.logger = TotoWarLogger.new("totowar_utils")
+    instance.logger = TotoWarLogger.new("TotoWar_Utils")
 
     instance.playerFactionName = cm:get_local_faction_name()
-    instance.ui = TotoWarUIUtils.new()
 
     instance.logger:logDebug("TotoWarUtils.new(): COMPLETED")
 
@@ -80,7 +47,7 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
 ---@return boolean
 function TotoWarUtils:canRecruitUnits(army)
-    self.logger:logDebug("TotoWarUtils:canRecruitUnits(%s): STARTED", army:command_queue_index())
+    self.logger:logDebug("canRecruitUnits(%s): STARTED", army:command_queue_index())
 
     local canRecruitUnits =
         army:has_general()
@@ -88,7 +55,7 @@ function TotoWarUtils:canRecruitUnits(army)
         and not army:is_set_piece_battle_army()
         and not army:force_type():has_feature("unable_to_recruit_units")
 
-    self.logger:logDebug("TotoWarUtils:canRecruitUnits(%s): COMPLETED => %s", army:command_queue_index(), canRecruitUnits)
+    self.logger:logDebug("canRecruitUnits(%s): COMPLETED => %s", army:command_queue_index(), canRecruitUnits)
 
     return canRecruitUnits
 end
@@ -96,11 +63,11 @@ end
 ---Gets the caption of a unit.
 ---@param unitKey string Unit key.
 function TotoWarUtils:getUnitCaption(unitKey)
-    self.logger:logDebug("TotoWarUtils:getUnitCaption(%s): STARTED", unitKey)
+    self.logger:logDebug("getUnitCaption(%s): STARTED", unitKey)
 
     local caption = common.get_context_value("CcoMainUnitRecord", unitKey, "Name")
 
-    self.logger:logDebug("TotoWarUtils:getUnitCaption(%s): COMPLETED => %s", unitKey, caption)
+    self.logger:logDebug("getUnitCaption(%s): COMPLETED => %s", unitKey, caption)
 
     return caption
 end
@@ -109,11 +76,11 @@ end
 ---@param factionName string name.
 ---@return boolean
 function TotoWarUtils:isPlayerFaction(factionName)
-    self.logger:logDebug("TotoWarUtils:isPlayerFaction(%s): STARTED", factionName)
+    self.logger:logDebug("isPlayerFaction(%s): STARTED", factionName)
 
     isPlayerFactionGeneral = factionName == self.playerFactionName
 
-    self.logger:logDebug("TotoWarUtils:isPlayerFaction(%s): COMPLETED => %s", factionName, isPlayerFactionGeneral)
+    self.logger:logDebug("isPlayerFaction(%s): COMPLETED => %s", factionName, isPlayerFactionGeneral)
 
     return isPlayerFactionGeneral
 end
@@ -122,7 +89,7 @@ end
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
 function TotoWarUtils:isPlayerFactionGeneral(character)
-    self.logger:logDebug("TotoWarUtils:isPlayerFactionGeneral(%s): STARTED", character:cqi())
+    self.logger:logDebug("isPlayerFactionGeneral(%s): STARTED", character:cqi())
 
     isPlayerFactionGeneral = character:has_military_force() and self:isPlayerFaction(character:faction():name())
 
