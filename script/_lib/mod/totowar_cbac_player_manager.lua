@@ -2,6 +2,25 @@
 ---@type string
 TotoWarCbacModName = "totowar_cost_based_army_caps"
 
+---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
+---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
+---@type string
+local _inRecruitmentMercenaryUnitCardPattern = "^temp_merc_"
+
+---Pattern for identifying a UI component corresponding to the unit card of recruitable standard
+---unit in the selected army recruitment queue.
+---@type string
+local _inRecruitmentStandardUnitCardPattern = "^QueuedLandUnit"
+
+---Pattern for identifying a UI component corresponding to the unit card of a mercenary
+---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
+---queue.
+---@type string
+local _recruitableMercenaryUnitCardPattern = "_mercenary$"
+
+---Pattern for finding the line corresponding to the unit icon in a unit card component.
+local _unitCardIconPattern = "ui[\\/]units[\\/]icons[\\/][^\n]+"
+
 ---Manager in charge of calculating the army supplies cost for the player armies.
 ---@class TotoWarCbacPlayerManager
 TotoWarCbacPlayerManager = {
@@ -43,9 +62,68 @@ function TotoWarCbacPlayerManager:addListeners()
 
     self.logger:logDebug(
         "addListeners() => Add listener to event \"%s\"",
+        TotoWar().uiUtils.enums.event.characterDeselected)
+    core:add_listener(
+        "TotoWarCbacPlayerManager_" .. TotoWar().uiUtils.enums.event.characterDeselected,
+        TotoWar().uiUtils.enums.event.characterDeselected,
+        true,
+        function()
+            self:onCharacterDeselected()
+        end,
+        true)
+
+    self.logger:logDebug(
+        "addListeners() => Add listener to event \"%s\"",
+        TotoWar().uiUtils.enums.event.characterSelected)
+    core:add_listener(
+        "TotoWarCbacPlayerManager_" .. TotoWar().uiUtils.enums.event.characterSelected,
+        TotoWar().uiUtils.enums.event.characterSelected,
+        true,
+        ---@param context CharacterSelected
+        function(context)
+            self:onCharacterSelected(context:character())
+        end,
+        true)
+
+    self.logger:logDebug(
+        "addListeners() => Add listener to event \"%s\"",
+        TotoWar().uiUtils.enums.event.componentLeftClick)
+    core:add_listener(
+        "TotoWarCbacPlayerManager_RecruitableMercenaryUnitCard_" .. TotoWar().uiUtils.enums.event.componentLeftClick,
+        TotoWar().uiUtils.enums.event.componentLeftClick,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            return context.string:match(_recruitableMercenaryUnitCardPattern)
+        end,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            local uiComponent = UIComponent(context.component)
+            self:onRecruitableMercenaryUniCardClick(context.string, uiComponent)
+        end,
+        true)
+
+    self.logger:logDebug(
+        "addListeners() => Add listener to event \"%s\"",
+        TotoWar().uiUtils.enums.event.componentLeftClick)
+    core:add_listener(
+        "TotoWarCbacPlayerManager_InRecruitmentMercenaryUnitCard_" .. TotoWar().uiUtils.enums.event.componentLeftClick,
+        TotoWar().uiUtils.enums.event.componentLeftClick,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            return context.string:match(_inRecruitmentMercenaryUnitCardPattern)
+        end,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            local uiComponent = UIComponent(context.component)
+            self:onInRecruitmentMercenaryUniCardClick(context.string, uiComponent)
+        end,
+        true)
+
+    self.logger:logDebug(
+        "addListeners() => Add listener to event \"%s\"",
         TotoWar().uiUtils.enums.event.unitAddedToRecruitment)
     core:add_listener(
-        "totowar_cbac_unit_added_to_recruitment",
+        "TotoWarCbacPlayerManager_" .. TotoWar().uiUtils.enums.event.unitAddedToRecruitment,
         TotoWar().uiUtils.enums.event.unitAddedToRecruitment,
         ---@param context TotoWarEventContext_UnitAddedToRecruitment
         function(context)
@@ -63,7 +141,7 @@ function TotoWarCbacPlayerManager:addListeners()
         "addListeners() => Add listener to event \"%s\"",
         TotoWar().uiUtils.enums.event.unitRemovedFromRecruitment)
     core:add_listener(
-        "totowar_cbac_unit_removed_from_recruitment",
+        "TotoWarCbacPlayerManager_" .. TotoWar().uiUtils.enums.event.unitRemovedFromRecruitment,
         TotoWar().uiUtils.enums.event.unitRemovedFromRecruitment,
         ---@param context TotoWarEventContext_UnitAddedToRecruitment
         function(context)
@@ -74,31 +152,6 @@ function TotoWarCbacPlayerManager:addListeners()
             ---@type string
             local unitKey = context:main_unit_record()
             self:onUnitRemovedFromRecruitment(unitKey)
-        end,
-        true)
-
-    self.logger:logDebug(
-        "addListeners() => Add listener to event \"%s\"",
-        TotoWar().uiUtils.enums.event.characterDeselected)
-    core:add_listener(
-        "totowar_cbac_character_deselected",
-        TotoWar().uiUtils.enums.event.characterDeselected,
-        true,
-        function()
-            self:onCharacterDeselected()
-        end,
-        true)
-
-    self.logger:logDebug(
-        "addListeners() => Add listener to event \"%s\"",
-        TotoWar().uiUtils.enums.event.characterSelected)
-    core:add_listener(
-        "totowar_cbac_character_selected",
-        TotoWar().uiUtils.enums.event.characterSelected,
-        true,
-        ---@param context CharacterSelected
-        function(context)
-            self:onCharacterSelected(context:character())
         end,
         true)
 
@@ -127,25 +180,14 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
         return
     end
 
-    self:initializeUnitsInRecruitmentArmySuppliesCost(unitsUIComponent)
-
-    -- Updating the selected general ability to move
-    self:updatedSelectedGeneralMovement()
-
-    self.logger:logDebug(
-        "initializeArmySuppliesCost(%s): COMPLETED => %s",
-        general:cqi(),
-        self.selectedGeneralArmySuppliesCost.totalCost)
-end
-
----Initializes the army supplies cost of the units being recruited in the army of the selected general.
----@param unitsUIComponent UIC Units list UI component.
-function TotoWarCbacPlayerManager:initializeUnitsInRecruitmentArmySuppliesCost(unitsUIComponent)
+    -- Adding units from the recruitment queue
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
         -- Iterating from the last unit card since units being recruited are at the end
         local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
 
-        if not self:isRecruitmentUnitCardUIComponent(unitCardUIComponent:Id()) then
+        if not unitCardUIComponent:Id():match(_inRecruitmentStandardUnitCardPattern)
+            and not unitCardUIComponent:Id():match(_inRecruitmentMercenaryUnitCardPattern)
+        then
             -- Stopping the iteration as soon as we encounter a unit that is not being recruited
             break
         end
@@ -161,17 +203,14 @@ function TotoWarCbacPlayerManager:initializeUnitsInRecruitmentArmySuppliesCost(u
         local unitKey = unitContext:Call("Key")
         self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
     end
-end
 
----Indicates whether a UI component corresponds to the unit card of a unit being recruited.
----@param uiComponentName string UI component name.
----@return boolean
-function TotoWarCbacPlayerManager:isRecruitmentUnitCardUIComponent(uiComponentName)
-    local result =
-        string.find(uiComponentName, "QueuedLandUnit") ~= nil
-        or string.find(uiComponentName, "temp_merc") ~= nil
+    -- Updating the selected general ability to move depending on the total army supplies cost
+    self:updatedSelectedGeneralMovement()
 
-    return result
+    self.logger:logDebug(
+        "initializeArmySuppliesCost(%s): COMPLETED => %s",
+        general:cqi(),
+        self.selectedGeneralArmySuppliesCost.totalCost)
 end
 
 ---Reacts to a character being deselected.
@@ -184,9 +223,6 @@ function TotoWarCbacPlayerManager:onCharacterDeselected()
 
     self.selectedGeneralCqi = nil
     self.selectedGeneralArmySuppliesCost = nil
-    -- self.isAlliedRecruitmentResized = false
-    -- self.isGlobalRecruitmentResized = false
-    -- self.isLocalRecruitmentResized = false
 
     self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
 end
@@ -219,7 +255,7 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
                     character:cqi(),
                     TotoWar().uiUtils.enums.event.panelOpened)
                 core:add_listener(
-                    "totowar_cbac_units_panel_opened",
+                    "TotoWarCbacPlayerManager_OneTime_" .. TotoWar().uiUtils.enums.event.panelOpened,
                     TotoWar().uiUtils.enums.event.panelOpened,
                     ---@param context TotoWarEventContext_PanelOpenedOrClosed
                     function(context)
@@ -236,6 +272,46 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
     end
 
     self.logger:logDebug("[EVENT] onCharacterSelected(%s): COMPLETED", character:cqi())
+end
+
+---Reacts to the click on the unit card of a mercenary unit in the selected army recruitment queue.
+---@param uiComponentName string Name of the clicked UI component.
+---@param unitComponent UIC Clicked UI component.
+function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiComponentName, unitComponent)
+    self.logger:logDebug("[EVENT] onInRecruitmentMercenaryUniCardClick(%s): STARTED", uiComponentName)
+
+    -- We get the name of the unit by looking at the name of the image displayed in the unit card.
+    -- We are force to do so because there is no CcoMainUnitRecord on the cards of queues mercenary units.
+    local cardImageHolderUIComponent = TotoWar().uiUtils:getUIComponentChild(
+        unitComponent,
+        { "card_image_holder" })
+    local unitIconPath = cardImageHolderUIComponent:GetImagePath(0)
+
+    if not unitIconPath then
+        return
+    end
+
+    local unitKey = unitIconPath:match("([^\\/]+)%.%w+$")
+    self:onUnitRemovedFromRecruitment(unitKey)
+
+    self.logger:logDebug("[EVENT] onInRecruitmentMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
+end
+
+---Reacts to the click on the unit card of a recruitable mercenary unit.
+---@param uiComponentName string Name of the clicked UI component.
+---@param unitComponent UIC Clicked UI component.
+function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponentName, unitComponent)
+    self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): STARTED", uiComponentName)
+
+    local unitContext = TotoWar().uiUtils:getUIComponentCCO(
+        unitComponent,
+        TotoWar().uiUtils.enums.ccoContextTypeId.ccoMainUnitRecord)
+
+    ---@type string
+    local unitKey = unitContext:Call("Key")
+    self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
+
+    self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
 end
 
 ---Reacts to a unit being added to the recruitment queue of the selected general army.

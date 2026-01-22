@@ -1,16 +1,16 @@
----Context for the `componentLeftClick` event (`ComponentLClickUp`).
----@class TotoWarUIEventContext_ComponentClick
+---Context for the `ComponentLClickUp`.
+---@class TotoWarEventContext_ComponentLeftClick
 TotoWarEventContext_ComponentLeftClick = {
     ---Name of the clicked UI component.
     ---@type string
     string = nil,
 
-    ---Clicked UI component.
-    ---@type UIC
+    ---Clicked UI component address.
+    ---@type UIC_Address
     component = nil
 }
 
----Context for the `panelOpenedOrRefreshed` event (`PanelOpenedCampaign`).
+---Context for the `PanelOpenedCampaign`.
 ---@class TotoWarEventContext_PanelOpenedOrClosed
 TotoWarEventContext_PanelOpenedOrClosed = {
     ---Name of the panel.
@@ -18,7 +18,7 @@ TotoWarEventContext_PanelOpenedOrClosed = {
     string = nil
 }
 
----Context for the `unitAddedToRecruitment` event (`RecruitmentItemIssuedByPlayer`).
+---Context for the `RecruitmentItemIssuedByPlayer`.
 ---@class TotoWarEventContext_UnitAddedToRecruitment
 TotoWarEventContext_UnitAddedToRecruitment = {
     ---Function that return the faction as an object.
@@ -34,9 +34,9 @@ TotoWarEventContext_UnitAddedToRecruitment = {
     time_to_build = nil,
 }
 
----Context for the `unitRemovedFromRecruitment` event (`RecruitmentItemCancelledByPlayer`).
+---Context for the RecruitmentItemCancelledByPlayer.
 ---@class TotoWarEventContext_UnitRemovedFromRecruitment
-TotoWarEventContext_UnitAddedToRecruitment = {
+TotoWarEventContext_UnitRemovedFromRecruitment = {
     ---Faction.
     ---@type FACTION_SCRIPT_INTERFACE
     faction = nil,

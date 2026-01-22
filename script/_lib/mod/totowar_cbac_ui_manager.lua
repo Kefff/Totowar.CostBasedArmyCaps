@@ -76,7 +76,7 @@ function TotoWarCbacUIManager:addListeners()
         "addListeners() => Add listener to event \"%s\"",
         TotoWar().uiUtils.enums.event.characterDeselected)
     core:add_listener(
-        "totowar_cbac_character_deselected",
+        "TotoWarCbacUIManager_" .. TotoWar().uiUtils.enums.event.characterDeselected,
         TotoWar().uiUtils.enums.event.characterDeselected,
         true,
         function()
@@ -88,7 +88,7 @@ function TotoWarCbacUIManager:addListeners()
         "addListeners() => Add listener to event \"%s\"",
         TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged)
     core:add_listener(
-        "totowar_cbac_selected_general_army_supplies_cost_changed",
+        "TotoWarCbacUIManager_" .. TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged,
         TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged,
         true,
         function()

@@ -62,7 +62,7 @@ function TotoWarCbac:addListeners()
         "addListeners() => Add listener to event \"%s\"",
         TotoWar().uiUtils.enums.event.panelOpened)
     core:add_listener(
-        "totowar_cbac_panel_opened",
+        "TotoWarCbac_" .. TotoWar().uiUtils.enums.event.panelOpened,
         TotoWar().uiUtils.enums.event.panelOpened,
         true,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
@@ -75,7 +75,7 @@ function TotoWarCbac:addListeners()
         "addListeners() => Add listener to event \"%s\"",
         TotoWar().uiUtils.enums.event.panelClosed)
     core:add_listener(
-        "totowar_cbac_panel_closed",
+        "TotoWarCbac_" .. TotoWar().uiUtils.enums.event.panelClosed,
         TotoWar().uiUtils.enums.event.panelClosed,
         true,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed

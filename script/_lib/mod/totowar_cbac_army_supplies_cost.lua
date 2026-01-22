@@ -42,7 +42,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey)
     table.insert(self.unitGroups, unitGroup)
     self.totalCost = self.totalCost + unitArmySuppliesCost
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:addUnit(%s): COMPLETED", unitKey)
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:addUnit(%s): COMPLETED => %s", unitKey, self.totalCost)
 end
 
 ---Removes a unit from the army supplies cost.
@@ -60,13 +60,16 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
                 unitGroup:removeUnit()
             end
 
-            TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED", unitKey)
+            TotoWar().genericLogger:logDebug(
+                "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
+                unitKey,
+                self.totalCost)
 
             return;
         end
     end
 
-    TotoWar().genericLogger:logError("TotoWarCbacArmySuppliesCost:removeUnit(%s): NOT FOUND")
+    TotoWar().genericLogger:logError("TotoWarCbacArmySuppliesCost:removeUnit(%s): NOT FOUND", unitKey)
 end
 
 ---Gets the list of unit army supplies costs as a tooltip string.
