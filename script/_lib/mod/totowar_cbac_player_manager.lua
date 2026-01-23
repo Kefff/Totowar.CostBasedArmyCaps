@@ -18,9 +18,6 @@ local _inRecruitmentStandardUnitCardPattern = "^QueuedLandUnit"
 ---@type string
 local _recruitableMercenaryUnitCardPattern = "_mercenary$"
 
----Pattern for finding the line corresponding to the unit icon in a unit card component.
-local _unitCardIconPattern = "ui[\\/]units[\\/]icons[\\/][^\n]+"
-
 ---Manager in charge of calculating the army supplies cost for the player armies.
 ---@class TotoWarCbacPlayerManager
 TotoWarCbacPlayerManager = {
@@ -207,6 +204,9 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     -- Updating the selected general ability to move depending on the total army supplies cost
     self:updatedSelectedGeneralMovement()
 
+    -- Signaling army supplies cost change
+    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+
     self.logger:logDebug(
         "initializeArmySuppliesCost(%s): COMPLETED => %s",
         general:cqi(),
@@ -309,7 +309,7 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
 
     ---@type string
     local unitKey = unitContext:Call("Key")
-    self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
+    self:onUnitAddedToRecruitment(unitKey)
 
     self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
 end
@@ -320,6 +320,9 @@ function TotoWarCbacPlayerManager:onUnitAddedToRecruitment(unitKey)
 
     self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
 
+    -- Signaling army supplies cost change
+    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+
     self.logger:logDebug("[EVENT] onUnitAddedToRecruitment(%s): COMPLETED", unitKey)
 end
 
@@ -328,6 +331,9 @@ function TotoWarCbacPlayerManager:onUnitRemovedFromRecruitment(unitKey)
     self.logger:logDebug("[EVENT] onUnitRemovedFromRecruitment(%s): STARTED", unitKey)
 
     self.selectedGeneralArmySuppliesCost:removeUnit(unitKey)
+
+    -- Signaling army supplies cost change
+    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitRemovedFromRecruitment(%s): COMPLETED", unitKey)
 end

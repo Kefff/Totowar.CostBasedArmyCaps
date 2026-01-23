@@ -34,10 +34,6 @@ local _instance = nil
 ---Allows the use TotoWar mods.
 ---@return TotoWarCore
 function TotoWar()
-    -- ---@type TotoWarCore
-    -- local totoWarCoreMod = core:get_static_object(TotoWarCoreModName)
-
-    -- return totoWarCoreMod
     return _instance
 end
 
@@ -50,8 +46,6 @@ function TotoWarCore.new()
     _instance.modsManager = TotoWarModsManager.new()
     _instance.utils = TotoWarUtils.new()
     _instance.uiUtils = TotoWarUIUtils.new()
-
-    -- core:add_static_object(TotoWarCoreModName, instance)
 
     _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 
