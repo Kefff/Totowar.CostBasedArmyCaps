@@ -1,23 +1,8 @@
----@class TotoWarUIUtils_PanelCategory
-local _panelCategories = {
-    hasRecruitmentUnitCards = "hasRecruitmentUnitCards"
-}
-
----@class TotoWarUIUtils_UIComponentQuery
-local _uiComponentQueries = {
-    alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
-    globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
-    localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
-    mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
-    recruitmentPanelCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-    units = { "units_panel", "main_units_panel", "units" },
-    unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
-}
-
 ---UI utility tools for TotoWar mods.
 ---@class TotoWarUIUtils
 TotoWarUIUtils = {
     ---Enums.
+    ---@class TotoWarUIUtils_Enums
     enums = {
         ---Component context object type IDs.
         ---@class TotoWarUIUtils_CcoContextTypeIdEnum
@@ -70,51 +55,73 @@ TotoWarUIUtils = {
             unitDisbanded = "UnitDisbanded",
 
             ---Event triggered when units are merged unit and some of them have been destroyed.
-            unitMerged = "UnitMergedAndDestroyed"
+            unitMergedAndDestroyed = "UnitMergedAndDestroyed"
         },
 
-        --Categories indicating the purpose of the panel.
-        panelCategory = _panelCategories,
+        ---Panels.
+        ---@class TotoWarUIUtils_Panels
+        panel = {
+            ---Allied recruitment from an allied outpost
+            alliedRecruitment = "allied_recruitment",
 
-        ---Queries for finding UI components.
-        uiComponentQuery = _uiComponentQueries
+            ---Mercenary recruitment panel (units of renown, dwarf grudge settlers, Waaagh mobs, ...)
+            mercenaryRecruitment = "mercenary_recruitment",
+
+            ---Panel that contains the recruitment panels
+            recruitmentOptions = "recruitment_options",
+
+            ---Standard recruitment panel
+            standardUnitsRecruitment = "units_recruitment",
+
+            ---Selected army unit list panel.
+            unitsPanel = "units_panel"
+        },
+
+        ---Patterns for finding UI elements.
+        ---@class TotoWarUIUtils_Panels
+        patterns = {
+            ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
+            ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
+            ---@type string
+            inRecruitmentMercenaryUnitCard = "^temp_merc_",
+
+            ---Pattern for identifying a UI component corresponding to the unit card of recruitable standard
+            ---unit in the selected army recruitment queue.
+            ---@type string
+            inRecruitmentStandardUnitCard = "^QueuedLandUnit",
+
+            ---Pattern for identifying a UI component corresponding to the unit card of a mercenary
+            ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
+            ---queue.
+            ---@type string
+            recruitableMercenaryUnitCard = "_mercenary$"
+        },
+
+        ---UI component states.
+        ---@class TotoWarUIUtils_UIComponentStates
+        uiComponentState = {
+            active = "active",
+
+            inactive = "inactive"
+        }
     },
 
     ---Logger.
     ---@type TotoWarLogger
     logger = nil,
 
-    --Panels.
-    ---@class TotoWarUIUtils_Panels
-    panels = {
-        ---Allied recruitment from an allied outpost
-        alliedRecruitment = TotoWarUIPanelInfo.new(
-            "allied_recruitment",
-            { _panelCategories.hasRecruitmentUnitCards }),
-
-        ---Mercenary recruitment panel (units of renown, dwarf grudge settlers, ...)
-        mercenaryRecruitment = TotoWarUIPanelInfo.new(
-            "mercenary_recruitment",
-            { _panelCategories.hasRecruitmentUnitCards }),
-
-        ---Panel that contains the recruitment panels
-        recruitmentOptions = TotoWarUIPanelInfo.new(
-            "recruitment_options",
-            {}),
-
-        ---Standard recruitment panel
-        standardUnitsRecruitment = TotoWarUIPanelInfo.new(
-            "units_recruitment",
-            { _panelCategories.hasRecruitmentUnitCards }),
-
-        ---Selected army unit list panel.
-        unitsPanel = TotoWarUIPanelInfo.new(
-            "units_panel",
-            {})
+    ---Queries for finding UI components.
+    ---@class TotoWarUIUtils_UIComponentQuery
+    uiComponentQueries = {
+        alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" },     -- The typo in "allied_recuitment_display" is from CA
+        globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
+        localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
+        mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
+        recruitmentPanelCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
+        units = { "units_panel", "main_units_panel", "units" },
+        unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
     },
 
-    ---Queries for finding UI components.
-    uiComponentQuery = _uiComponentQueries
 }
 TotoWarUIUtils.__index = TotoWarUIUtils
 

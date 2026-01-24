@@ -22,7 +22,7 @@ TotoWarCore = {
 
     ---Utility tools for TotoWar mods.
     ---@type TotoWarUIUtils
-    uiUtils = nil
+    ui = nil
 }
 TotoWarCore.__index = TotoWarCore
 
@@ -45,7 +45,7 @@ function TotoWarCore.new()
     _instance.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
     _instance.modsManager = TotoWarModsManager.new()
     _instance.utils = TotoWarUtils.new()
-    _instance.uiUtils = TotoWarUIUtils.new()
+    _instance.ui = TotoWarUIUtils.new()
 
     _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 

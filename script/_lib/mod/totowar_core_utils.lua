@@ -2,6 +2,7 @@
 ---@class TotoWarUtils
 TotoWarUtils = {
     ---Enumerations
+    ---@class TotoWarUtils_Enums
     enums = {
         ---Colors.
         ---@class TotoWarUtilsColorEnum

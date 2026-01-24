@@ -1,4 +1,6 @@
----Context for the `ComponentLClickUp`.
+---@diagnostic disable: missing-return
+
+---Context for the ComponentLClickUp event.
 ---@class TotoWarEventContext_ComponentLeftClick
 TotoWarEventContext_ComponentLeftClick = {
     ---Name of the clicked UI component.
@@ -10,7 +12,7 @@ TotoWarEventContext_ComponentLeftClick = {
     component = nil
 }
 
----Context for the `PanelOpenedCampaign`.
+---Context for the PanelOpenedCampaign event.
 ---@class TotoWarEventContext_PanelOpenedOrClosed
 TotoWarEventContext_PanelOpenedOrClosed = {
     ---Name of the panel.
@@ -18,30 +20,46 @@ TotoWarEventContext_PanelOpenedOrClosed = {
     string = nil
 }
 
----Context for the `RecruitmentItemIssuedByPlayer`.
+---Context for the RecruitmentItemIssuedByPlayer event.
 ---@class TotoWarEventContext_UnitAddedToRecruitment
 TotoWarEventContext_UnitAddedToRecruitment = {
-    ---Function that return the faction as an object.
-    ---@type function
-    faction = nil,
-
-    ---Function that returns the unit key as a string.
-    ---@type function
-    main_unit_record = nil,
-
     ---Number of turns to recruit.
     ---@type number
     time_to_build = nil,
 }
+---Gets the faction.
+---@return FACTION_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitAddedToRecruitment:faction() end
 
----Context for the RecruitmentItemCancelledByPlayer.
+---Gets the unit key as a string.
+---@return string
+function TotoWarEventContext_UnitAddedToRecruitment:main_unit_record() end
+
+---Context for the UnitDisbanded event.
+---@class TotoWarEventContext_UnitDisbanded
+TotoWarEventContext_UnitDisbanded = {}
+---Gets the unit.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitDisbanded:unit() end
+
+---Context for the UnitDisbanded event.
+---@class TotoWarEventContext_UnitMergedAndDestroyed
+TotoWarEventContext_UnitMergedAndDestroyed = {}
+---Gets the new unit the old unit was merged into.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitMergedAndDestroyed:new_unit() end
+
+---Gets the new unit resulting from the merge.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitMergedAndDestroyed:unit() end
+
+---Context for the RecruitmentItemCancelledByPlayer event.
 ---@class TotoWarEventContext_UnitRemovedFromRecruitment
-TotoWarEventContext_UnitRemovedFromRecruitment = {
-    ---Faction.
-    ---@type FACTION_SCRIPT_INTERFACE
-    faction = nil,
+TotoWarEventContext_UnitRemovedFromRecruitment = {}
+---Gets the faction.
+---@return FACTION_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitRemovedFromRecruitment:faction() end
 
-    ---Information on the unit.
-    ---@type ComponentContextObject
-    main_unit_record = nil
-}
+---Gets the unit key as a string.
+---@return string
+function TotoWarEventContext_UnitRemovedFromRecruitment:main_unit_record() end
