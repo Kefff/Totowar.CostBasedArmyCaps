@@ -7,7 +7,7 @@ TotoWarModsManager = {
 
     ---List of registered TotoWar mods.
     ---@type TotoWarMod[]
-    mods = {}
+    mods = nil
 }
 TotoWarModsManager.__index = TotoWarModsManager
 
@@ -17,6 +17,7 @@ function TotoWarModsManager.new()
     local instance = setmetatable({}, TotoWarModsManager)
 
     instance.logger = TotoWarLogger.new("TotoWar_ModsManager")
+    instance.mods = {}
 
     instance.logger:logDebug("new(): COMPLETED")
 

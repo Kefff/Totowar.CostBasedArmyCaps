@@ -10,7 +10,8 @@ TotoWarCore = {
     genericLogger = nil,
 
     ---Indicates whether debug messages are logged.
-    isDebug = false,
+    ---@type boolean
+    isDebug = nil,
 
     ---Mods manager.
     ---@type TotoWarModsManager
@@ -43,6 +44,7 @@ function TotoWarCore.new()
     _instance = setmetatable({}, TotoWarCore)
 
     _instance.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
+    _instance.isDebug = false
     _instance.modsManager = TotoWarModsManager.new()
     _instance.utils = TotoWarUtils.new()
     _instance.ui = TotoWarUIUtils.new()

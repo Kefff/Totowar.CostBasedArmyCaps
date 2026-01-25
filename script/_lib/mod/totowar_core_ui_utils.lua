@@ -55,7 +55,10 @@ TotoWarUIUtils = {
             unitDisbanded = "UnitDisbanded",
 
             ---Event triggered when units are merged unit and some of them have been destroyed.
-            unitMergedAndDestroyed = "UnitMergedAndDestroyed"
+            unitMergedAndDestroyed = "UnitMergedAndDestroyed",
+
+            ---Event triggered when a unit is added to an army.
+            unitTrained = "UnitTrained"
         },
 
         ---Panels.
@@ -71,14 +74,14 @@ TotoWarUIUtils = {
             recruitmentOptions = "recruitment_options",
 
             ---Standard recruitment panel
-            standardUnitsRecruitment = "units_recruitment",
+            standardRecruitment = "units_recruitment",
 
             ---Selected army unit list panel.
             unitsPanel = "units_panel"
         },
 
         ---Patterns for finding UI elements.
-        ---@class TotoWarUIUtils_Panels
+        ---@class TotoWarUIUtils_Patterns
         patterns = {
             ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
@@ -94,7 +97,7 @@ TotoWarUIUtils = {
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
             ---queue.
             ---@type string
-            recruitableMercenaryUnitCard = "_mercenary$"
+            recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$"
         },
 
         ---UI component states.
@@ -113,7 +116,7 @@ TotoWarUIUtils = {
     ---Queries for finding UI components.
     ---@class TotoWarUIUtils_UIComponentQuery
     uiComponentQueries = {
-        alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" },     -- The typo in "allied_recuitment_display" is from CA
+        alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
         globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
         localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
         mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },

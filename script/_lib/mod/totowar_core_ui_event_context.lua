@@ -63,3 +63,10 @@ function TotoWarEventContext_UnitRemovedFromRecruitment:faction() end
 ---Gets the unit key as a string.
 ---@return string
 function TotoWarEventContext_UnitRemovedFromRecruitment:main_unit_record() end
+
+---Context for the UnitTrained event.
+---@class TotoWarEventContext_UnitTrained
+TotoWarEventContext_UnitTrained = {}
+---Gets the unit.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarEventContext_UnitTrained:unit() end

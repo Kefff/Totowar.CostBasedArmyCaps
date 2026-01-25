@@ -1,25 +1,37 @@
 ---Army supplies cost of the units in an army.
 ---@class TotoWarCbacArmySuppliesCost
 TotoWarCbacArmySuppliesCost = {
+    ---Army supplies available to recruit additional units.
+    availableSupplies = nil,
+
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
-    inRecruitmentMercenaryUnits = {},
+    inRecruitmentMercenaryUnits = nil,
 
     ---Army supplies cost of each unit type present in the army.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
-    unitGroups = {},
+    unitGroups = nil,
 
     ---Total army supplies cost
     ---@type number
-    totalCost = 0,
+    totalCost = nil,
 }
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
----comment
+---Initializes a new instance of TotoWarCbacArmySuppliesCost.
 ---@return TotoWarCbacArmySuppliesCost
 function TotoWarCbacArmySuppliesCost.new()
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
+
+    instance.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies
+    instance.inRecruitmentMercenaryUnits = {}
+    instance.unitGroups = {}
+    instance.totalCost = 0
+
+    for index, value in ipairs(instance.inRecruitmentMercenaryUnits) do
+        TotoWar().genericLogger:logDebug("TEST %s", value.unitKey)
+    end
 
     TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.new(): COMPLETED")
 
@@ -63,12 +75,35 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     end
 
     self.totalCost = self.totalCost + unitArmySuppliesCost
+    self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s; %s): COMPLETED => %s",
         unitKey,
         isInRecruitmentMercenary,
         self.totalCost)
+end
+
+---Cancels the recruitment of the mercenary units that were being recruited by clearing the list
+---of in recruitment mercenary unit costs.
+function TotoWarCbacArmySuppliesCost:cancelMercenaryRecruitment()
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): STARTED")
+
+    for i = 1, #self.inRecruitmentMercenaryUnits, 1 do
+        self:removeUnit(TotoWar().ui.enums.patterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
+    end
+
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): COMPLETED")
+end
+
+---Confirms the recruitment of the mercenary units that were being recruited by transferring
+---their cost in the unit groups.
+function TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment()
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): STARTED")
+
+    --TODO
+
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): COMPLETED")
 end
 
 ---Removes a unit from the army supplies cost.
@@ -94,6 +129,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
         local unitGroup = self.inRecruitmentMercenaryUnits[index]
         self.totalCost = self.totalCost - unitGroup.unitCost
+        self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
 
         TotoWar().genericLogger:logDebug(
@@ -106,6 +142,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         for index, unitGroup in ipairs(self.unitGroups) do
             if unitGroup.unitKey == unitKey then
                 self.totalCost = self.totalCost - unitGroup.unitCost
+                self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
 
                 if (unitGroup.unitCount == 1) then
                     table.remove(self.unitGroups, index)
@@ -134,32 +171,23 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
     local unitsArmySuppliesCostTooltipText = ""
 
     for i, unitArmySuppliesCost in ipairs(self.unitGroups) do
-        if #unitsArmySuppliesCostTooltipText > 0 then
-            unitsArmySuppliesCostTooltipText = unitsArmySuppliesCostTooltipText .. "\n"
-        end
-
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText .. unitArmySuppliesCost:toArmySuppliesCostTooltipText()
+            unitsArmySuppliesCostTooltipText .. "\n" .. unitArmySuppliesCost:toArmySuppliesCostTooltipText()
     end
 
     for i, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
-        if #unitsArmySuppliesCostTooltipText > 0 then
-            unitsArmySuppliesCostTooltipText = unitsArmySuppliesCostTooltipText .. "\n"
-        end
-
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText .. mercenaryUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
+            unitsArmySuppliesCostTooltipText .. "\n" .. mercenaryUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
     end
 
-    local availableArmySupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
-    local availableArmySuppliesString = tostring(availableArmySupplies)
+    local availableArmySuppliesString = tostring(self.availableSupplies)
     local depletedArmySuppliesWarning = ""
 
-    if availableArmySupplies < 0 then
+    if self.availableSupplies < 0 then
         availableArmySuppliesString = string.format(
             "[[col:%s]]%s[[/col]]",
             TotoWar().utils.enums.color.red,
-            availableArmySupplies)
+            availableArmySuppliesString)
         depletedArmySuppliesWarning = string.format(
             "\n\n[[col:%s]]%s[[/col]]",
             TotoWar().utils.enums.color.red,

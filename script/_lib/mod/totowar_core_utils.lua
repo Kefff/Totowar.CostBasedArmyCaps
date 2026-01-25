@@ -36,10 +36,9 @@ function TotoWarUtils.new()
     local instance = setmetatable({}, TotoWarUtils)
 
     instance.logger = TotoWarLogger.new("TotoWar_Utils")
-
     instance.playerFactionName = cm:get_local_faction_name()
 
-    instance.logger:logDebug("TotoWarUtils.new(): COMPLETED")
+    instance.logger:logDebug("new(): COMPLETED")
 
     return instance
 end
