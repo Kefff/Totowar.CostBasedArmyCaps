@@ -4,7 +4,7 @@ TotoWarCbacArmySuppliesCost = {
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
-    inRecruitmentMercenaries = {},
+    inRecruitmentMercenaryUnits = {},
 
     ---Army supplies cost of each unit type present in the army.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
@@ -40,7 +40,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     if isInRecruitmentMercenary then
         unitArmySuppliesCost = common.get_context_value("CcoMainUnitRecord", unitKey, "BaseCost")
         local unitGroup = TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
-        table.insert(self.inRecruitmentMercenaries, unitGroup)
+        table.insert(self.inRecruitmentMercenaryUnits, unitGroup)
     else
         local found = false
 
@@ -72,7 +72,12 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
 end
 
 ---Removes a unit from the army supplies cost.
+---
+---When removing a mercenary unit, returns the key of the removed unit.
+---This is useful to know which unit was removed because we only know the position
+---position of the unit in the recruitment queue before calling `removeUnit`.
 ---@param unitKey string Unit key.
+---@return string | nil
 function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
     TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:removeUnit(%s): STARTED", unitKey)
 
@@ -87,16 +92,16 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         -- Position starts at 0 in the recruitment queue, but LUA table indexes start at 1
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
 
-        local unitGroup = self.inRecruitmentMercenaries[index]
+        local unitGroup = self.inRecruitmentMercenaryUnits[index]
         self.totalCost = self.totalCost - unitGroup.unitCost
-        table.remove(self.inRecruitmentMercenaries, index)
+        table.remove(self.inRecruitmentMercenaryUnits, index)
 
         TotoWar().genericLogger:logDebug(
             "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
             unitKey,
             self.totalCost)
 
-        return;
+        return unitGroup.unitKey;
     else
         for index, unitGroup in ipairs(self.unitGroups) do
             if unitGroup.unitKey == unitKey then
@@ -113,7 +118,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
                     unitKey,
                     self.totalCost)
 
-                return;
+                return unitKey;
             end
         end
     end
@@ -137,13 +142,13 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
             unitsArmySuppliesCostTooltipText .. unitArmySuppliesCost:toArmySuppliesCostTooltipText()
     end
 
-    for i, unitArmySuppliesCost in ipairs(self.inRecruitmentMercenaries) do
+    for i, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
         if #unitsArmySuppliesCostTooltipText > 0 then
             unitsArmySuppliesCostTooltipText = unitsArmySuppliesCostTooltipText .. "\n"
         end
 
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText .. unitArmySuppliesCost:toArmySuppliesCostTooltipText()
+            unitsArmySuppliesCostTooltipText .. mercenaryUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
     end
 
     local availableArmySupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost

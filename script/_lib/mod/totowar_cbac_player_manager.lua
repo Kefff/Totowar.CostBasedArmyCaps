@@ -181,11 +181,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     end
 
     -- Adding units being recruited in the general army
-    local unitsUIComponent = TotoWar().ui:findUIComponent(TotoWar().ui.uiComponentQueries.units)
-
-    if not unitsUIComponent then
-        return
-    end
+    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.units)
 
     -- Adding units from the recruitment queue
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
@@ -292,24 +288,59 @@ function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiCompone
     -- In recruitment mercenary units are stored in a separate table and use the number at the end of the
     -- UI component ("temp_merc_0", "temp_merc_1", ...) to find the index of the corresponding unit
     -- in this table.
-    self:onUnitRemovedFromRecruitment(uiComponentName)
+    local unitKey = self.selectedGeneralArmySuppliesCost:removeUnit(uiComponentName)
+
+    -- Signaling army supplies cost change
+    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onInRecruitmentMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
 end
 
 ---Reacts to the click on the unit card of a recruitable mercenary unit.
 ---@param uiComponentName string Name of the clicked UI component.
----@param unitComponent UIC Clicked UI component.
-function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponentName, unitComponent)
+---@param unitUIComponent UIC Clicked UI component.
+function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponentName, unitUIComponent)
     self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): STARTED", uiComponentName)
 
-    local unitContext = TotoWar().ui:getUIComponentCCO(
-        unitComponent,
-        TotoWar().ui.enums.ccoContextTypeId.ccoMainUnitRecord)
+    -- Workaround for the fact that we cannot know whether a unit card was `inactive` before the click
+    -- on it or became `inactive` after clicking on it be before the click event was triggered.
+    -- This problem prevents us from simply checking the state of the component so we need to check
+    -- whether the number of in recruitment mercenary units in the unit list is different from the number
+    -- of in recruitment mercenary units we already have added to the army supplies cost.
+    -- If there are more in recruitment mercenary units in the unit list, we consider that the unit card
+    -- was not `inactive` at the time of the click and we add its army supplies cost.
+    -- so we can add the unit army supplies cost.
+    local inRecruitmentMercenaryUnitCount = 0
+    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.units)
 
-    ---@type string
-    local unitKey = unitContext:Call("Key")
-    self:onUnitAddedToRecruitment(unitKey, true)
+    for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
+        -- Iterating from the last unit card since units being recruited are at the end
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
+
+        if not unitCardUIComponent:Id():match(TotoWar().ui.enums.patterns.inRecruitmentMercenaryUnitCard)
+        then
+            -- Stopping the iteration as soon as we encounter a unit that is not a mercenary unit being recruited
+            break
+        end
+
+        inRecruitmentMercenaryUnitCount = inRecruitmentMercenaryUnitCount + 1
+    end
+
+    self.logger:logDebug(
+        "[EVENT] onRecruitableMercenaryUniCardClick(%s): %s mercenary units in the recruitment pool | %s mercenary units tracked in the army supplies cost",
+        uiComponentName,
+        inRecruitmentMercenaryUnitCount,
+        #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits)
+
+    if inRecruitmentMercenaryUnitCount > #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits then
+        local unitContext = TotoWar().ui:getUIComponentCCO(
+            unitUIComponent,
+            TotoWar().ui.enums.ccoContextTypeId.ccoMainUnitRecord)
+
+        ---@type string
+        local unitKey = unitContext:Call("Key")
+        self:onUnitAddedToRecruitment(unitKey, true)
+    end
 
     self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
 end
