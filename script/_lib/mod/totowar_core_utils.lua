@@ -5,7 +5,7 @@ TotoWarUtils = {
     ---@class TotoWarUtils_Enums
     enums = {
         ---Colors.
-        ---@class TotoWarUtilsColorEnum
+        ---@class TotoWarUtils_Enums_Color
         color = {
             blue = "alliance_ally",
             red = "alliance_enemy",
@@ -13,7 +13,7 @@ TotoWarUtils = {
         },
 
         ---Events.
-        ---@class TotoWarUtilsEventEnum
+        ---@class TotoWarUtils_Enums_Event
         event = {
             ---Event triggered when a unit has been recruited.
             unitRecruited = "UnitTrained"
@@ -41,6 +41,28 @@ function TotoWarUtils.new()
     instance.logger:logDebug("new(): COMPLETED")
 
     return instance
+end
+
+---Adds a listener.
+---@param listenerNamePrefix string Prefix added to the event to name the listener.
+---@param event string Event.
+---@param conditionFunction function | true Function for checking whether the callback should be called when the event is triggered. Takes a context as an argument. Return a boolean. Can be `true` instead of a function to always trigger the callback function.
+---@param callbackFunction function Function to execute when the event is triggered and the condition function returns `true`.
+---@param isPermanent boolean? Indicates whether the listener is permanent or it should be removed immediately after the event is triggered.
+function TotoWarUtils:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
+    if not isPermanent then
+        listenerName = string.format("%s_SingleUse_%s", listenerNamePrefix, event)
+        self.logger:logDebug("addListener() => Add single-use listener \"%s\" to event \"%s\"", listenerName, event)
+    else
+        listenerName = string.format("%s_%s", listenerNamePrefix, event)
+        self.logger:logDebug("addListener() => Add listener \"%s\" to event \"%s\"", listenerName, event)
+    end
+
+    if isPermanent == nil then
+        isPermanent = true
+    end
+
+    core:add_listener(listenerName, event, conditionFunction, callbackFunction, isPermanent)
 end
 
 ---Indicates whether an army can recruit units.

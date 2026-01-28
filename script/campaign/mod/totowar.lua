@@ -1,7 +1,7 @@
 cm:add_pre_first_tick_callback(
     function()
         ---Creating the TotoWar core instance before the first tick where TotoWar mods will be registered
-        local totoWar = TotoWarCore:new()
+        local totoWar = TotoWarCore.new()
 
         -- TEST
         totoWar.isDebug = true

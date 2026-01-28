@@ -84,26 +84,15 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
         self.totalCost)
 end
 
----Cancels the recruitment of the mercenary units that were being recruited by clearing the list
----of in recruitment mercenary unit costs.
-function TotoWarCbacArmySuppliesCost:cancelMercenaryRecruitment()
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): STARTED")
+---Clears list of in-recruitment mercenary units supply costs.
+function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): STARTED")
 
     for i = 1, #self.inRecruitmentMercenaryUnits, 1 do
         self:removeUnit(TotoWar().ui.enums.patterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
     end
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): COMPLETED")
-end
-
----Confirms the recruitment of the mercenary units that were being recruited by transferring
----their cost in the unit groups.
-function TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment()
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): STARTED")
-
-    --TODO
-
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:confirmMercenaryRecruitment(): COMPLETED")
+    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Removes a unit from the army supplies cost.

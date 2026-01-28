@@ -65,7 +65,7 @@ TotoWarCbacUIManager.__index = TotoWarCbacUIManager
 function TotoWarCbacUIManager.new()
     local instance = setmetatable({}, TotoWarCbacUIManager)
 
-    instance.logger = TotoWarLogger.new("TotoWar_Cbac_UIManager", nil, true)
+    instance.logger = TotoWarLogger.new("TotoWar_Cbac_UIManager")
     isAlliedRecruitmentResized = false
     isGlobalRecruitmentResized = false
     isLocalRecruitmentResized = false
@@ -79,25 +79,18 @@ end
 function TotoWarCbacUIManager:addListeners()
     self.logger:logDebug("addListeners(): STARTED")
 
-    self.logger:logDebug(
-        "addListeners() => Add listener to event \"%s\"",
-        TotoWar().ui.enums.event.characterDeselected)
-    core:add_listener(
-        "TotoWarCbacUIManager_" .. TotoWar().ui.enums.event.characterDeselected,
+    TotoWar().utils:addListener(
+        "TotoWarCbacUIManager",
         TotoWar().ui.enums.event.characterDeselected,
         function()
             return cm:is_local_players_turn()
         end,
         function()
             self:onCharacterDeselected()
-        end,
-        true)
+        end)
 
-    self.logger:logDebug(
-        "addListeners() => Add listener to event \"%s\"",
-        TotoWar().ui.enums.event.panelOpened)
-    core:add_listener(
-        "TotoWarCbacUIManager_" .. TotoWar().ui.enums.event.panelOpened,
+    TotoWar().utils:addListener(
+        "TotoWarCbacUIManager",
         TotoWar().ui.enums.event.panelOpened,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
@@ -106,22 +99,17 @@ function TotoWarCbacUIManager:addListeners()
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             self:onPanelOpened(context.string)
-        end,
-        true)
+        end)
 
-    self.logger:logDebug(
-        "addListeners() => Add listener to event \"%s\"",
-        TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged)
-    core:add_listener(
-        "TotoWarCbacUIManager_" .. TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged,
+    TotoWar().utils:addListener(
+        "TotoWarCbacUIManager",
         TotoWarCbacPlayerManager.event.selectedGeneralArmySuppliesCostChanged,
         function()
             return cm:is_local_players_turn()
         end,
         function()
             self:onSelectedGeneralArmySuppliesCostChanged()
-        end,
-        true)
+        end)
 
     self.logger:logDebug("addListeners(): COMPLETED")
 end

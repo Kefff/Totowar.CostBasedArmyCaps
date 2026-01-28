@@ -5,7 +5,7 @@ TotoWarUIUtils = {
     ---@class TotoWarUIUtils_Enums
     enums = {
         ---Component context object type IDs.
-        ---@class TotoWarUIUtils_CcoContextTypeIdEnum
+        ---@class TotoWarUIUtils_Enums_CcoContextTypeIdEnum
         ccoContextTypeId = {
             ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
             ccoCampaignCharacter = "CcoCampaignCharacter",
@@ -27,7 +27,7 @@ TotoWarUIUtils = {
         },
 
         ---Events.
-        ---@class TotoWarUIUtilsEventEnum
+        ---@class TotoWarUIUtils_Enums_Event
         event = {
             ---Event triggered when a character is deselected.
             ---Is not triggered when a character is already selected and the player selects another character.
@@ -62,7 +62,7 @@ TotoWarUIUtils = {
         },
 
         ---Panels.
-        ---@class TotoWarUIUtils_Panels
+        ---@class TotoWarUIUtils_Enums_Panels
         panel = {
             ---Allied recruitment from an allied outpost
             alliedRecruitment = "allied_recruitment",
@@ -81,7 +81,7 @@ TotoWarUIUtils = {
         },
 
         ---Patterns for finding UI elements.
-        ---@class TotoWarUIUtils_Patterns
+        ---@class TotoWarUIUtils_Enums_Patterns
         patterns = {
             ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
@@ -101,7 +101,7 @@ TotoWarUIUtils = {
         },
 
         ---UI component states.
-        ---@class TotoWarUIUtils_UIComponentStates
+        ---@class TotoWarUIUtils_Enums_UIComponentStates
         uiComponentState = {
             active = "active",
 
