@@ -224,6 +224,8 @@ function TotoWarCbacUIManager:updateOpenRecruitmentPanel(panelName)
     if panelName then
         self.logger:logDebug("updateRecruitmentPanels(%s): STARTED", panelName)
 
+        -- When we get here, it means that a panel has been opened.
+
         if panelName == TotoWar().ui.enums.panel.standardRecruitment then
             self:updateStandardRecruitmentPanel()
         elseif panelName == TotoWar().ui.enums.panel.mercenaryRecruitment then
@@ -236,11 +238,19 @@ function TotoWarCbacUIManager:updateOpenRecruitmentPanel(panelName)
     else
         self.logger:logDebug("updateRecruitmentPanels(): STARTED")
 
-        if cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panel.standardRecruitment) then
-            self:updateStandardRecruitmentPanel()
-        elseif cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panel.mercenaryRecruitment) then
+        -- When we get here, it means that a unit has been added or removed from the
+        -- recruitment queue.
+        -- We do not need to update the standard recruitment panel because the game
+        -- triggers a PanelOpened event right after. This method is also called by the
+        -- PanelOpened event which will update the standard recruitment panel.
+        -- However, a PanelOpened is not triggered for other recruitment panel, so we
+        -- need to update them.
+        -- Also, for some reason, when calling cm:get_campaign_ui_manager():is_panel_open()
+        -- here, it does not detect that the mercenary panel / allied panel are open, so we
+        -- need to check whether they are open by searching for their UI component.
+        if TotoWar().ui:findUIComponent(TotoWar().ui.uiComponentQueries.mercenaryRecruitmentPool) then
             self:updateMercenaryRecruitmentPanel()
-        elseif cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panel.alliedRecruitment) then
+        elseif TotoWar().ui:findUIComponent(TotoWar().ui.uiComponentQueries.alliedRecruitmentPool) then
             self:updateAlliedRecruitmentPanel()
         end
 

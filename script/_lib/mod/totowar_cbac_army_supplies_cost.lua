@@ -29,10 +29,6 @@ function TotoWarCbacArmySuppliesCost.new()
     instance.unitGroups = {}
     instance.totalCost = 0
 
-    for index, value in ipairs(instance.inRecruitmentMercenaryUnits) do
-        TotoWar().genericLogger:logDebug("TEST %s", value.unitKey)
-    end
-
     TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost.new(): COMPLETED")
 
     return instance
