@@ -1,20 +1,20 @@
 ---Utility tools for TotoWar mods.
 ---@class TotoWarUtils
 TotoWarUtils = {
-    ---Enumerations
+    ---Enums
     ---@class TotoWarUtils_Enums
     enums = {
         ---Colors.
-        ---@class TotoWarUtils_Enums_Color
-        color = {
+        ---@class TotoWarUtils_Enums_Colors
+        colors = {
             blue = "alliance_ally",
             red = "alliance_enemy",
             yellow = "yellow"
         },
 
         ---Events.
-        ---@class TotoWarUtils_Enums_Event
-        event = {
+        ---@class TotoWarUtils_Enums_Events
+        events = {
             ---Event triggered when a unit has been recruited.
             unitRecruited = "UnitTrained"
         }

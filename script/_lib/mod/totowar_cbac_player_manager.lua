@@ -1,15 +1,15 @@
----Name of the TotoWar Cost-Based Army Caps mod.
----@type string
-TotoWarCbacModName = "totowar_cost_based_army_caps"
-
 ---Manager in charge of calculating the army supplies cost for the player armies.
 ---@class TotoWarCbacPlayerManager
 TotoWarCbacPlayerManager = {
-    ---Events.
-    ---@class TotoWarCbacPlayerManagerEventEnum
-    event = {
-        ---Event triggered when the army supplies cost of the selected army changes.
-        selectedGeneralArmySuppliesCostChanged = "TotoWarCbac_SelectedGeneralArmySuppliesCostChanged",
+    ---Enums
+    ---@class TotoWarCbacPlayerManager_Enums
+    enums = {
+        ---Events.
+        ---@class TotoWarCbacPlayerManager_Enums_Event
+        events = {
+            ---Event triggered when the army supplies cost of the selected army changes.
+            selectedGeneralArmySuppliesCostChanged = "TotoWarCbac_SelectedGeneralArmySuppliesCostChanged",
+        }
     },
 
     ---Logger.
@@ -46,7 +46,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.characterDeselected,
+        TotoWar().ui.enums.events.characterDeselected,
         function(context)
             return cm:is_local_players_turn()
         end,
@@ -56,7 +56,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.characterSelected,
+        TotoWar().ui.enums.events.characterSelected,
         ---@param context CharacterSelected
         function(context)
             return cm:is_local_players_turn()
@@ -68,7 +68,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.componentLeftClick,
+        TotoWar().ui.enums.events.componentLeftClick,
         ---@param context TotoWarEventContext_ComponentLeftClick
         function(context)
             return
@@ -83,7 +83,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager_InRecruitmentMercenaryUnitCard",
-        TotoWar().ui.enums.event.componentLeftClick,
+        TotoWar().ui.enums.events.componentLeftClick,
         ---@param context TotoWarEventContext_ComponentLeftClick
         function(context)
             return
@@ -98,12 +98,12 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.panelClosed,
+        TotoWar().ui.enums.events.panelClosed,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             return
                 cm:is_local_players_turn()
-                and context.string == TotoWar().ui.enums.panel.mercenaryRecruitment
+                and context.string == TotoWar().ui.enums.panels.mercenaryRecruitment
                 and self.selectedGeneralArmySuppliesCost
         end,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
@@ -113,7 +113,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.unitAddedToRecruitment,
+        TotoWar().ui.enums.events.unitAddedToRecruitment,
         ---@param context TotoWarEventContext_UnitAddedToRecruitment
         function(context)
             return
@@ -129,7 +129,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.unitDisbanded,
+        TotoWar().ui.enums.events.unitDisbanded,
         ---@param context TotoWarEventContext_UnitDisbanded
         function(context)
             return cm:is_local_players_turn()
@@ -141,7 +141,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.unitMergedAndDestroyed,
+        TotoWar().ui.enums.events.unitMergedAndDestroyed,
         ---@param context TotoWarEventContext_UnitMergedAndDestroyed
         function(context)
             return cm:is_local_players_turn()
@@ -153,7 +153,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.unitRemovedFromRecruitment,
+        TotoWar().ui.enums.events.unitRemovedFromRecruitment,
         ---@param context TotoWarEventContext_UnitRemovedFromRecruitment
         function(context)
             return
@@ -168,7 +168,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.event.unitTrained,
+        TotoWar().ui.enums.events.unitTrained,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
             return
@@ -201,7 +201,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     end
 
     -- Adding units being recruited in the general army
-    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.units)
+    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitsPanelUnits)
 
     -- Adding units from the recruitment queue
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
@@ -219,7 +219,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
             { "card_image_holder" })
         local unitContext = TotoWar().ui:getUIComponentCCO(
             cardImageHolderUIComponent,
-            TotoWar().ui.enums.ccoContextTypeId.ccoMainUnitRecord)
+            TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
 
         ---@type string
         local unitKey = unitContext:Call("Key")
@@ -230,7 +230,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     self:updatedSelectedGeneralMovement()
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug(
         "initializeArmySuppliesCost(%s): COMPLETED => %s",
@@ -268,7 +268,7 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
         then
             self.selectedGeneralCqi = character:cqi()
 
-            if cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panel.unitsPanel) then
+            if cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panels.unitsPanel) then
                 --- Initializing the army supplies cost for the newly selected army
                 self:initializeArmySuppliesCost(character)
             else
@@ -277,10 +277,10 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
                 --- units being recruited
                 TotoWar().utils:addListener(
                     "TotoWarCbacPlayerManager_UnitsPanel",
-                    TotoWar().ui.enums.event.panelOpened,
+                    TotoWar().ui.enums.events.panelOpened,
                     ---@param context TotoWarEventContext_PanelOpenedOrClosed
                     function(context)
-                        return context.string == TotoWar().ui.enums.panel.unitsPanel
+                        return context.string == TotoWar().ui.enums.panels.unitsPanel
                     end,
                     function()
                         self:initializeArmySuppliesCost(character)
@@ -307,7 +307,7 @@ function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiCompone
     local unitKey = self.selectedGeneralArmySuppliesCost:removeUnit(uiComponentName)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onInRecruitmentMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
 end
@@ -320,7 +320,7 @@ function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelClosed()
         self.selectedGeneralArmySuppliesCost:clearMercenaryRecruitment()
 
         -- Signaling army supplies cost change
-        core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+        core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
     end
 
     self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): COMPLETED")
@@ -334,7 +334,7 @@ function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey)
     self.selectedGeneralArmySuppliesCost:addUnit(unitKey, false)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onMercenaryUnitRecruited(): COMPLETED")
 end
@@ -354,7 +354,7 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
     -- was not `inactive` at the time of the click and we add its army supplies cost.
     -- so we can add the unit army supplies cost.
     local inRecruitmentMercenaryUnitCount = 0
-    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.units)
+    local unitsUIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitsPanelUnits)
 
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
         -- Iterating from the last unit card since units being recruited are at the end
@@ -378,7 +378,7 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
     if inRecruitmentMercenaryUnitCount > #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits then
         local unitContext = TotoWar().ui:getUIComponentCCO(
             unitUIComponent,
-            TotoWar().ui.enums.ccoContextTypeId.ccoMainUnitRecord)
+            TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
 
         ---@type string
         local unitKey = unitContext:Call("Key")
@@ -397,7 +397,7 @@ function TotoWarCbacPlayerManager:onUnitAddedToRecruitment(unitKey, isMercenary)
     self.selectedGeneralArmySuppliesCost:addUnit(unitKey, isMercenary)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitAddedToRecruitment(%s): COMPLETED", unitKey)
 end
@@ -410,7 +410,7 @@ function TotoWarCbacPlayerManager:onUnitDisbanded(unitKey)
     self.selectedGeneralArmySuppliesCost:removeUnit(unitKey)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitDisbanded(%s): COMPLETED", unitKey)
 end
@@ -423,7 +423,7 @@ function TotoWarCbacPlayerManager:onUnitMergedAndDestroyed(unitKey)
     self.selectedGeneralArmySuppliesCost:removeUnit(unitKey)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitMergedAndDestroyed(%s): COMPLETED", unitKey)
 end
@@ -435,7 +435,7 @@ function TotoWarCbacPlayerManager:onUnitRemovedFromRecruitment(unitKey)
     self.selectedGeneralArmySuppliesCost:removeUnit(unitKey)
 
     -- Signaling army supplies cost change
-    core:trigger_event(self.event.selectedGeneralArmySuppliesCostChanged)
+    core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitRemovedFromRecruitment(%s): COMPLETED", unitKey)
 end

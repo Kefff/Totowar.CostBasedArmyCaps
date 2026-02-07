@@ -5,16 +5,16 @@ TotoWarUIUtils = {
     ---@class TotoWarUIUtils_Enums
     enums = {
         ---Component context object type IDs.
-        ---@class TotoWarUIUtils_Enums_CcoContextTypeIdEnum
-        ccoContextTypeId = {
+        ---@class TotoWarUIUtils_Enums_CcoContextTypeIds
+        ccoContextTypeIds = {
             ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
             ccoCampaignCharacter = "CcoCampaignCharacter",
             ccoMainUnitRecord = "CcoMainUnitRecord"
         },
 
         ---Docking points.
-        ---@class TotoWarUIUtils_DockingPoint
-        dockingPoint = {
+        ---@class TotoWarUIUtils_Enums_DockingPoints
+        dockingPoints = {
             topLeft = 1,
             topMiddle = 2,
             topRight = 3,
@@ -27,8 +27,8 @@ TotoWarUIUtils = {
         },
 
         ---Events.
-        ---@class TotoWarUIUtils_Enums_Event
-        event = {
+        ---@class TotoWarUIUtils_Enums_Events
+        events = {
             ---Event triggered when a character is deselected.
             ---Is not triggered when a character is already selected and the player selects another character.
             characterDeselected = "CharacterDeselected",
@@ -63,11 +63,8 @@ TotoWarUIUtils = {
 
         ---Panels.
         ---@class TotoWarUIUtils_Enums_Panels
-        panel = {
-            ---Allied recruitment from an allied outpost
-            alliedRecruitment = "allied_recruitment",
-
-            ---Mercenary recruitment panel (units of renown, dwarf grudge settlers, Waaagh mobs, ...)
+        panels = {
+            ---Mercenary recruitment panel (allied recruitment, units of renown, dwarf grudge settlers, Waaagh mobs, ...)
             mercenaryRecruitment = "mercenary_recruitment",
 
             ---Panel that contains the recruitment panels
@@ -102,9 +99,13 @@ TotoWarUIUtils = {
 
         ---UI component states.
         ---@class TotoWarUIUtils_Enums_UIComponentStates
-        uiComponentState = {
+        uiComponentStates = {
+            ---Active.
+            ---@type string
             active = "active",
 
+            ---Inactive.
+            ---@type string
             inactive = "inactive"
         }
     },
@@ -116,13 +117,13 @@ TotoWarUIUtils = {
     ---Queries for finding UI components.
     ---@class TotoWarUIUtils_UIComponentQuery
     uiComponentQueries = {
-        alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
-        globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
-        localRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
-        mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
-        recruitmentPanelCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-        units = { "units_panel", "main_units_panel", "units" },
+        recruitmentOptionsAlliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
+        recruitmentOptionsCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
+        recruitmentOptionsGlobalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
+        recruitmentOptionsLocalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
+        recruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
         unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
+        unitsPanelUnits = { "units_panel", "main_units_panel", "units" },
     },
 
 }

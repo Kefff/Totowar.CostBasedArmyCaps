@@ -171,11 +171,11 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
     if self.availableSupplies < 0 then
         availableArmySuppliesString = string.format(
             "[[col:%s]]%s[[/col]]",
-            TotoWar().utils.enums.color.red,
+            TotoWar().utils.enums.colors.red,
             availableArmySuppliesString)
         depletedArmySuppliesWarning = string.format(
             "\n\n[[col:%s]]%s[[/col]]",
-            TotoWar().utils.enums.color.red,
+            TotoWar().utils.enums.colors.red,
             common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip_depleted"))
     end
 
