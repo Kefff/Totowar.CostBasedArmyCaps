@@ -113,6 +113,21 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
+        TotoWar().ui.enums.events.panelOpened,
+        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        function(context)
+            return
+                cm:is_local_players_turn()
+                and context.string == TotoWar().ui.enums.panels.mercenaryRecruitment
+                and self.selectedGeneralArmySuppliesCost
+        end,
+        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        function(context)
+            self:onMercenaryRecruitmentPanelOpened()
+        end)
+
+    TotoWar().utils:addListener(
+        "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.unitAddedToRecruitment,
         ---@param context TotoWarEventContext_UnitAddedToRecruitment
         function(context)
@@ -183,6 +198,20 @@ function TotoWarCbacPlayerManager:addListeners()
         end)
 
     self.logger:logDebug("addListeners(): COMPLETED")
+end
+
+---Clears the list of in-recruitment mercenary units supply costs.
+function TotoWarCbacPlayerManager:clearMercenaryRecruitment()
+    self.logger:logDebug("[EVENT] clearMercenaryRecruitment(): STARTED")
+
+    if #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
+        self.selectedGeneralArmySuppliesCost:clearMercenaryRecruitment()
+
+        -- Signaling army supplies cost change
+        core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
+    end
+
+    self.logger:logDebug("[EVENT] clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Initializes the army supplies cost of the army of the selected general.
@@ -324,6 +353,15 @@ function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelClosed()
     end
 
     self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): COMPLETED")
+end
+
+---Reacts to the mercenary recruitment panel being opened or closed.
+function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelOpened()
+    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): STARTED")
+
+    self:clearMercenaryRecruitment()
+
+    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): COMPLETED")
 end
 
 ---Reacts to a mercenary unit being recruited in the selected general army.

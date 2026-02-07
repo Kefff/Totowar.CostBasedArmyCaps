@@ -314,20 +314,6 @@ function TotoWarCbacUIManager:onPanelOpened(panelName)
 
     self.logger:logDebug("[EVENT] onPanelOpened(%s): STARTED", panelName)
 
-    -- if panelName ~= TotoWar().ui.enums.panels.mercenaryRecruitment
-    --     and panelName == self.lastOpenedPanel
-    -- then
-    --     -- If the panel was already displayed, we do not need to update it since the game triggers
-    --     -- a lot of PanelOpened events, even when we stay on the same panel after a user interaction.
-    --     -- This does not apply to the mercenary recruitment panel because it can display multiple
-    --     -- recruitment pools. We cannot know when the PanelOpened event is triggered whether
-    --     -- the same mercenary recruitment pool is displayed again or if we have switched to another
-    --     -- mercenary recruitment pool.
-    --     self.logger:logDebug("[EVENT] onPanelOpened(%s): COMPLETED", panelName)
-
-    --     return
-    -- end
-
     local recruitmentPools = self:findRecruitmentPoolsInPanel(panelName)
     local recruitmentPoolsToUpdate = {}
 

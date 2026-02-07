@@ -80,7 +80,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
         self.totalCost)
 end
 
----Clears list of in-recruitment mercenary units supply costs.
+---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): STARTED")
 
