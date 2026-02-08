@@ -314,10 +314,11 @@ end
 ---@param query string[] Path containing the names of the child UI components to resize.
 function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, query)
     self.logger:logDebug(
-        "resizeUIComponentAndChildren(%s, %s, %s): STARTED",
+        "resizeUIComponentAndChildren(%s, %s, %s, %s): STARTED",
         uiComponent:Id(),
         widthToAdd,
-        heightToAdd)
+        heightToAdd,
+        table.concat(query, "/"))
 
     local currentChildUIComponentPath = {}
 
@@ -330,8 +331,9 @@ function TotoWarUIUtils:resizeUIComponentAndChildren(uiComponent, widthToAdd, he
     end
 
     self.logger:logDebug(
-        "resizeUIComponentAndChildren(%s, %s, %s): COMPLETED",
+        "resizeUIComponentAndChildren(%s, %s, %s, %s): COMPLETED",
         uiComponent:Id(),
         widthToAdd,
-        heightToAdd)
+        heightToAdd,
+        table.concat(query, "/"))
 end

@@ -12,6 +12,13 @@ TotoWarCbacPlayerManager = {
         }
     },
 
+    ---Indicates whether the army supplies cost is being initialized.
+    ---When it is the case, methods that update UI elements (such as when a panel is opened)
+    ---should not execute because the UI will be updated when the
+    ---TotoWarCbac_SelectedGeneralArmySuppliesCostChanged event is triggered at the end ot the
+    ---supplies cost initialization.
+    isInitializingArmySuppliesCost = false,
+
     ---Logger.
     ---@type TotoWarLogger
     logger = nil,
@@ -202,7 +209,7 @@ end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacPlayerManager:clearMercenaryRecruitment()
-    self.logger:logDebug("[EVENT] clearMercenaryRecruitment(): STARTED")
+    self.logger:logDebug("clearMercenaryRecruitment(): STARTED")
 
     if #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
         self.selectedGeneralArmySuppliesCost:clearMercenaryRecruitment()
@@ -211,7 +218,7 @@ function TotoWarCbacPlayerManager:clearMercenaryRecruitment()
         core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
     end
 
-    self.logger:logDebug("[EVENT] clearMercenaryRecruitment(): COMPLETED")
+    self.logger:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Initializes the army supplies cost of the army of the selected general.
@@ -258,6 +265,8 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     -- Updating the selected general ability to move depending on the total army supplies cost
     self:updatedSelectedGeneralMovement()
 
+    self.isInitializingArmySuppliesCost = false
+
     -- Signaling army supplies cost change
     core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
@@ -296,10 +305,15 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
             or character:cqi() ~= self.selectedGeneralCqi
         then
             self.selectedGeneralCqi = character:cqi()
+            self.isInitializingArmySuppliesCost = true
 
             if cm:get_campaign_ui_manager():is_panel_open(TotoWar().ui.enums.panels.unitsPanel) then
-                --- Initializing the army supplies cost for the newly selected army
-                self:initializeArmySuppliesCost(character)
+                cm:real_callback(
+                    function()
+                        --- Initializing the army supplies cost for the newly selected army
+                        self:initializeArmySuppliesCost(character)
+                    end,
+                    50) -- 50ms delay otherwise the units_panel is not up to date an still contains the units of the previously selected general army
             else
                 --- Adding a one-time listener that waits for the unit_panel to open before
                 --- initializing the army supplies cost because we need to get the cost of the
