@@ -73,6 +73,9 @@ TotoWarUIUtils = {
             ---Standard recruitment panel
             standardRecruitment = "units_recruitment",
 
+            ---Panel that allows to exchange units between armies.
+            unitExchange = "unit_exchange",
+
             ---Selected army unit list panel.
             unitsPanel = "units_panel"
         },
@@ -122,8 +125,10 @@ TotoWarUIUtils = {
         recruitmentOptionsGlobalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
         recruitmentOptionsLocalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
         recruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
+        unitExchangePool1 = { "unit_exchange", "main_units_panel_1" },
+        unitExchangePool2 = { "unit_exchange", "main_units_panel_2" },
         unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
-        unitsPanelUnits = { "units_panel", "main_units_panel", "units" },
+        unitsPanelUnits = { "units_panel", "main_units_panel", "units" }
     },
 
 }
