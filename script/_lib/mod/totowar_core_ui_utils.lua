@@ -97,7 +97,15 @@ TotoWarUIUtils = {
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
             ---queue.
             ---@type string
-            recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$"
+            recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$",
+
+            ---Pattern for identifying a UI component corresponding to the unit card of an agent during unit exchange.
+            ---@type string
+            unitExchangeAgentCard = "^AgentCard",
+
+            ---Pattern for identifying a UI component corresponding to a unit card during unit exchange.
+            ---@type string
+            unitExchangeUnitCard = "^UnitCard"
         },
 
         ---UI component states.
@@ -109,7 +117,11 @@ TotoWarUIUtils = {
 
             ---Inactive.
             ---@type string
-            inactive = "inactive"
+            inactive = "inactive",
+
+            ---Selected.
+            ---@type string
+            selected = "selected"
         }
     },
 
@@ -243,6 +255,33 @@ function TotoWarUIUtils:getUIComponentCCO(uiComponent, ccoContextTypeId)
         ccoContextTypeId)
 
     return componentContextObject
+end
+
+---Indicates whether a UI component is a child of other UI components.
+---@param uiComponent UIC UI component.
+---@param parentNames string[] Parent UI component names.
+function TotoWarUIUtils:isUIComponentChildOf(uiComponent, parentNames)
+    local parentNamesText = table.concat(parentNames, ", ")
+
+    self.logger:logDebug("isUIComponentChildOf(%s, %s): STARTED", uiComponent:Id(), parentNamesText)
+
+    for index, parentName in ipairs(parentNames) do
+        if not uicomponent_has_parent_filter(
+                uiComponent,
+                ---@param uic UIC
+                function(uic)
+                    return uic:Id() == parentName
+                end)
+        then
+            self.logger:logDebug("isUIComponentChildOf(%s, %s): COMPETED => %s", uiComponent:Id(), parentNamesText, false)
+
+            return false
+        end
+    end
+
+    self.logger:logDebug("isUIComponentChildOf(%s, %s): COMPETED => %s", uiComponent:Id(), parentNamesText, true)
+
+    return true
 end
 
 ---Offsets the children of a UI component.

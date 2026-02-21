@@ -137,11 +137,13 @@ function TotoWarCbacUIManager:addListeners()
         TotoWar().ui.enums.events.panelClosed,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
-            return cm:is_local_players_turn()
+            return
+                cm:is_local_players_turn()
+                and context.string == TotoWar().ui.enums.panels.recruitmentOptions
         end,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
-            self:onPanelClosed(context.string)
+            self:onRecruitmentPanelClosed()
         end)
 
     TotoWar().utils:addListener(
@@ -356,16 +358,13 @@ function TotoWarCbacUIManager:onCharacterDeselected()
     self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
 end
 
----Reacts to a panel being closed.
----@param panelName string Name of the panel;
-function TotoWarCbacUIManager:onPanelClosed(panelName)
-    self.logger:logDebug("[EVENT] onPanelClosed(%s): STARTED", panelName)
+---Reacts to the recruitment panel being closed.
+function TotoWarCbacUIManager:onRecruitmentPanelClosed()
+    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(%s): STARTED")
 
-    if panelName == TotoWar().ui.enums.panels.recruitmentOptions then
-        self:resetUIChangeFlags()
-    end
+    self:resetUIChangeFlags()
 
-    self.logger:logDebug("[EVENT] onPanelClosed(%s): COMPLETED", panelName)
+    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(%s): COMPLETED")
 end
 
 ---Reacts to a panel being opened.

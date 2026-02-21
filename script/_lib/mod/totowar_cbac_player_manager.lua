@@ -85,21 +85,6 @@ function TotoWarCbacPlayerManager:addListeners()
         end)
 
     TotoWar().utils:addListener(
-        "TotoWarCbacPlayerManager",
-        TotoWar().ui.enums.events.componentLeftClick,
-        ---@param context TotoWarEventContext_ComponentLeftClick
-        function(context)
-            return
-                cm:is_local_players_turn()
-                and context.string:match(TotoWar().ui.enums.patterns.recruitableMercenaryUnitCard)
-        end,
-        ---@param context TotoWarEventContext_ComponentLeftClick
-        function(context)
-            local uiComponent = UIComponent(context.component)
-            self:onRecruitableMercenaryUniCardClick(context.string, uiComponent)
-        end)
-
-    TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager_InRecruitmentMercenaryUnitCard",
         TotoWar().ui.enums.events.componentLeftClick,
         ---@param context TotoWarEventContext_ComponentLeftClick
@@ -116,6 +101,42 @@ function TotoWarCbacPlayerManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
+        TotoWar().ui.enums.events.componentLeftClick,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            return
+                cm:is_local_players_turn()
+                and context.string:match(TotoWar().ui.enums.patterns.recruitableMercenaryUnitCard)
+        end,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            local uiComponent = UIComponent(context.component)
+            self:onRecruitableMercenaryUniCardClick(context.string, uiComponent)
+        end)
+
+    TotoWar().utils:addListener(
+        "TotoWarCbacPlayerManager",
+        TotoWar().ui.enums.events.componentLeftClick,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            if cm:is_local_players_turn()
+                and (string.match(context.string, TotoWar().ui.enums.patterns.unitExchangeAgentCard)
+                    or string.match(context.string, TotoWar().ui.enums.patterns.unitExchangeUnitCard))
+            then
+                local uiComponent = UIComponent(context.component)
+
+                return TotoWar().ui:isUIComponentChildOf(uiComponent, { "unit_exchange" })
+            end
+
+            return false
+        end,
+        ---@param context TotoWarEventContext_ComponentLeftClick
+        function(context)
+            self:updateUnitExchangeArmySuppliesCosts()
+        end)
+
+    TotoWar().utils:addListener(
+        "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.panelClosed,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
@@ -127,6 +148,20 @@ function TotoWarCbacPlayerManager:addListeners()
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             self:onMercenaryRecruitmentPanelClosed()
+        end)
+
+    TotoWar().utils:addListener(
+        "TotoWarCbacPlayerManager",
+        TotoWar().ui.enums.events.panelClosed,
+        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        function(context)
+            return
+                cm:is_local_players_turn()
+                and context.string == TotoWar().ui.enums.panels.unitExchange
+        end,
+        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        function(context)
+            self:onUnitExchangePanelClosed()
         end)
 
     TotoWar().utils:addListener(
@@ -492,40 +527,32 @@ function TotoWarCbacPlayerManager:onUnitDisbanded(unitKey)
     self.logger:logDebug("[EVENT] onUnitDisbanded(%s): COMPLETED", unitKey)
 end
 
+---Reacts to the unit exchange panel being closed.
+function TotoWarCbacPlayerManager:onUnitExchangePanelClosed()
+    self.logger:logDebug("[EVENT] onUnitExchangePanelClosed(): STARTED")
+
+    self.unitExchangeArmySuppliesCost1 = nil
+    self.unitExchangeArmySuppliesCost2 = nil
+
+    self.logger:logDebug("[EVENT] onUnitExchangePanelClosed(): COMPLETED")
+end
+
 ---Reacts to the unit exchange panel being opened.
 function TotoWarCbacPlayerManager:onUnitExchangePanelOpened()
     self.logger:logDebug("[EVENT] onUnitExchangePanelOpened(): STARTED")
 
-    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new()
-    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new()
-
-    for index, unitGroup in ipairs(self.selectedGeneralArmySuppliesCost.unitGroups) do
-        for i = 1, unitGroup.unitCount, 1 do
-            self.unitExchangeArmySuppliesCost1:addUnit(unitGroup.unitKey, false)
-        end
-    end
-
-    local unitExchangePool2UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
-    local unitExchangePool2UnitListUIComponent = TotoWar().ui:getUIComponentChild(
-        unitExchangePool2UIComponent,
-        { "units" })
-
-    for i = 0, unitExchangePool2UnitListUIComponent:ChildCount() - 1, 1 do
-        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePool2UnitListUIComponent, i)
-        local cardImageHolderUIComponent = TotoWar().ui:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
-        local unitContext = TotoWar().ui:getUIComponentCCO(
-            cardImageHolderUIComponent,
-            TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
-
-        ---@type string
-        local unitKey = unitContext:Call("Key")
-        self.unitExchangeArmySuppliesCost2:addUnit(unitKey, false)
-    end
-
-    -- Signaling unit exchange army supplies cost change
-    core:trigger_event(self.enums.events.unitExchangeArmySuppliesCostChanged)
+    self:updateUnitExchangeArmySuppliesCosts()
 
     self.logger:logDebug("[EVENT] onUnitExchangePanelOpened(): COMPLETED")
+end
+
+---Reacts to a unit card in the first army unit exchange pool being clicked.
+function TotoWarCbacPlayerManager:onUnitExchangePoolUnitCardClick()
+    self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): STARTED")
+
+    self:updateUnitExchangeArmySuppliesCosts()
+
+    self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): COMPLETED")
 end
 
 ---Reacts to a unit being destroyed after having been merged with another unit.
@@ -551,6 +578,62 @@ function TotoWarCbacPlayerManager:onUnitRemovedFromRecruitment(unitKey)
     core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
 
     self.logger:logDebug("[EVENT] onUnitRemovedFromRecruitment(%s): COMPLETED", unitKey)
+end
+
+---Updates unit exchange army supplies cost of two unit exchange pools base on which unit cards
+---are selected in one of the pools.
+---@param unitExchangePoolUIComponent UIC Current unit exchange pool.
+---@param unitExchangePoolArmySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the current unit exchange pool.
+---@param otherUnitExchangePoolArmySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the other unit exchange pool.
+function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCost(
+    unitExchangePoolUIComponent,
+    unitExchangePoolArmySuppliesCost,
+    otherUnitExchangePoolArmySuppliesCost)
+    local unitExchangePoolUnitListUIComponent = TotoWar().ui:getUIComponentChild(
+        unitExchangePoolUIComponent,
+        { "units" })
+
+    for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
+        local cardImageHolderUIComponent = TotoWar().ui:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
+        local unitContext = TotoWar().ui:getUIComponentCCO(
+            cardImageHolderUIComponent,
+            TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
+
+        ---@type string
+        local unitKey = unitContext:Call("Key")
+
+        if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar().ui.enums.uiComponentStates.selected) then
+            otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey, false)
+        else
+            unitExchangePoolArmySuppliesCost:addUnit(unitKey, false)
+        end
+    end
+end
+
+---Updates unit exchange army supplies costs.
+function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
+    self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
+
+    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new()
+    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new()
+
+    local unitExchangePool1UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool1)
+    self:updateUnitExchangeArmySuppliesCost(
+        unitExchangePool1UIComponent,
+        self.unitExchangeArmySuppliesCost1,
+        self.unitExchangeArmySuppliesCost2)
+
+    local unitExchangePool2UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
+    self:updateUnitExchangeArmySuppliesCost(
+        unitExchangePool2UIComponent,
+        self.unitExchangeArmySuppliesCost2,
+        self.unitExchangeArmySuppliesCost1)
+
+    -- Signaling unit exchange army supplies cost change
+    core:trigger_event(self.enums.events.unitExchangeArmySuppliesCostChanged)
+
+    self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
 end
 
 ---Updates the ability to move of the selected general depending on the army supplies cost of its army.
