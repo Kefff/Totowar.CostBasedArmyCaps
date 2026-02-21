@@ -497,6 +497,7 @@ function TotoWarCbacPlayerManager:onUnitExchangePanelOpened()
     self.logger:logDebug("[EVENT] onUnitExchangePanelOpened(): STARTED")
 
     self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new()
+    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new()
 
     for index, unitGroup in ipairs(self.selectedGeneralArmySuppliesCost.unitGroups) do
         for i = 1, unitGroup.unitCount, 1 do
@@ -504,9 +505,22 @@ function TotoWarCbacPlayerManager:onUnitExchangePanelOpened()
         end
     end
 
-    local unitExchangePool2 = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
-    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new()
-    --TODO : obtenir le cout de la deuxième armée en lisant les unit cards
+    local unitExchangePool2UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
+    local unitExchangePool2UnitListUIComponent = TotoWar().ui:getUIComponentChild(
+        unitExchangePool2UIComponent,
+        { "units" })
+
+    for i = 0, unitExchangePool2UnitListUIComponent:ChildCount() - 1, 1 do
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePool2UnitListUIComponent, i)
+        local cardImageHolderUIComponent = TotoWar().ui:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
+        local unitContext = TotoWar().ui:getUIComponentCCO(
+            cardImageHolderUIComponent,
+            TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
+
+        ---@type string
+        local unitKey = unitContext:Call("Key")
+        self.unitExchangeArmySuppliesCost2:addUnit(unitKey, false)
+    end
 
     -- Signaling unit exchange army supplies cost change
     core:trigger_event(self.enums.events.unitExchangeArmySuppliesCostChanged)

@@ -184,8 +184,7 @@ end
 
 ---Creates the army supplies UI component and registers it as a child of a parent component.
 ---@param parentUIComponent UIC Parent UI component.
----@param dockingPoint number Docking point.
-function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent, dockingPoint)
+function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
     self.logger:logDebug("createArmySuppliesUIComponent(%s): STARTED", parentUIComponent:Id())
 
     local uiComponentAddress = parentUIComponent:CreateComponent(
@@ -193,7 +192,6 @@ function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent, d
         _unitArmySuppliesUIComponentTemplate)
     armySuppliesUIComponent = UIComponent(uiComponentAddress)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
-    armySuppliesUIComponent:SetDockingPoint(dockingPoint)
     parentUIComponent:Adopt(uiComponentAddress)
 
     self.logger:logDebug("createArmySuppliesUIComponent(%s): COMPLETED", parentUIComponent:Id())
@@ -205,12 +203,10 @@ end
 ---@param parentUIComponent UIC UI component that contains or will contain the army cost UI component.
 ---@param text string Text displayed.
 ---@param tooltip string Tooltip.
----@param dockingPoint number Docking point.
 function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
     parentUIComponent,
     text,
-    tooltip,
-    dockingPoint
+    tooltip
 )
     self.logger:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): STARTED",
@@ -223,7 +219,8 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
         { _unitArmySuppliesUIComponentName })
 
     if not armySuppliesUIComponent then
-        armySuppliesUIComponent = self:createArmySuppliesUIComponent(parentUIComponent, dockingPoint)
+        armySuppliesUIComponent = self:createArmySuppliesUIComponent(parentUIComponent)
+        armySuppliesUIComponent:SetDockingPoint(TotoWar().ui.enums.dockingPoints.topLeft)
     end
 
     armySuppliesUIComponent:SetText(text, "")
@@ -434,11 +431,11 @@ end
 function TotoWarCbacUIManager:onUnitExchangeSuppliesCostChanged()
     self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
 
-    local unitExchangePool1 = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool1)
-    self:updateUnitExchangePool(unitExchangePool1, TotoWar_Cbac().playerManager.unitExchangeArmySuppliesCost1)
+    local unitExchangePool1UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool1)
+    self:updateUnitExchangePool(unitExchangePool1UIComponent, TotoWar_Cbac().playerManager.unitExchangeArmySuppliesCost1)
 
-    local unitExchangePool2 = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
-    self:updateUnitExchangePool(unitExchangePool2, TotoWar_Cbac().playerManager.unitExchangeArmySuppliesCost2)
+    local unitExchangePool2UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool2)
+    self:updateUnitExchangePool(unitExchangePool2UIComponent, TotoWar_Cbac().playerManager.unitExchangeArmySuppliesCost2)
 
     self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
@@ -582,7 +579,8 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
             { "external_holder" })
 
         armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(
-            externalHolderUIComponent,
+            externalHolderUIComponent)
+        armySuppliesCostUIComponent:SetDockingPoint(
             TotoWar().ui.enums.dockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
             common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip"), true)
@@ -664,8 +662,7 @@ function TotoWarCbacUIManager:updateUnitExchangePool(unitExchangePoolUIComponent
     self:createOrUpdateArmySuppliesUIComponent(
         parent,
         armySuppliesCostText,
-        armySuppliesCost:toArmySuppliesCostTooltipText(),
-        TotoWar().ui.enums.dockingPoints.topLeft)
+        armySuppliesCost:toArmySuppliesCostTooltipText())
 
     self.logger:logDebug("updateUnitExchangePool(%s): COMPLETED", unitExchangePoolUIComponent:Id())
 end
@@ -681,8 +678,7 @@ function TotoWarCbacUIManager:updateUnitsPanel()
     self:createOrUpdateArmySuppliesUIComponent(
         unitsPanelIconListUIComponent,
         armySuppliesCostText,
-        TotoWar_Cbac().playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText(),
-        TotoWar().ui.enums.dockingPoints.topLeft)
+        TotoWar_Cbac().playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText())
 
     self.logger:logDebug("updateUnitsPanel(): COMPLETED")
 end
