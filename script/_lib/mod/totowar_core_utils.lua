@@ -50,16 +50,16 @@ end
 ---@param callbackFunction function Function to execute when the event is triggered and the condition function returns `true`.
 ---@param isPermanent boolean? Indicates whether the listener is permanent or it should be removed immediately after the event is triggered.
 function TotoWarUtils:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
+    if isPermanent == nil then
+        isPermanent = true
+    end
+
     if not isPermanent then
         listenerName = string.format("%s_SingleUse_%s", listenerNamePrefix, event)
         self.logger:logDebug("addListener() => Add single-use listener \"%s\" to event \"%s\"", listenerName, event)
     else
         listenerName = string.format("%s_%s", listenerNamePrefix, event)
         self.logger:logDebug("addListener() => Add listener \"%s\" to event \"%s\"", listenerName, event)
-    end
-
-    if isPermanent == nil then
-        isPermanent = true
     end
 
     core:add_listener(listenerName, event, conditionFunction, callbackFunction, isPermanent)

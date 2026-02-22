@@ -7,11 +7,11 @@ local _armySuppliesCostUIComponentHeight = 24
 
 ---Name of the UI component that displays army supplies.
 ---@type string
-local _armySuppliesCostUIComponentName = "totowar_cbac_army_supply_cost"
+local _armySuppliesUIComponentName = "totowar_cbac_army_supplies"
 
 ---ID of the depleted army supplies warning icon.
 ---@type string
-local _armySuppliesDepletedWarningIconId = "totowar_cbac_army_supply_depleted"
+local _armySuppliesDepletedWarningIconId = "totowar_cbac_army_supplies_depleted"
 
 ---Path of the army supplies icon.
 ---@type string
@@ -31,7 +31,7 @@ local _mercenaryRecruitmentPoolUIComponentTargetHeight = 272
 
 ---Name of the UI component that displays unit army supplies.
 ---@type string
-local _unitArmySuppliesUIComponentName = "totowar_cbac_unit_army_supply_cost"
+local _unitArmySuppliesUIComponentName = "totowar_cbac_army_supplies_unit_cost"
 
 ---Template of the UI component that displays unit army supplies.
 ---@type string
@@ -58,13 +58,7 @@ TotoWarCbacUIManager = {
 
     ---Recruitment pool UIs.
     ---@type table<string, TotoWarCbacRecruitmentPoolUI>
-    recruitmentPools = nil,
-
-    ---Queries for finding UI components.
-    ---@class TotoWarCbacUIManager_UIComponentQueries
-    uiComponentQueries = {
-        unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" }
-    }
+    recruitmentPools = nil
 }
 TotoWarCbacUIManager.__index = TotoWarCbacUIManager
 
@@ -134,6 +128,19 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar().utils:addListener(
         "TotoWarCbacUIManager",
+        TotoWar().ui.enums.events.characterSelected,
+        ---@param context CharacterSelected
+        function(context)
+            return
+                cm:is_local_players_turn()
+                and not TotoWar().utils:isPlayerFactionGeneral(context:character())
+        end,
+        function()
+            self:onOtherFactionCharacterSelected()
+        end)
+
+    TotoWar().utils:addListener(
+        "TotoWarCbacUIManager",
         TotoWar().ui.enums.events.panelClosed,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
@@ -141,8 +148,7 @@ function TotoWarCbacUIManager:addListeners()
                 cm:is_local_players_turn()
                 and context.string == TotoWar().ui.enums.panels.recruitmentOptions
         end,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
-        function(context)
+        function()
             self:onRecruitmentPanelClosed()
         end)
 
@@ -190,7 +196,7 @@ function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
     self.logger:logDebug("createArmySuppliesUIComponent(%s): STARTED", parentUIComponent:Id())
 
     local uiComponentAddress = parentUIComponent:CreateComponent(
-        _unitArmySuppliesUIComponentName,
+        _armySuppliesUIComponentName,
         _unitArmySuppliesUIComponentTemplate)
     armySuppliesUIComponent = UIComponent(uiComponentAddress)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
@@ -201,7 +207,7 @@ function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
     return armySuppliesUIComponent
 end
 
----Create the UI component that displays army supplies.
+---Creates the UI component that displays army supplies.
 ---@param parentUIComponent UIC UI component that contains or will contain the army cost UI component.
 ---@param text string Text displayed.
 ---@param tooltip string Tooltip.
@@ -218,7 +224,7 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
 
     local armySuppliesUIComponent = TotoWar().ui:findUIComponentChild(
         parentUIComponent,
-        { _unitArmySuppliesUIComponentName })
+        { _armySuppliesUIComponentName })
 
     if not armySuppliesUIComponent then
         armySuppliesUIComponent = self:createArmySuppliesUIComponent(parentUIComponent)
@@ -227,6 +233,7 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
 
     armySuppliesUIComponent:SetText(text, "")
     armySuppliesUIComponent:SetTooltipText(tooltip, true)
+    armySuppliesUIComponent:SetVisible(true)
 
     self.logger:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): COMPLETED",
@@ -317,10 +324,17 @@ end
 function TotoWarCbacUIManager:hideArmySuppliesCostUIComponent()
     self.logger:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
 
-    local armyCostUIComponent = TotoWar().ui:findUIComponent(TotoWarCbacUIManager.uiComponentQueries)
+    local unitsPanelIconListUIComponent = TotoWar().ui:findUIComponent(
+        TotoWar().ui.uiComponentQueries.unitsPanelIconList)
 
-    if armyCostUIComponent then
-        armyCostUIComponent:SetVisible(false)
+    if unitsPanelIconListUIComponent then
+        local armyCostUIComponent = TotoWar().ui:findUIComponentChild(
+            unitsPanelIconListUIComponent,
+            { _armySuppliesUIComponentName })
+
+        if armyCostUIComponent then
+            armyCostUIComponent:SetVisible(false)
+        end
     end
 
     self.logger:logDebug("hideArmySuppliesCostUIComponent(): COMPLETED")
@@ -353,6 +367,7 @@ end
 function TotoWarCbacUIManager:onCharacterDeselected()
     self.logger:logDebug("[EVENT] onCharacterDeselected(): STARTED")
 
+    self:hideArmySuppliesCostUIComponent()
     self:resetUIChangeFlags()
 
     self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
@@ -360,11 +375,11 @@ end
 
 ---Reacts to the recruitment panel being closed.
 function TotoWarCbacUIManager:onRecruitmentPanelClosed()
-    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(%s): STARTED")
+    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(): STARTED")
 
     self:resetUIChangeFlags()
 
-    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(%s): COMPLETED")
+    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(): COMPLETED")
 end
 
 ---Reacts to a panel being opened.
@@ -424,6 +439,15 @@ function TotoWarCbacUIManager:resetUIChangeFlags()
     self.lastOpenedRecruitmentPools = {}
 
     self.logger:logDebug("resetUIChangeFlags(): COMPLETED")
+end
+
+---Reacts to the another faction character being selected.
+function TotoWarCbacUIManager:onOtherFactionCharacterSelected()
+    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
+
+    self:hideArmySuppliesCostUIComponent()
+
+    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to the army supplies cost of armies exchanging units changing.
@@ -582,7 +606,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(
             TotoWar().ui.enums.dockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
-            common.get_localised_string("totowar_cbac_unit_army_supply_cost_tooltip"), true)
+            common.get_localised_string("totowar_cbac_unit_army_supplies_cost_tooltip"), true)
 
         -- Resizing the container to have enough space to display the new component
         TotoWar().ui:resizeUIComponent(unitCardUIComponent, 0, armySuppliesCostUIComponent:Height())
@@ -671,7 +695,7 @@ function TotoWarCbacUIManager:updateUnitsPanel()
     self.logger:logDebug("updateUnitsPanel(): STARTED")
 
     local unitsPanelIconListUIComponent = TotoWar().ui:getUIComponent(
-        TotoWarCbacUIManager.uiComponentQueries.unitsPanelIconList)
+        TotoWar().ui.uiComponentQueries.unitsPanelIconList)
     local armySuppliesCostText = self:getArmySuppliesCostText(TotoWar_Cbac().playerManager
         .selectedGeneralArmySuppliesCost)
     self:createOrUpdateArmySuppliesUIComponent(

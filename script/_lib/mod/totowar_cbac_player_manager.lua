@@ -65,7 +65,7 @@ function TotoWarCbacPlayerManager:addListeners()
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.characterDeselected,
-        function(context)
+        function()
             return cm:is_local_players_turn()
         end,
         function()
@@ -75,8 +75,7 @@ function TotoWarCbacPlayerManager:addListeners()
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.characterSelected,
-        ---@param context CharacterSelected
-        function(context)
+        function()
             return cm:is_local_players_turn()
         end,
         ---@param context CharacterSelected
@@ -130,8 +129,7 @@ function TotoWarCbacPlayerManager:addListeners()
 
             return false
         end,
-        ---@param context TotoWarEventContext_ComponentLeftClick
-        function(context)
+        function()
             self:updateUnitExchangeArmySuppliesCosts()
         end)
 
@@ -145,8 +143,7 @@ function TotoWarCbacPlayerManager:addListeners()
                 and context.string == TotoWar().ui.enums.panels.mercenaryRecruitment
                 and self.selectedGeneralArmySuppliesCost
         end,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
-        function(context)
+        function()
             self:onMercenaryRecruitmentPanelClosed()
         end)
 
@@ -174,8 +171,7 @@ function TotoWarCbacPlayerManager:addListeners()
                 and context.string == TotoWar().ui.enums.panels.mercenaryRecruitment
                 and self.selectedGeneralArmySuppliesCost
         end,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
-        function(context)
+        function()
             self:onMercenaryRecruitmentPanelOpened()
         end)
 
@@ -188,8 +184,7 @@ function TotoWarCbacPlayerManager:addListeners()
                 cm:is_local_players_turn()
                 and context.string == TotoWar().ui.enums.panels.unitExchange
         end,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
-        function(context)
+        function()
             self:onUnitExchangePanelOpened()
         end)
 
@@ -212,8 +207,7 @@ function TotoWarCbacPlayerManager:addListeners()
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.unitDisbanded,
-        ---@param context TotoWarEventContext_UnitDisbanded
-        function(context)
+        function()
             return cm:is_local_players_turn()
         end,
         ---@param context TotoWarEventContext_UnitDisbanded
@@ -224,8 +218,7 @@ function TotoWarCbacPlayerManager:addListeners()
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.unitMergedAndDestroyed,
-        ---@param context TotoWarEventContext_UnitMergedAndDestroyed
-        function(context)
+        function()
             return cm:is_local_players_turn()
         end,
         ---@param context TotoWarEventContext_UnitMergedAndDestroyed
@@ -251,8 +244,7 @@ function TotoWarCbacPlayerManager:addListeners()
     TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.unitTrained,
-        ---@param context TotoWarEventContext_UnitTrained
-        function(context)
+        function()
             return
             -- When the UnitTrained event is triggered while an army is selected, it means that we have
             -- clicked on the mercenary panel recruitment button
@@ -338,10 +330,6 @@ end
 
 ---Reacts to a character being deselected.
 function TotoWarCbacPlayerManager:onCharacterDeselected()
-    if not self.selectedGeneralCqi then
-        return
-    end
-
     self.logger:logDebug("[EVENT] onCharacterDeselected(): STARTED")
 
     self.selectedGeneralCqi = nil
@@ -392,7 +380,8 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
             end
         end
     elseif self.selectedGeneralArmySuppliesCost then
-        self:onCharacterDeselected()
+        self.selectedGeneralCqi = nil
+        self.selectedGeneralArmySuppliesCost = nil
     end
 
     self.logger:logDebug("[EVENT] onCharacterSelected(%s): COMPLETED", character:cqi())
@@ -550,6 +539,10 @@ end
 function TotoWarCbacPlayerManager:onUnitExchangePoolUnitCardClick()
     self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): STARTED")
 
+    -- Each time a unit exchange unit card is clicked, we need to go through each unit exchange pool
+    -- to see which units are selected and which are not.
+    -- This is because the user can select multiple unit cards at once using SHIFT + Click,
+    -- we have no other way to know which cards have been added to the selection.
     self:updateUnitExchangeArmySuppliesCosts()
 
     self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): COMPLETED")
