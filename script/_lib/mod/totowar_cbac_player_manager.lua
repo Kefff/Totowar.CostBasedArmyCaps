@@ -189,6 +189,16 @@ function TotoWarCbacPlayerManager:addListeners()
         end)
 
     TotoWar().utils:addListener(
+        "TotoWarCbacUIManager",
+        TotoWarCbacPlayerManager.enums.events.selectedGeneralArmySuppliesCostChanged,
+        function()
+            return cm:is_local_players_turn()
+        end,
+        function()
+            self:onSelectedGeneralArmySuppliesCostChanged()
+        end)
+
+    TotoWar().utils:addListener(
         "TotoWarCbacPlayerManager",
         TotoWar().ui.enums.events.unitAddedToRecruitment,
         ---@param context TotoWarEventContext_UnitAddedToRecruitment
@@ -314,13 +324,6 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
         self.selectedGeneralArmySuppliesCost:addUnit(unitKey, false)
     end
 
-    -- Updating the selected general ability to move depending on the total army supplies cost
-    if TotoWar().utils:isPlayerFactionGeneral(general) then
-        -- In debug mode, if we select another faction general, we see the army supplies cost
-        -- but we do not want to block the army movement
-        self:updatedSelectedGeneralMovement()
-    end
-
     self.isInitializingArmySuppliesCost = false
 
     -- Signaling army supplies cost change
@@ -348,13 +351,9 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
     self.logger:logDebug("[EVENT] onCharacterSelected(%s): STARTED", character:cqi())
 
     local areArmySuppliesVisible =
-        TotoWar().utils:isPlayerFactionGeneral(character)
-        and TotoWar().utils:canRecruitUnits(character:military_force())
-
-    if TotoWar().isDebug then
-        -- In debug mode, we see the army supplies cost
-        areArmySuppliesVisible = true
-    end
+        TotoWar().isDebug -- In debug mode, we see the army supplies cost
+        or (TotoWar().utils:isPlayerFactionGeneral(character)
+            and TotoWar().utils:canRecruitUnits(character:military_force()))
 
     if areArmySuppliesVisible then
         if character:cqi() ~= self.selectedGeneralCqi
@@ -400,10 +399,7 @@ end
 function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiComponentName, unitComponent)
     self.logger:logDebug("[EVENT] onInRecruitmentMercenaryUniCardClick(%s): STARTED", uiComponentName)
 
-    -- In recruitment mercenary units are stored in a separate table and use the number at the end of the
-    -- UI component ("temp_merc_0", "temp_merc_1", ...) to find the index of the corresponding unit
-    -- in this table.
-    local unitKey = self.selectedGeneralArmySuppliesCost:removeUnit(uiComponentName)
+    self.selectedGeneralArmySuppliesCost:removeUnit(uiComponentName)
 
     -- Signaling army supplies cost change
     core:trigger_event(self.enums.events.selectedGeneralArmySuppliesCostChanged)
@@ -494,6 +490,30 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
     end
 
     self.logger:logDebug("[EVENT] onRecruitableMercenaryUniCardClick(%s): COMPLETED", uiComponentName)
+end
+
+---Reacts to the army supplies cost of the selected general changing.
+function TotoWarCbacPlayerManager:onSelectedGeneralArmySuppliesCostChanged()
+    if not self.selectedGeneralCqi then
+        return
+    end
+
+    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
+
+    local needsSelectedGeneralMovementUpdate = true
+
+    if TotoWar().isDebug then
+        -- In debug mode, if we select a general from another faction, we see the army supplies cost
+        -- but we do not want to block the army movement
+        local selectedGeneral = cm:get_character_by_cqi(self.selectedGeneralCqi)
+        needsSelectedGeneralMovementUpdate = TotoWar().utils:isPlayerFactionGeneral(selectedGeneral)
+    end
+
+    if needsSelectedGeneralMovementUpdate then
+        self:updatedSelectedGeneralMovement()
+    end
+
+    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to a unit being added to the recruitment queue of the selected general army.
