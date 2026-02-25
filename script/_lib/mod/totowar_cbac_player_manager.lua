@@ -315,7 +315,11 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     end
 
     -- Updating the selected general ability to move depending on the total army supplies cost
-    self:updatedSelectedGeneralMovement()
+    if TotoWar().utils:isPlayerFactionGeneral(general) then
+        -- In debug mode, if we select another faction general, we see the army supplies cost
+        -- but we do not want to block the army movement
+        self:updatedSelectedGeneralMovement()
+    end
 
     self.isInitializingArmySuppliesCost = false
 
@@ -343,14 +347,17 @@ end
 function TotoWarCbacPlayerManager:onCharacterSelected(character)
     self.logger:logDebug("[EVENT] onCharacterSelected(%s): STARTED", character:cqi())
 
-    local canRecruit =
+    local areArmySuppliesVisible =
         TotoWar().utils:isPlayerFactionGeneral(character)
         and TotoWar().utils:canRecruitUnits(character:military_force())
 
-    if canRecruit then
-        if
-            not self.selectedGeneralArmySuppliesCost
-            or character:cqi() ~= self.selectedGeneralCqi
+    if TotoWar().isDebug then
+        -- In debug mode, we see the army supplies cost
+        areArmySuppliesVisible = true
+    end
+
+    if areArmySuppliesVisible then
+        if character:cqi() ~= self.selectedGeneralCqi
         then
             self.selectedGeneralCqi = character:cqi()
             self.isInitializingArmySuppliesCost = true
