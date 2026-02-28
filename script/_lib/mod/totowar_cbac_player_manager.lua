@@ -661,10 +661,24 @@ function TotoWarCbacPlayerManager:updatedSelectedGeneralMovement()
     self.logger:logDebug("updatedSelectedGeneralMovement(): STARTED")
 
     if self.selectedGeneralArmySuppliesCost.availableSupplies < 0 then
-        self.logger:logDebug("updatedSelectedGeneralMovement(): ARMY BLOCKED")
+        self.logger:logDebug("updatedSelectedGeneralMovement(): BLOCKED => %s", self.selectedGeneralCqi)
 
         cm:disable_movement_for_character("character_cqi:" .. self.selectedGeneralCqi)
+
+        -- Reactivating movement for agents contained in the army as they should be able to leave the army
+        local selectedGeneralArmyCharacters =
+            cm:get_character_by_cqi(self.selectedGeneralCqi):military_force():character_list()
+
+        for i = 0, selectedGeneralArmyCharacters:num_items() - 1, 1 do
+            local character = selectedGeneralArmyCharacters:item_at(i)
+
+            if character:character_type_key() ~= TotoWar().utils.enums.characterTypes.general then
+                cm:enable_movement_for_character("character_cqi:" .. character:cqi())
+            end
+        end
     else
+        self.logger:logDebug("updatedSelectedGeneralMovement(): FREE TO MOVE => %s", self.selectedGeneralCqi)
+
         cm:enable_movement_for_character("character_cqi:" .. self.selectedGeneralCqi)
     end
 

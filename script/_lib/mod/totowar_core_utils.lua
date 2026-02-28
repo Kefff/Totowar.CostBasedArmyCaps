@@ -5,6 +5,12 @@ TotoWarUtils = {
     ---@class TotoWarUtils_Enums
     enums = {
         ---Colors.
+        ---@class TotoWarUtils_Enums_CharacterTypes
+        characterTypes = {
+            general = "general"
+        },
+
+        ---Colors.
         ---@class TotoWarUtils_Enums_Colors
         colors = {
             blue = "alliance_ally",
