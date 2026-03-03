@@ -65,7 +65,7 @@ local function log(instance, severity, message, ...)
         return
     end
 
-    parameters = {}
+    local parameters = {}
 
     for i, value in ipairs({ ... }) do
         parameters[i] = tostring(value)
@@ -82,6 +82,21 @@ local function log(instance, severity, message, ...)
         file:close()
     end
 end
+
+-- ---Logs a debug message.
+-- ---@param message string Message to log.
+-- ---@param ... function Functions for getting parameter values.
+-- function TotoWarLogger:logDebug(message, ...)
+--     if TotoWar().isDebug then
+--         local parameters = {}
+
+--         for i, valueFunction in ipairs({ ... }) do
+--             parameters[i] = tostring(valueFunction())
+--         end
+
+--         log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
+--     end
+-- end
 
 ---Logs a debug message.
 ---@param message string Message to log.

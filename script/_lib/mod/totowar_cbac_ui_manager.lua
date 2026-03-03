@@ -133,7 +133,7 @@ function TotoWarCbacUIManager:addListeners()
         function(context)
             return
                 cm:is_local_players_turn()
-                and not TotoWar().utils:isPlayerFactionGeneral(context:character())
+                and not TotoWar().utils:isPlayerFaction(context:character():faction():name())
         end,
         function()
             self:onOtherFactionCharacterSelected()

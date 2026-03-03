@@ -1,4 +1,4 @@
----Manager in charge of calculating the army supplies cost for the player armies.
+---Manager in charge of managing the army supplies for the player armies.
 ---@class TotoWarCbacPlayerManager
 TotoWarCbacPlayerManager = {
     ---Enums
@@ -286,7 +286,9 @@ end
 ---Initializes the army supplies cost of the army of the selected general.
 ---@param general CHARACTER_SCRIPT_INTERFACE Selected general.
 function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
-    self.logger:logDebug("initializeArmySuppliesCost(%s): STARTED", general:cqi())
+    self.logger:logDebug(
+        "initializeArmySuppliesCost(%s): STARTED",
+        TotoWar().utils:getCharacterName(general))
 
     self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new()
 
@@ -331,7 +333,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
 
     self.logger:logDebug(
         "initializeArmySuppliesCost(%s): COMPLETED => %s",
-        general:cqi(),
+        TotoWar().utils:getCharacterName(general),
         self.selectedGeneralArmySuppliesCost.totalCost)
 end
 
@@ -348,12 +350,17 @@ end
 ---Reacts to a character being selected.
 ---@param character CHARACTER_SCRIPT_INTERFACE Selected character.
 function TotoWarCbacPlayerManager:onCharacterSelected(character)
-    self.logger:logDebug("[EVENT] onCharacterSelected(%s): STARTED", character:cqi())
+    self.logger:logDebug(
+        "[EVENT] onCharacterSelected(%s): STARTED",
+        string.format(
+            "(%s) %s",
+            common.get_localised_string("factions_screen_name_" .. character:faction():name()),
+            TotoWar().utils:getCharacterName(character)))
 
     local areArmySuppliesVisible =
-        TotoWar().isDebug -- In debug mode, we see the army supplies cost
-        or (TotoWar().utils:isPlayerFactionGeneral(character)
-            and TotoWar().utils:canRecruitUnits(character:military_force()))
+        TotoWar().utils:isGeneral(character)
+        and (TotoWar().utils:isPlayerFaction(character:faction():name())
+            or TotoWar().isDebug) -- In debug mode, we see the army supplies cost or other faction generals
 
     if areArmySuppliesVisible then
         if character:cqi() ~= self.selectedGeneralCqi
@@ -390,7 +397,12 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
         self.selectedGeneralArmySuppliesCost = nil
     end
 
-    self.logger:logDebug("[EVENT] onCharacterSelected(%s): COMPLETED", character:cqi())
+    self.logger:logDebug(
+        "[EVENT] onCharacterSelected(%s): COMPLETED",
+        string.format(
+            "(%s) %s",
+            common.get_localised_string("factions_screen_name_" .. character:faction():name()),
+            TotoWar().utils:getCharacterName(character)))
 end
 
 ---Reacts to the click on the unit card of a mercenary unit in the selected army recruitment queue.
@@ -506,7 +518,7 @@ function TotoWarCbacPlayerManager:onSelectedGeneralArmySuppliesCostChanged()
         -- In debug mode, if we select a general from another faction, we see the army supplies cost
         -- but we do not want to block the army movement
         local selectedGeneral = cm:get_character_by_cqi(self.selectedGeneralCqi)
-        needsSelectedGeneralMovementUpdate = TotoWar().utils:isPlayerFactionGeneral(selectedGeneral)
+        needsSelectedGeneralMovementUpdate = TotoWar().utils:isPlayerFaction(selectedGeneral:faction():name())
     end
 
     if needsSelectedGeneralMovementUpdate then
@@ -663,7 +675,7 @@ function TotoWarCbacPlayerManager:updatedSelectedGeneralMovement()
     if self.selectedGeneralArmySuppliesCost.availableSupplies < 0 then
         self.logger:logDebug("updatedSelectedGeneralMovement(): BLOCKED => %s", self.selectedGeneralCqi)
 
-        cm:disable_movement_for_character("character_cqi:" .. self.selectedGeneralCqi)
+        cm:disable_movement_for_character(cm:char_lookup_str(self.selectedGeneralCqi))
 
         -- Reactivating movement for agents contained in the army as they should be able to leave the army
         local selectedGeneralArmyCharacters =
@@ -673,7 +685,7 @@ function TotoWarCbacPlayerManager:updatedSelectedGeneralMovement()
             local character = selectedGeneralArmyCharacters:item_at(i)
 
             if character:character_type_key() ~= TotoWar().utils.enums.characterTypes.general then
-                cm:enable_movement_for_character("character_cqi:" .. character:cqi())
+                cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
             end
         end
     else
