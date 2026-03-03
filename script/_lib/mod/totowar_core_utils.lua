@@ -91,21 +91,33 @@ function TotoWarUtils:canRecruitUnits(army)
     return canRecruitUnits
 end
 
----Gets the name of a character.
+---Gets the caption of a character.
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
-function TotoWarUtils:getCharacterName(character)
+function TotoWarUtils:getCharacterCaption(character)
     self.logger:logDebug("getCharacterName(%s): STARTED", character:cqi())
 
-    local name = common.get_localised_string(character:get_forename())
+    local caption = common.get_localised_string(character:get_forename())
     local surname = common.get_localised_string(character:get_surname())
 
-    if name ~= "" and surname ~= "" then
-        name = name .. " " .. surname
+    if caption ~= "" and surname ~= "" then
+        caption = caption .. " " .. surname
     end
 
-    self.logger:logDebug("getCharacterName(%s): COMPLETED => %s", character:cqi(), name)
+    self.logger:logDebug("getCharacterName(%s): COMPLETED => %s", character:cqi(), caption)
 
-    return name
+    return caption
+end
+
+---Gets the caption of a faction.
+---@param factionName string Faction name.
+function TotoWarUtils:getFactionCaption(factionName)
+    self.logger:logDebug("getFactionCaption(%s): STARTED", factionName)
+
+    local caption = common.get_localised_string("factions_screen_name_" .. factionName)
+
+    self.logger:logDebug("getFactionCaption(%s): COMPLETED => %s", factionName, caption)
+
+    return caption
 end
 
 ---Gets the caption of a unit.
@@ -120,13 +132,34 @@ function TotoWarUtils:getUnitCaption(unitKey)
     return caption
 end
 
+---Indicates whether a unit is a character.
+---@param unitKey string Unit key.
+---@return boolean
+function TotoWarUtils:isCharacter(unitKey)
+    self.logger:logDebug(
+        "isCharacter(%s): STARTED",
+        self:getUnitCaption(unitKey))
+
+    local isCharacter = common.get_context_value(
+        TotoWar().ui.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnitDetailsContext().IsCharacter()")
+
+    self.logger:logDebug(
+        "isCharacter(%s): COMPLETED => %s",
+        self:getUnitCaption(unitKey),
+        isCharacter)
+
+    return isCharacter
+end
+
 ---Indicates whether a character is general.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
 function TotoWarUtils:isGeneral(character)
     self.logger:logDebug(
         "isGeneral(%s): STARTED",
-        TotoWar().utils:getCharacterName(character))
+        self:getCharacterCaption(character))
 
     local isPlayerFactionGeneral =
         character:has_military_force()
@@ -134,7 +167,7 @@ function TotoWarUtils:isGeneral(character)
 
     self.logger:logDebug(
         "isGeneral(%s): COMPLETED => %s",
-        TotoWar().utils:getCharacterName(character),
+        self:getCharacterCaption(character),
         isPlayerFactionGeneral)
 
     return isPlayerFactionGeneral
@@ -144,14 +177,15 @@ end
 ---@param factionName string Faction name.
 ---@return boolean
 function TotoWarUtils:isPlayerFaction(factionName)
-    self.logger:logDebug("isPlayerFaction(%s): STARTED",
-        common.get_localised_string("factions_screen_name_" .. factionName))
+    self.logger:logDebug(
+        "isPlayerFaction(%s): STARTED",
+        self:getFactionCaption(factionName))
 
     local isPlayerFactionGeneral = factionName == self.playerFactionName
 
     self.logger:logDebug(
         "isPlayerFaction(%s): COMPLETED => %s",
-        common.get_localised_string("factions_screen_name_" .. factionName),
+        self:getFactionCaption(factionName),
         isPlayerFactionGeneral)
 
     return isPlayerFactionGeneral

@@ -7,9 +7,7 @@ TotoWarUIUtils = {
         ---Component context object type IDs.
         ---@class TotoWarUIUtils_Enums_CcoContextTypeIds
         ccoContextTypeIds = {
-            ccoAgentSubtypeRecord = "ccoAgentSubtypeRecord",
-            ccoCampaignCharacter = "CcoCampaignCharacter",
-            ccoMainUnitRecord = "CcoMainUnitRecord"
+            mainUnitRecord = "CcoMainUnitRecord"
         },
 
         ---Docking points.

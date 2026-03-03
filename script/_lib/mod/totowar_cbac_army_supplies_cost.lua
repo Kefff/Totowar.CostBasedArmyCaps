@@ -40,7 +40,7 @@ end
 function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s, %s): STARTED",
-        unitKey,
+        TotoWar().utils:getUnitCaption(unitKey),
         isInRecruitmentMercenary)
 
     local unitArmySuppliesCost = 0
@@ -75,7 +75,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s; %s): COMPLETED => %s",
-        unitKey,
+        TotoWar().utils:getUnitCaption(unitKey),
         isInRecruitmentMercenary,
         self.totalCost)
 end
@@ -99,7 +99,9 @@ end
 ---@param unitKey string Unit key.
 ---@return string | nil
 function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
-    TotoWar().genericLogger:logDebug("TotoWarCbacArmySuppliesCost:removeUnit(%s): STARTED", unitKey)
+    TotoWar().genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:removeUnit(%s): STARTED",
+        TotoWar().utils:getUnitCaption(unitKey))
 
     local isInRecruitmentMercenaryUnit = string.match(
         unitKey,
@@ -119,7 +121,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
         TotoWar().genericLogger:logDebug(
             "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-            unitKey,
+            TotoWar().utils:getUnitCaption(unitKey),
             self.totalCost)
 
         return unitGroup.unitKey;
@@ -137,7 +139,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
                 TotoWar().genericLogger:logDebug(
                     "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-                    unitKey,
+                    TotoWar().utils:getUnitCaption(unitKey),
                     self.totalCost)
 
                 return unitKey;
@@ -145,7 +147,9 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         end
     end
 
-    TotoWar().genericLogger:logError("TotoWarCbacArmySuppliesCost:removeUnit(%s): NOT FOUND", unitKey)
+    TotoWar().genericLogger:logError(
+        "TotoWarCbacArmySuppliesCost:removeUnit(%s): NOT FOUND",
+        TotoWar().utils:getUnitCaption(unitKey))
 end
 
 ---Gets the list of unit army supplies costs as a tooltip string.

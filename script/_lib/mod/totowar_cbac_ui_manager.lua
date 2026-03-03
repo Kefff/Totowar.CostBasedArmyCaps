@@ -581,7 +581,7 @@ end
 function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
     local unitContext = TotoWar().ui:getUIComponentCCO(
         unitCardUIComponent,
-        TotoWar().ui.enums.ccoContextTypeIds.ccoMainUnitRecord)
+        TotoWar().ui.enums.ccoContextTypeIds.mainUnitRecord)
 
     local unitName = unitContext:Call("Name")
     local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
