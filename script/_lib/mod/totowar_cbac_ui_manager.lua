@@ -29,10 +29,6 @@ local _mercenaryRecruitmentPoolListBoxUIComponentTargetHeight = 208
 ---Height the listbox UI component of the mercenary recruitment pool should measure when displaying army supplies cost.
 local _mercenaryRecruitmentPoolUIComponentTargetHeight = 272
 
----Name of the UI component that displays unit army supplies.
----@type string
-local _unitArmySuppliesUIComponentName = "totowar_cbac_army_supplies_unit_cost"
-
 ---Template of the UI component that displays unit army supplies.
 ---@type string
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
@@ -594,7 +590,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     local armySuppliesCostUIComponent = TotoWar().ui:findUIComponentChild(
         unitCardUIComponent,
-        { "external_holder", _unitArmySuppliesUIComponentName })
+        { "external_holder", _armySuppliesUIComponentName })
 
     if not armySuppliesCostUIComponent then
         local externalHolderUIComponent = TotoWar().ui:getUIComponentChild(
