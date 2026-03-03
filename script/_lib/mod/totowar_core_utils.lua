@@ -140,10 +140,12 @@ function TotoWarUtils:isCharacter(unitKey)
         "isCharacter(%s): STARTED",
         self:getUnitCaption(unitKey))
 
-    local isCharacter = common.get_context_value(
+    -- This is a bit of a hack but it's the only way I have found to tell if a unit is a character based on the unit key
+    local categoryParentIcon = common.get_context_value(
         TotoWar().ui.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
-        "UnitDetailsContext().IsCharacter()")
+        "CategoryParentIcon()")
+    local isCharacter = categoryParentIcon == "commander" or categoryParentIcon == "hero"
 
     self.logger:logDebug(
         "isCharacter(%s): COMPLETED => %s",
