@@ -29,8 +29,8 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): STARTED",
-        TotoWar().utils:getUnitCaption(unitKey),
-        unitArmySuppliesCost)
+        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return unitArmySuppliesCost end)
 
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
 
@@ -41,8 +41,8 @@ function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): COMPLETED",
-        TotoWar().utils:getUnitCaption(unitKey),
-        unitArmySuppliesCost)
+        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return unitArmySuppliesCost end)
 
     return instance
 end

@@ -83,27 +83,18 @@ local function log(instance, severity, message, ...)
     end
 end
 
--- ---Logs a debug message.
--- ---@param message string Message to log.
--- ---@param ... function Functions for getting parameter values.
--- function TotoWarLogger:logDebug(message, ...)
---     if TotoWar().isDebug then
---         local parameters = {}
-
---         for i, valueFunction in ipairs({ ... }) do
---             parameters[i] = tostring(valueFunction())
---         end
-
---         log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
---     end
--- end
-
 ---Logs a debug message.
 ---@param message string Message to log.
----@param ... any Message parameters.
+---@param ... function Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
     if TotoWar().isDebug then
-        log(self, TotoWarLoggerSeverity.debug, message, ...)
+        local parameters = {}
+
+        for i, valueFunction in ipairs({ ... }) do
+            parameters[i] = tostring(valueFunction())
+        end
+
+        log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
     end
 end
 

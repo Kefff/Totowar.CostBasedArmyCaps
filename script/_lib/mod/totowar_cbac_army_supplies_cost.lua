@@ -41,8 +41,8 @@ end
 function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s, %s): STARTED",
-        TotoWar().utils:getUnitCaption(unitKey),
-        isInRecruitmentMercenary)
+        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return isInRecruitmentMercenary end)
 
     local unitArmySuppliesCost = 0
 
@@ -76,9 +76,9 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s; %s): COMPLETED => %s",
-        TotoWar().utils:getUnitCaption(unitKey),
-        isInRecruitmentMercenary,
-        self.totalCost)
+        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return isInRecruitmentMercenary end,
+        function() return self.totalCost end)
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
@@ -102,7 +102,7 @@ end
 function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:removeUnit(%s): STARTED",
-        TotoWar().utils:getUnitCaption(unitKey))
+        function() return TotoWar().utils:getUnitCaption(unitKey) end)
 
     local isInRecruitmentMercenaryUnit = string.match(
         unitKey,
@@ -122,8 +122,8 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
         TotoWar().genericLogger:logDebug(
             "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-            TotoWar().utils:getUnitCaption(unitKey),
-            self.totalCost)
+            function() return TotoWar().utils:getUnitCaption(unitKey) end,
+            function() return self.totalCost end)
 
         return unitGroup.unitKey;
     else
@@ -140,8 +140,8 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
                 TotoWar().genericLogger:logDebug(
                     "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-                    TotoWar().utils:getUnitCaption(unitKey),
-                    self.totalCost)
+                    function() return TotoWar().utils:getUnitCaption(unitKey) end,
+                    function() return self.totalCost end)
 
                 return unitKey;
             end

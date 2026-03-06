@@ -20,14 +20,18 @@ TotoWarMod.__index = TotoWarMod
 ---@param initializationFunction function Function for initializing the mod.
 ---@return TotoWarMod
 function TotoWarMod.new(name, initializationFunction)
-    TotoWar().genericLogger:logDebug("TotoWarMod.new(%s): STARTED", name)
+    TotoWar().genericLogger:logDebug(
+        "TotoWarMod.new(%s): STARTED",
+        function() return name end)
 
     local instance = setmetatable({}, TotoWarMod)
 
     instance.initializeFunction = initializationFunction
     instance.name = name
 
-    TotoWar().genericLogger:logDebug("TotoWarMod.new(%s): COMPLETED", name)
+    TotoWar().genericLogger:logDebug(
+        "TotoWarMod.new(%s): COMPLETED",
+        function() return name end)
 
     return instance
 end

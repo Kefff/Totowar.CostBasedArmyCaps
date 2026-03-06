@@ -50,10 +50,10 @@ end
 function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, lastRecruitedUnit)
     self.logger:logDebug(
         "adjustAiArmyComposition(%s from %s, %s, %s): STARTED",
-        TotoWar().utils:getCharacterCaption(army:general_character()),
-        TotoWar().utils:getFactionCaption(army:faction():name()),
-        TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-        armySuppliesCost.totalCost
+        function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+        function() return armySuppliesCost.totalCost end
     )
 
     table.sort(
@@ -93,12 +93,12 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
 
                 self.logger:logDebug(
                     "adjustAiArmyComposition(%s from %s, %s, %s): ADDED TO DISPOSABLE UNITS => %s (%s)",
-                    TotoWar().utils:getCharacterCaption(army:general_character()),
-                    TotoWar().utils:getFactionCaption(army:faction():name()),
-                    TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-                    armySuppliesCost.totalCost,
-                    TotoWar().utils:getUnitCaption(unit:unit_key()),
-                    unitGroup.unitArmySuppliesCost
+                    function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+                    function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+                    function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+                    function() return armySuppliesCost.totalCost end,
+                    function() return TotoWar().utils:getUnitCaption(unit:unit_key()) end,
+                    function() return unitGroup.unitArmySuppliesCost end
                 )
 
                 table.insert(
@@ -125,13 +125,13 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
 
             self.logger:logDebug(
                 "adjustAiArmyComposition(%s from %s, %s, %s): REMOVED UNIT => %s (%s, %s)",
-                TotoWar().utils:getCharacterCaption(army:general_character()),
-                TotoWar().utils:getFactionCaption(army:faction():name()),
-                TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-                armySuppliesCost.totalCost,
-                TotoWar().utils:getUnitCaption(unitToDiscard.key),
-                unitToDiscard.armySuppliesCost,
-                unitToDiscard.realCost)
+                function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+                function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+                function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+                function() return armySuppliesCost.totalCost end,
+                function() return TotoWar().utils:getUnitCaption(unitToDiscard.key) end,
+                function() return unitToDiscard.armySuppliesCost end,
+                function() return unitToDiscard.realCost end)
         end
     else
         -- Removing the last recruited unit and reimbursing the AI for their real cost (not the base cost)
@@ -141,21 +141,21 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
 
         self.logger:logDebug(
             "adjustAiArmyComposition(%s from %s, %s, %s): REMOVED LAST RECRUITED UNIT => %s (%s, %s)",
-            TotoWar().utils:getCharacterCaption(army:general_character()),
-            TotoWar().utils:getFactionCaption(army:faction():name()),
-            TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-            armySuppliesCost.totalCost,
-            TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-            lastRecruitedUnitRealCost,
-            lastRecruitedUnitArmySuppliesCost)
+            function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+            function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+            function() return armySuppliesCost.totalCost end,
+            function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+            function() return lastRecruitedUnitRealCost end,
+            function() return lastRecruitedUnitArmySuppliesCost end)
     end
 
     self.logger:logDebug(
         "adjustAiArmyComposition(%s from %s, %s, %s): COMPLETED",
-        TotoWar().utils:getCharacterCaption(army:general_character()),
-        TotoWar().utils:getFactionCaption(army:faction():name()),
-        TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()),
-        armySuppliesCost.totalCost
+        function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar().utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+        function() return armySuppliesCost.totalCost end
     )
 end
 
@@ -165,13 +165,20 @@ end
 ---@param costToDiscard number Army supplies cost that exceeds the available army supplies.
 ---@return TotoWarCbacAiDisposableUnit[] | nil
 function TotoWarCbacAiManager:getUnitsToDiscard(disposableUnits, costToDiscard)
-    self.logger:logDebug("getUnitsToDiscard(%s, %s): STARTED", #disposableUnits, costToDiscard)
+    self.logger:logDebug(
+        "getUnitsToDiscard(%s, %s): STARTED",
+        function() return #disposableUnits end,
+        function() return costToDiscard end)
 
     ---@type TotoWarCbacAiDisposableUnit[]
     local unitsToDiscard = {}
     self:getUnitsToDiscardRecursive(unitsToDiscard, disposableUnits, #disposableUnits, costToDiscard)
 
-    self.logger:logDebug("getUnitsToDiscard(%s, %s): COMPLETED => %s", #disposableUnits, costToDiscard, #unitsToDiscard)
+    self.logger:logDebug(
+        "getUnitsToDiscard(%s, %s): COMPLETED => %s",
+        function() return #disposableUnits end,
+        function() return costToDiscard end,
+        function() return #unitsToDiscard end)
 
     if #unitsToDiscard == 0 then
         return nil
@@ -190,11 +197,12 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
     disposableUnits,
     maxDisposableUnitIndex,
     armySuppliesCostToDiscard)
-    self.logger:logDebug("getUnitsToDiscardRecursive(%s, %s, %s, %s): STARTED",
-        #unitsToDiscard,
-        #disposableUnits,
-        maxDisposableUnitIndex,
-        armySuppliesCostToDiscard)
+    self.logger:logDebug(
+        "getUnitsToDiscardRecursive(%s, %s, %s, %s): STARTED",
+        function() return #unitsToDiscard end,
+        function() return #disposableUnits end,
+        function() return maxDisposableUnitIndex end,
+        function() return armySuppliesCostToDiscard end)
 
     for i = 1, maxDisposableUnitIndex, 1 do
         ---@type TotoWarCbacAiDisposableUnit
@@ -222,14 +230,15 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
             armySuppliesCostToDiscard = armySuppliesCostToDiscard - unitToDiscard.armySuppliesCost
             table.insert(unitsToDiscard, unitToDiscard)
 
-            self.logger:logDebug("getUnitsToDiscardRecursive(%s, %s, %s, %s): UNIT TO DISCARD => %s (%s, %s)",
-                #unitsToDiscard,
-                #disposableUnits,
-                maxDisposableUnitIndex,
-                armySuppliesCostToDiscard,
-                TotoWar().utils:getUnitCaption(unitToDiscard.key),
-                unitToDiscard.armySuppliesCost,
-                unitToDiscard.realCost)
+            self.logger:logDebug(
+                "getUnitsToDiscardRecursive(%s, %s, %s, %s): UNIT TO DISCARD => %s (%s, %s)",
+                function() return #unitsToDiscard end,
+                function() return #disposableUnits end,
+                function() return maxDisposableUnitIndex end,
+                function() return armySuppliesCostToDiscard end,
+                function() return TotoWar().utils:getUnitCaption(unitToDiscard.key) end,
+                function() return unitToDiscard.armySuppliesCost end,
+                function() return unitToDiscard.realCost end)
 
             if armySuppliesCostToDiscard > 0
                 and #unitsToDiscard < _unitsToDiscardMaximumNumber
@@ -242,21 +251,23 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
                     armySuppliesCostToDiscard)
             end
 
-            self.logger:logDebug("getUnitsToDiscardRecursive(%s, %s, %s, %s): COMPLETED",
-                #unitsToDiscard,
-                #disposableUnits,
-                maxDisposableUnitIndex,
-                armySuppliesCostToDiscard)
+            self.logger:logDebug(
+                "getUnitsToDiscardRecursive(%s, %s, %s, %s): COMPLETED",
+                function() return #unitsToDiscard end,
+                function() return #disposableUnits end,
+                function() return maxDisposableUnitIndex end,
+                function() return armySuppliesCostToDiscard end)
 
             return
         end
     end
 
-    self.logger:logDebug("getUnitsToDiscardRecursive(%s, %s, %s, %s): NO UNIT TO DISCARD FOUND",
-        #unitsToDiscard,
-        #disposableUnits,
-        maxDisposableUnitIndex,
-        armySuppliesCostToDiscard)
+    self.logger:logDebug(
+        "getUnitsToDiscardRecursive(%s, %s, %s, %s): NO UNIT TO DISCARD FOUND",
+        function() return #unitsToDiscard end,
+        function() return #disposableUnits end,
+        function() return maxDisposableUnitIndex end,
+        function() return armySuppliesCostToDiscard end)
 end
 
 ---Indicates whether the first unit combination is cheaper that the second.
@@ -333,9 +344,9 @@ end
 function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): STARTED",
-        TotoWar().utils:getCharacterCaption(army:general_character()),
-        TotoWar().utils:getFactionCaption(army:faction():name()),
-        TotoWar().utils:getUnitCaption(unit:unit_key()))
+        function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar().utils:getUnitCaption(unit:unit_key()) end)
 
     local armySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().armySuppliesPerAiArmy)
     local units = army:unit_list()
@@ -351,7 +362,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
 
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): COMPLETED",
-        TotoWar().utils:getCharacterCaption(army:general_character()),
-        TotoWar().utils:getFactionCaption(army:faction():name()),
-        TotoWar().utils:getUnitCaption(unit:unit_key()))
+        function() return TotoWar().utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar().utils:getUnitCaption(unit:unit_key()) end)
 end

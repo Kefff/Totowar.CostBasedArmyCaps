@@ -28,17 +28,23 @@ end
 ---@param modName string Mod name.
 ---@return TotoWarMod | nil
 function TotoWarModsManager:findMod(modName)
-    self.logger:logDebug("findMod(\"%s\"): STARTED", modName)
+    self.logger:logDebug(
+        "findMod(\"%s\"): STARTED",
+        function() return modName end)
 
     for i, mod in ipairs(self.mods) do
         if mod.name == modName then
-            self.logger:logDebug("findMod(\"%s\"): COMPLETED", modName)
+            self.logger:logDebug(
+                "findMod(\"%s\"): COMPLETED",
+                function() return modName end)
 
             return mod
         end
     end
 
-    self.logger:logDebug("findMod(\"%s\"): NOT FOUND", modName)
+    self.logger:logDebug(
+        "findMod(\"%s\"): NOT FOUND",
+        function() return modName end)
 
     return nil
 end
@@ -48,12 +54,16 @@ end
 ---@param modName string Mod name.
 ---@return TotoWarMod
 function TotoWarModsManager:getMod(modName)
-    self.logger:logDebug("getMod(\"%s\"): STARTED", modName)
+    self.logger:logDebug(
+        "getMod(\"%s\"): STARTED",
+        function() return modName end)
 
     local mod = self:findMod(modName)
 
     if mod then
-        self.logger:logDebug("getMod(\"%s\"): COMPLETED", modName)
+        self.logger:logDebug(
+            "getMod(\"%s\"): COMPLETED",
+            function() return modName end)
     else
         self.logger:logError("TotoWar mod \"%s\" not found", modName)
     end
@@ -84,7 +94,9 @@ end
 ---@param modName string Mods name.
 ---@param initializeFunction function Function for initializing the mod.
 function TotoWarModsManager:registerMod(modName, initializeFunction)
-    self.logger:logDebug("registerMod(\"%s\"): STARTED", modName)
+    self.logger:logDebug(
+        "registerMod(\"%s\"): STARTED",
+        function() return modName end)
 
     local mod = self:findMod(modName)
 
@@ -97,5 +109,7 @@ function TotoWarModsManager:registerMod(modName, initializeFunction)
         self.logger:logInfo("Mod \"%s\" registered", modName)
     end
 
-    self.logger:logDebug("registerMod(\"%s\"): COMPLETED", modName)
+    self.logger:logDebug(
+        "registerMod(\"%s\"): COMPLETED",
+        function() return modName end)
 end

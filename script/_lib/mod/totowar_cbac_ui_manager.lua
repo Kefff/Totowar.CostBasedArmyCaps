@@ -189,7 +189,9 @@ end
 ---Creates the army supplies UI component and registers it as a child of a parent component.
 ---@param parentUIComponent UIC Parent UI component.
 function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
-    self.logger:logDebug("createArmySuppliesUIComponent(%s): STARTED", parentUIComponent:Id())
+    self.logger:logDebug(
+        "createArmySuppliesUIComponent(%s): STARTED",
+        function() return parentUIComponent:Id() end)
 
     local uiComponentAddress = parentUIComponent:CreateComponent(
         _armySuppliesUIComponentName,
@@ -198,7 +200,9 @@ function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
     parentUIComponent:Adopt(uiComponentAddress)
 
-    self.logger:logDebug("createArmySuppliesUIComponent(%s): COMPLETED", parentUIComponent:Id())
+    self.logger:logDebug(
+        "createArmySuppliesUIComponent(%s): COMPLETED",
+        function() return parentUIComponent:Id() end)
 
     return armySuppliesUIComponent
 end
@@ -214,9 +218,9 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
 )
     self.logger:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): STARTED",
-        parentUIComponent:Id(),
-        text,
-        tooltip)
+        function() return parentUIComponent:Id() end,
+        function() return text end,
+        function() return tooltip end)
 
     local armySuppliesUIComponent = TotoWar().ui:findUIComponentChild(
         parentUIComponent,
@@ -233,9 +237,9 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
 
     self.logger:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): COMPLETED",
-        parentUIComponent:Id(),
-        text,
-        tooltip)
+        function() return parentUIComponent:Id() end,
+        function() return text end,
+        function() return tooltip end)
 
     return armySuppliesUIComponent
 end
@@ -269,7 +273,9 @@ end
 ---@param panelName string Panel name.
 ---@return TotoWarCbacRecruitmentPoolUI[]
 function TotoWarCbacUIManager:findRecruitmentPoolsInPanel(panelName)
-    self.logger:logDebug("findRecruitmentPoolInPanel(%s): STARTED", panelName)
+    self.logger:logDebug(
+        "findRecruitmentPoolInPanel(%s): STARTED",
+        function() return panelName end)
 
     local recruitmentPools = {}
 
@@ -288,7 +294,9 @@ function TotoWarCbacUIManager:findRecruitmentPoolsInPanel(panelName)
         end
     end
 
-    self.logger:logDebug("findRecruitmentPoolInPanel(%s): COMPLETED", panelName)
+    self.logger:logDebug(
+        "findRecruitmentPoolInPanel(%s): COMPLETED",
+        function() return panelName end)
 
     return recruitmentPools
 end
@@ -311,7 +319,9 @@ function TotoWarCbacUIManager:getArmySuppliesCostText(armySuppliesCost)
         armySuppliesCostText = tostring(armySuppliesCost.availableSupplies)
     end
 
-    self.logger:logDebug("getArmySuppliesCostText(): COMPLETED => %s", armySuppliesCostText)
+    self.logger:logDebug(
+        "getArmySuppliesCostText(): COMPLETED => %s",
+        function() return armySuppliesCostText end)
 
     return armySuppliesCostText
 end
@@ -340,7 +350,9 @@ end
 ---@param panelName string Panel name.
 ---@return boolean
 function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
-    self.logger:logDebug("isRecruitmentPanel(%s): STARTED", panelName)
+    self.logger:logDebug(
+        "isRecruitmentPanel(%s): STARTED",
+        function() return panelName end)
 
     local result = false
 
@@ -354,7 +366,10 @@ function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
         end
     end
 
-    self.logger:logDebug("isRecruitmentPanel(%s): COMPLETED => %s", panelName, result)
+    self.logger:logDebug(
+        "isRecruitmentPanel(%s): COMPLETED => %s",
+        function() return panelName end,
+        function() return result end)
 
     return result
 end
@@ -386,7 +401,9 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     --- So when it is opened, the army supplies cost is not up to date.
     --- It is later updated when the SelectedGeneralArmySuppliesCostChanged event is triggered.
 
-    self.logger:logDebug("[EVENT] onPanelOpened(%s): STARTED", panelName)
+    self.logger:logDebug(
+        "[EVENT] onPanelOpened(%s): STARTED",
+        function() return panelName end)
 
     local recruitmentPools = self:findRecruitmentPoolsInPanel(panelName)
     local recruitmentPoolsToUpdate = {}
@@ -412,7 +429,9 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     self.lastOpenedPanel = panelName
     self.lastOpenedRecruitmentPools = recruitmentPools
 
-    self.logger:logDebug("[EVENT] onPanelOpened(%s): COMPLETED", panelName)
+    self.logger:logDebug(
+        "[EVENT] onPanelOpened(%s): COMPLETED",
+        function() return panelName end)
 end
 
 ---Reacts to the army supplies cost of the selected general changing.
@@ -584,9 +603,9 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     self.logger:logDebug(
         "updateRecruitableUnitCard(%s): STARTED => (%s, %s)",
-        unitCardUIComponent:Id(),
-        unitName,
-        unitBaseCost)
+        function() return unitCardUIComponent:Id() end,
+        function() return unitName end,
+        function() return unitBaseCost end)
 
     local armySuppliesCostUIComponent = TotoWar().ui:findUIComponentChild(
         unitCardUIComponent,
@@ -619,9 +638,9 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
         -- Disabling the unit card when its the army supplies exceeds the available army supplies of the selected general
         self.logger:logDebug(
             "updateRecruitableUnitCard(%s): UNIT RECRUITMENT DISABLED => (%s, %s)",
-            unitCardUIComponent:Id(),
-            unitName,
-            unitBaseCost)
+            function() return unitCardUIComponent:Id() end,
+            function() return unitName end,
+            function() return unitBaseCost end)
 
         unitCardUIComponent:SetDisabled(true)
         unitCardUIComponent:SetState(TotoWar().ui.enums.uiComponentStates.inactive)
@@ -635,23 +654,27 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     self.logger:logDebug(
         "updateRecruitableUnitCard(%s): COMPLETED => (%s, %s)",
-        unitCardUIComponent:Id(),
-        unitName,
-        unitBaseCost)
+        function() return unitCardUIComponent:Id() end,
+        function() return unitName end,
+        function() return unitBaseCost end)
 end
 
 ---Updates the army supplies cost of a list of recruitable unit cards.
 ---@param unitCardListUIComponent UIC UI component that contains the list of recruitable units cards.
 function TotoWarCbacUIManager:updateRecruitableUnitCardList(
     unitCardListUIComponent)
-    self.logger:logDebug("updateRecruitableUnitCardList(%s): STARTED", unitCardListUIComponent:Id())
+    self.logger:logDebug(
+        "updateRecruitableUnitCardList(%s): STARTED",
+        function() return unitCardListUIComponent:Id() end)
 
     for i = 0, unitCardListUIComponent:ChildCount() - 1 do
         local unitCardUIComponent = find_child_uicomponent_by_index(unitCardListUIComponent, i)
         self:updateRecruitableUnitCard(unitCardUIComponent)
     end
 
-    self.logger:logDebug("updateRecruitableUnitCardList(%s): COMPLETED", unitCardListUIComponent:Id())
+    self.logger:logDebug(
+        "updateRecruitableUnitCardList(%s): COMPLETED",
+        function() return unitCardListUIComponent:Id() end)
 end
 
 ---Updates army supplies costs on recruitment pools.
@@ -662,7 +685,9 @@ function TotoWarCbacUIManager:updateRecruitmentPools(recruitmentPools)
     for key, recruitmentPool in pairs(recruitmentPools) do
         ---@cast recruitmentPool TotoWarCbacRecruitmentPoolUI
 
-        self.logger:logDebug("updateRecruitmentPools() => %s", recruitmentPool.name)
+        self.logger:logDebug(
+            "updateRecruitmentPools() => %s",
+            function() return recruitmentPool.name end)
 
         recruitmentPool.updateUIFunction()
     end
@@ -674,7 +699,9 @@ end
 ---@param unitExchangePoolUIComponent UIC Unit exchange pool UI component.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost.
 function TotoWarCbacUIManager:updateUnitExchangePool(unitExchangePoolUIComponent, armySuppliesCost)
-    self.logger:logDebug("updateUnitExchangePool(%s): STARTED", unitExchangePoolUIComponent:Id())
+    self.logger:logDebug(
+        "updateUnitExchangePool(%s): STARTED",
+        function() return unitExchangePoolUIComponent:Id() end)
 
     local parent = TotoWar().ui:getUIComponentChild(unitExchangePoolUIComponent, { "panel_smoke_t" })
     local armySuppliesCostText = self:getArmySuppliesCostText(armySuppliesCost)
@@ -683,7 +710,9 @@ function TotoWarCbacUIManager:updateUnitExchangePool(unitExchangePoolUIComponent
         armySuppliesCostText,
         armySuppliesCost:toArmySuppliesCostTooltipText())
 
-    self.logger:logDebug("updateUnitExchangePool(%s): COMPLETED", unitExchangePoolUIComponent:Id())
+    self.logger:logDebug(
+        "updateUnitExchangePool(%s): COMPLETED",
+        function() return unitExchangePoolUIComponent:Id() end)
 end
 
 ---Updates the army supplies cost of the panel that lists all the units in the selected army.
