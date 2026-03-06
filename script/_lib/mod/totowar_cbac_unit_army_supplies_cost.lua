@@ -2,11 +2,11 @@
 TotoWarCbacUnitArmySuppliesCost = {
     ---Army supplies cost of all the units of this type.
     ---@type number
-    totalCost = 0,
+    totalArmySuppliesCost = 0,
 
     ---Army supplies cost of one unit of this type.
     ---@type number
-    unitCost = 0,
+    unitArmySuppliesCost = 0,
 
     ---Caption of the unit.
     ---@type string
@@ -35,7 +35,7 @@ function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
 
     instance.unitCaption = TotoWar().utils:getUnitCaption(unitKey)
-    instance.unitCost = unitArmySuppliesCost
+    instance.unitArmySuppliesCost = unitArmySuppliesCost
     instance.unitKey = unitKey
     instance:addUnit()
 
@@ -51,7 +51,7 @@ end
 function TotoWarCbacUnitArmySuppliesCost:addUnit()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): STARTED")
 
-    self.totalCost = self.totalCost + self.unitCost
+    self.totalArmySuppliesCost = self.totalArmySuppliesCost + self.unitArmySuppliesCost
     self.unitCount = self.unitCount + 1
 
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
@@ -61,7 +61,7 @@ end
 function TotoWarCbacUnitArmySuppliesCost:removeUnit()
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): STARTED")
 
-    self.totalCost = self.totalCost - self.unitCost
+    self.totalArmySuppliesCost = self.totalArmySuppliesCost - self.unitArmySuppliesCost
     self.unitCount = self.unitCount - 1
 
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): COMPLETED")
@@ -78,14 +78,14 @@ function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
         tooltipText = tooltipText .. string.format(
             common.get_localised_string("totowar_cbac_army_supplies_cost_tooltip_detail_multiple"),
             self.unitCaption,
-            self.totalCost,
+            self.totalArmySuppliesCost,
             self.unitCount,
-            self.unitCost)
+            self.unitArmySuppliesCost)
     else
         tooltipText = tooltipText .. string.format(
             common.get_localised_string("totowar_cbac_army_supplies_cost_tooltip_detail"),
             self.unitCaption,
-            self.unitCost)
+            self.unitArmySuppliesCost)
     end
 
     TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: COMPLETED")

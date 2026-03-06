@@ -20,11 +20,12 @@ TotoWarCbacArmySuppliesCost = {
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
 ---Initializes a new instance of TotoWarCbacArmySuppliesCost.
+---@param availableArmySupplies number Total available army supplies in the army.
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new()
+function TotoWarCbacArmySuppliesCost.new(availableArmySupplies)
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
 
-    instance.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies
+    instance.availableSupplies = availableArmySupplies
     instance.inRecruitmentMercenaryUnits = {}
     instance.unitGroups = {}
     instance.totalCost = 0
@@ -56,7 +57,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
             found = unitGroup.unitKey == unitKey
 
             if found then
-                unitArmySuppliesCost = unitGroup.unitCost
+                unitArmySuppliesCost = unitGroup.unitArmySuppliesCost
                 unitGroup:addUnit()
 
                 break;
@@ -71,7 +72,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     end
 
     self.totalCost = self.totalCost + unitArmySuppliesCost
-    self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
+    self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s; %s): COMPLETED => %s",
@@ -115,8 +116,8 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
 
         local unitGroup = self.inRecruitmentMercenaryUnits[index]
-        self.totalCost = self.totalCost - unitGroup.unitCost
-        self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
+        self.totalCost = self.totalCost - unitGroup.unitArmySuppliesCost
+        self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
 
         TotoWar().genericLogger:logDebug(
@@ -128,8 +129,8 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
     else
         for index, unitGroup in ipairs(self.unitGroups) do
             if unitGroup.unitKey == unitKey then
-                self.totalCost = self.totalCost - unitGroup.unitCost
-                self.availableSupplies = TotoWar_Cbac().armyTotalArmySupplies - self.totalCost
+                self.totalCost = self.totalCost - unitGroup.unitArmySuppliesCost
+                self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
 
                 if (unitGroup.unitCount == 1) then
                     table.remove(self.unitGroups, index)
@@ -185,7 +186,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local tooltipText = string.format(
         common.get_localised_string("totowar_cbac_army_supplies_cost_tooltip"),
-        TotoWar_Cbac().armyTotalArmySupplies,
+        TotoWar_Cbac().armySuppliesPerPlayerArmy,
         self.totalCost,
         availableArmySuppliesString,
         depletedArmySuppliesWarning,
