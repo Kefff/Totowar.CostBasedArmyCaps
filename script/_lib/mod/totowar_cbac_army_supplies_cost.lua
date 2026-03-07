@@ -72,7 +72,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     end
 
     self.totalCost = self.totalCost + unitArmySuppliesCost
-    self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
+    self.availableSupplies = TotoWar_Cbac().playerArmySupplies - self.totalCost
 
     TotoWar().genericLogger:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s; %s): COMPLETED => %s",
@@ -117,7 +117,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
         local unitGroup = self.inRecruitmentMercenaryUnits[index]
         self.totalCost = self.totalCost - unitGroup.unitArmySuppliesCost
-        self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
+        self.availableSupplies = TotoWar_Cbac().playerArmySupplies - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
 
         TotoWar().genericLogger:logDebug(
@@ -130,7 +130,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         for index, unitGroup in ipairs(self.unitGroups) do
             if unitGroup.unitKey == unitKey then
                 self.totalCost = self.totalCost - unitGroup.unitArmySuppliesCost
-                self.availableSupplies = TotoWar_Cbac().armySuppliesPerPlayerArmy - self.totalCost
+                self.availableSupplies = TotoWar_Cbac().playerArmySupplies - self.totalCost
 
                 if (unitGroup.unitCount == 1) then
                     table.remove(self.unitGroups, index)
@@ -186,7 +186,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local tooltipText = string.format(
         common.get_localised_string("totowar_cbac_army_supplies_cost_tooltip"),
-        TotoWar_Cbac().armySuppliesPerPlayerArmy,
+        TotoWar_Cbac().playerArmySupplies,
         self.totalCost,
         availableArmySuppliesString,
         depletedArmySuppliesWarning,

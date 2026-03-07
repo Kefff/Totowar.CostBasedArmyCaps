@@ -1,7 +1,3 @@
----Name of the TotoWar base mod.
----@type string
-TotoWarCoreModName = "totowar"
-
 ---TotoWar base mod.
 ---@class TotoWarCore
 TotoWarCore = {
@@ -44,12 +40,32 @@ function TotoWarCore.new()
     _instance = setmetatable({}, TotoWarCore)
 
     _instance.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
-    _instance.isDebug = false
+
+    _instance.isDebug = TotoWarDefaultIsDebug
+
     _instance.modsManager = TotoWarModsManager.new()
     _instance.utils = TotoWarUtils.new()
     _instance.ui = TotoWarUIUtils.new()
 
+    _instance:loadMctOptions()
+
     _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 
     return _instance
+end
+
+---Loads option values stored by the Mod Configuration Tool if it is installed.
+function TotoWarCore:loadMctOptions()
+    local mct = self.utils:getMct()
+
+    if not mct then
+        return
+    end
+
+    self.genericLogger:logDebug("addMctOptions(): STARTED")
+
+    local options = mct:get_mod_by_key(TotoWarModName)
+    self.isDebug = options:get_option_by_key(TotoWarDebugOptionName):get_finalized_setting()
+
+    self.genericLogger:logDebug("addMctOptions(): COMPLETED")
 end

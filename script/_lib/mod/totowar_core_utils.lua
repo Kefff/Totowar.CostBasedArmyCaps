@@ -141,6 +141,22 @@ function TotoWarUtils:getFactionCaption(factionName)
     return caption
 end
 
+---Get the Mod Configuration Tool if it is installed.
+---@return any
+function TotoWarUtils:getMct()
+    self.logger:logDebug("getMct(): STARTED")
+
+    local mct = core:get_static_object("mod_configuration_tool")
+
+    if not mct then
+        self.logger:logDebug("getMct(): NOT FOUND")
+    end
+
+    self.logger:logDebug("getMct(): COMPLETED")
+
+    return mct
+end
+
 ---Gets the caption of a unit.
 ---@param unitKey string Unit key.
 function TotoWarUtils:getUnitCaption(unitKey)

@@ -1,17 +1,3 @@
----Name of the TotoWar Cost-Based Army Caps mod.
----@type string
-TotoWarCbacModName = "totowar_cost_based_army_caps"
-
----Default amount of army supplies per army for the AI.
----Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.
----@type number
-local _defaultAiArmySupplies = 12400
-
----Default amount of army supplies per army for the player.
----Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.
----@type number
-local _defaultPlayerArmySupplies = 12400
-
 ---@type TotoWarCbac
 local _instance = nil
 
@@ -20,11 +6,15 @@ local _instance = nil
 TotoWarCbac = {
     ---Total army supplies available in an army for the AI.
     ---@type number
-    armySuppliesPerAiArmy = nil,
+    aiArmyArmySupplies = nil,
+
+    ---Maximum number of units that can be discarded in order to make the recruitment of a new unit AI possible
+    ---@type number
+    aiUnitsToDiscardMaximumNumber = nil,
 
     ---Total army supplies available in an army for the player.
     ---@type number
-    armySuppliesPerPlayerArmy = nil,
+    playerArmySupplies = nil,
 
     ---Manager for AI army supplies.
     ---@type TotoWarCbacAiManager
@@ -58,8 +48,10 @@ function TotoWarCbac.new()
 
     _instance.logger = TotoWarLogger.new("TotoWar_Cbac")
 
-    _instance.armySuppliesPerAiArmy = _defaultAiArmySupplies
-    _instance.armySuppliesPerPlayerArmy = _defaultPlayerArmySupplies
+    _instance.aiArmyArmySupplies = TotoWarCbacDefaultAiArmySupplies
+    _instance.aiUnitsToDiscardMaximumNumber = TotoWarCbacDefaultAiUnitsToDiscardMaximumNumber
+    _instance.playerArmySupplies = TotoWarCbacDefaultPlayerArmySupplies
+    _instance:loadMctOptions()
 
     _instance.aiManager = TotoWarCbacAiManager:new()
     _instance.playerManager = TotoWarCbacPlayerManager:new()
@@ -81,4 +73,24 @@ function TotoWarCbac:addListeners()
     _instance.uiManager:addListeners()
 
     self.logger:logDebug("addListeners(): COMPLETED")
+end
+
+---Loads option values stored by the Mod Configuration Tool if it is installed.
+function TotoWarCbac:loadMctOptions()
+    local mct = TotoWar().utils:getMct()
+
+    if not mct then
+        return
+    end
+
+    self.logger:logDebug("addMctOptions(): STARTED")
+
+    local options = mct:get_mod_by_key(TotoWarModName)
+    self.aiArmyArmySupplies = options:get_option_by_key(TotoWarCbacAiArmySuppliesOptionName):get_finalized_setting()
+    self.aiUnitsToDiscardMaximumNumber = options
+        :get_option_by_key(TotoWarCbacAiUnitsToDiscardMaximumNumberOptionName)
+        :get_finalized_setting()
+    self.playerArmySupplies = options:get_option_by_key(TotoWarCbacPlayerArmySuppliesOptionName):get_finalized_setting()
+
+    self.logger:logDebug("addMctOptions(): COMPLETED")
 end

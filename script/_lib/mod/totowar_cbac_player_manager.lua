@@ -290,7 +290,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
         "initializeArmySuppliesCost(%s): STARTED",
         function() return TotoWar().utils:getCharacterCaption(general) end)
 
-    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().armySuppliesPerPlayerArmy)
+    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().playerArmySupplies)
 
     -- Adding units from the general army
     local units = general:military_force():unit_list()
@@ -672,8 +672,8 @@ end
 function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
     self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
-    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().armySuppliesPerPlayerArmy)
-    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().armySuppliesPerPlayerArmy)
+    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().playerArmySupplies)
+    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().playerArmySupplies)
 
     local unitExchangePool1UIComponent = TotoWar().ui:getUIComponent(TotoWar().ui.uiComponentQueries.unitExchangePool1)
     self:updateUnitExchangeArmySuppliesCost(

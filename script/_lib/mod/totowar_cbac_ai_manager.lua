@@ -1,6 +1,3 @@
---- Maximum number of units that can be discarded in order to make the recruitment of a new unit possible.
-local _unitsToDiscardMaximumNumber = 3
-
 ---Manager in charge of managing the army supplies for the AI armies.
 ---@class TotoWarCbacAiManager
 TotoWarCbacAiManager = {
@@ -210,7 +207,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
         local totalArmySuppliesCost = 0
         local currentIndex = 0
 
-        for j = 0, _unitsToDiscardMaximumNumber - 1, 1 do
+        for j = 0, TotoWar_Cbac().aiUnitsToDiscardMaximumNumber - 1, 1 do
             if totalArmySuppliesCost >= armySuppliesCostToDiscard then
                 break
             end
@@ -221,7 +218,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
                 break;
             end
 
-            -- We browse disposable units, starting at index i and taking up to the _unitsToDiscardMaximumNumber next disposable units
+            -- We browse disposable units, starting at index i and taking up to the TotoWar_Cbac().aiUnitsToDiscardMaximumNumber next disposable units
             unitToDiscard = disposableUnits[currentIndex]
             totalArmySuppliesCost = totalArmySuppliesCost + unitToDiscard.armySuppliesCost
         end
@@ -241,7 +238,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
                 function() return unitToDiscard.realCost end)
 
             if armySuppliesCostToDiscard > 0
-                and #unitsToDiscard < _unitsToDiscardMaximumNumber
+                and #unitsToDiscard < TotoWar_Cbac().aiUnitsToDiscardMaximumNumber
                 and currentIndex > 1
             then
                 self:getUnitsToDiscardRecursive(
@@ -291,53 +288,6 @@ function TotoWarCbacAiManager:isCheaperUnitCombination(firstUnitCombination, sec
     return #firstUnitCombination > #secondUnitCombination
 end
 
----
----@param disposableUnits TotoWarCbacUnitArmySuppliesCost[]
----@param costToDiscard number
-function TotoWarCbacAiManager:backtrackCheapest(
-    disposableUnits,
-    costToDiscard,
-    startIndex,
-    currentCombination,
-    currentSum,
-    bestHolder -- table contenant bestSolution
-)
-    if currentSum == costToDiscard then
-        local candidate = { unpack(currentCombination) }
-
-        if self:isCheaperUnitCombination(candidate, bestHolder.value) then
-            bestHolder.value = candidate
-        end
-
-        return
-    end
-
-    if currentSum > costToDiscard or #currentCombination >= _unitsToDiscardMaximumNumber then
-        return
-    end
-
-    for i = startIndex, #disposableUnits do
-        local unit = disposableUnits[i]
-
-        if currentSum + unit.unitArmySuppliesCost > costToDiscard then
-            break
-        end
-
-        table.insert(currentCombination, unit)
-
-        self:backtrackCheapest(
-            disposableUnits,
-            costToDiscard,
-            i + 1,
-            currentCombination,
-            currentSum + unit.unitArmySuppliesCost,
-            bestHolder
-        )
-
-        table.remove(currentCombination)
-    end
-end
-
 ---Reacts to a unit being recruited by an AI army.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
@@ -348,7 +298,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
         function() return TotoWar().utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar().utils:getUnitCaption(unit:unit_key()) end)
 
-    local armySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().armySuppliesPerAiArmy)
+    local armySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWar_Cbac().aiArmyArmySupplies)
     local units = army:unit_list()
 
     for i = 0, units:num_items() - 1, 1 do
