@@ -21,8 +21,8 @@ TotoWarUtils = {
         ---Events.
         ---@class TotoWarUtils_Enums_Events
         events = {
-            ---Event triggered when a unit has been recruited.
-            unitRecruited = "UnitTrained"
+            ---Event triggered  when options are updated in the Mod Configuration Tool if it is installed.
+            mctOptionsUpdated = "MctFinalized"
         }
     },
 

@@ -49,9 +49,23 @@ function TotoWarCore.new()
 
     _instance:loadMctOptions()
 
+    _instance:addListeners()
+
     _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 
     return _instance
+end
+
+---Adds event listeners.
+function TotoWarCore:addListeners()
+    -- Listener for option updates
+    TotoWar().utils:addListener(
+        "TotoWarCbac",
+        TotoWar().utils.enums.events.mctOptionsUpdated,
+        true,
+        function()
+            self:loadMctOptions()
+        end)
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.

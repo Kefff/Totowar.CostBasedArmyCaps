@@ -68,6 +68,16 @@ end
 function TotoWarCbac:addListeners()
     self.logger:logDebug("addListeners(): STARTED")
 
+    -- Listener for option updates
+    TotoWar().utils:addListener(
+        "TotoWarCbac",
+        TotoWar().utils.enums.events.mctOptionsUpdated,
+        true,
+        function()
+            self:loadMctOptions()
+        end)
+
+    -- Manager listeners
     _instance.aiManager:addListeners()
     _instance.playerManager:addListeners()
     _instance.uiManager:addListeners()
