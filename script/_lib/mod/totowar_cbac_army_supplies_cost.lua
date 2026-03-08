@@ -86,7 +86,7 @@ function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): STARTED")
 
     for i = 1, #self.inRecruitmentMercenaryUnits, 1 do
-        self:removeUnit(TotoWar.ui.enums.patterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
+        self:removeUnit(TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
     end
 
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): COMPLETED")
@@ -106,11 +106,11 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
     local isInRecruitmentMercenaryUnit = string.match(
         unitKey,
-        TotoWar.ui.enums.patterns.inRecruitmentMercenaryUnitCard)
+        TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard)
 
     if isInRecruitmentMercenaryUnit then
         local positionInRecruitmentQueuePattern =
-            TotoWar.ui.enums.patterns.inRecruitmentMercenaryUnitCard .. "(%d+)$"
+            TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard .. "(%d+)$"
 
         -- Position starts at 0 in the recruitment queue, but LUA table indexes start at 1
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
@@ -176,11 +176,11 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
     if self.availableSupplies < 0 then
         availableArmySuppliesString = string.format(
             "[[col:%s]]%s[[/col]]",
-            TotoWar.utils.enums.colors.red,
+            TotoWar.enums.colors.red,
             availableArmySuppliesString)
         depletedArmySuppliesWarning = string.format(
             "\n\n[[col:%s]]%s[[/col]]",
-            TotoWar.utils.enums.colors.red,
+            TotoWar.enums.colors.red,
             common.get_localised_string("totowar_cbac_unit_army_supplies_cost_tooltip_depleted"))
     end
 

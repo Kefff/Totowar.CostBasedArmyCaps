@@ -17,6 +17,25 @@ TotoWarCbacMod = {
     ---@type TotoWarCbacAiManager
     aiManager = nil,
 
+    ---Enums
+    ---@class TotoWarCbac_Enums
+    enums = {
+        ---Events.
+        ---@class TotoWarCbac_Enums_Event
+        events = {
+            ---Event triggered when options are updated.
+            ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
+            ---have been updated by reading values from the Mod Configuration Tool.
+            optionsUpdated = "TotoWarCab_OptionsUpdated",
+
+            ---Event triggered when the army supplies cost of the selected army changes.
+            selectedGeneralArmySuppliesCostChanged = "TotoWarCbac_SelectedGeneralArmySuppliesCostChanged",
+
+            ---Event triggered when the army supplies cost of army exchanging units changes.
+            unitExchangeArmySuppliesCostChanged = "TotoWarCbac_UnitExchangeArmySuppliesCostChanged",
+        }
+    },
+
     ---Logger.
     ---@type TotoWarLogger
     logger = nil,
@@ -71,10 +90,10 @@ function TotoWarCbacMod:addListeners()
     -- Listener for option updates
     TotoWar.utils:addListener(
         "TotoWarCbac",
-        TotoWar.utils.enums.events.mctOptionsUpdated,
+        TotoWar.enums.events.mctOptionsUpdated,
         true,
         function()
-            self:loadMctOptions()
+            self:onOptionsUpdated()
         end)
 
     -- Manager listeners
@@ -93,7 +112,7 @@ function TotoWarCbacMod:loadMctOptions()
         return
     end
 
-    self.logger:logDebug("addMctOptions(): STARTED")
+    self.logger:logDebug("loadMctOptions(): STARTED")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
     self.aiArmySuppliesAmount = options:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
@@ -108,5 +127,17 @@ function TotoWarCbacMod:loadMctOptions()
     self.playerArmySuppliesEnabled = options:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
         :get_finalized_setting()
 
-    self.logger:logDebug("addMctOptions(): COMPLETED")
+    self.logger:logDebug("loadMctOptions(): COMPLETED")
+end
+
+---Reacts to options being updated.
+function TotoWarCbacMod:onOptionsUpdated()
+    self.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+
+    self:loadMctOptions()
+
+    -- Signaling option changes
+    core:trigger_event(self.enums.events.optionsUpdated)
+
+    self.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
 end

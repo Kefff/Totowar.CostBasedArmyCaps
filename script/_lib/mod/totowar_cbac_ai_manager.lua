@@ -25,11 +25,12 @@ function TotoWarCbacAiManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWar.ui.enums.events.unitTrained,
+        TotoWar.enums.uiEvents.unitTrained,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
             return
-                not cm:is_local_players_turn()
+                TotoWarCbac.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
                 and TotoWar.utils:canRecruitUnits(context:unit():military_force())
         end,
         ---@param context TotoWarEventContext_UnitTrained
@@ -218,7 +219,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
                 break;
             end
 
-            -- We browse disposable units, starting at index i and taking up to the TotoWarCbacaiUnitsToDiscardMaximumNumber next disposable units
+            -- We browse disposable units, starting at index i and taking up to the TotoWarCbac.aiDisposableUnitsMaximumAmount next disposable units
             unitToDiscard = disposableUnits[currentIndex]
             totalArmySuppliesCost = totalArmySuppliesCost + unitToDiscard.armySuppliesCost
         end

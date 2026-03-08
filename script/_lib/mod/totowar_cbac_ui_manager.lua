@@ -68,7 +68,7 @@ function TotoWarCbacUIManager.new()
     instance.recruitmentPools = {
         alliedPool = {
             name = "allied",
-            panelName = TotoWar.ui.enums.panels.mercenaryRecruitment,
+            panelName = TotoWar.enums.uiPanels.mercenaryRecruitment,
             uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool,
             updateUIFunction = function()
                 instance:updateAlliedRecruitmentPool()
@@ -77,7 +77,7 @@ function TotoWarCbacUIManager.new()
 
         globalPool = {
             name = "global",
-            panelName = TotoWar.ui.enums.panels.standardRecruitment,
+            panelName = TotoWar.enums.uiPanels.standardRecruitment,
             uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsGlobalRecruitmentPool,
             updateUIFunction = function()
                 instance:updateGlobalRecruitmentPool()
@@ -86,7 +86,7 @@ function TotoWarCbacUIManager.new()
 
         localPool = {
             name = "local",
-            panelName = TotoWar.ui.enums.panels.standardRecruitment,
+            panelName = TotoWar.enums.uiPanels.standardRecruitment,
             uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsLocalRecruitmentPool,
             updateUIFunction = function()
                 instance:updateLocalRecruitmentPool()
@@ -95,7 +95,7 @@ function TotoWarCbacUIManager.new()
 
         mercenaryPool = {
             name = "mercenary",
-            panelName = TotoWar.ui.enums.panels.mercenaryRecruitment,
+            panelName = TotoWar.enums.uiPanels.mercenaryRecruitment,
             uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsMercenaryRecruitmentPool,
             updateUIFunction = function()
                 instance:updateMercenaryRecruitmentPool()
@@ -114,8 +114,11 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.ui.enums.events.characterDeselected,
+        TotoWar.enums.uiEvents.characterDeselected,
         function()
+            -- We do not check the TotoWarCbac.playerArmySuppliesEnabled option because when this option
+            -- is disabled, we deselect everything and we want onCharacterDeselected to be executed
+            -- to reset UI elements.
             return cm:is_local_players_turn()
         end,
         function()
@@ -124,11 +127,12 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.ui.enums.events.characterSelected,
+        TotoWar.enums.uiEvents.characterSelected,
         ---@param context CharacterSelected
         function(context)
             return
-                cm:is_local_players_turn()
+                TotoWarCbac.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
                 and not TotoWar.utils:isPlayerFaction(context:character():faction():name())
         end,
         function()
@@ -137,12 +141,21 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.ui.enums.events.panelClosed,
+        TotoWarCbac.enums.events.optionsUpdated,
+        true,
+        function()
+            self:onOptionsUpdated()
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWarCbacUIManager",
+        TotoWar.enums.uiEvents.panelClosed,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             return
-                cm:is_local_players_turn()
-                and context.string == TotoWar.ui.enums.panels.recruitmentOptions
+                TotoWarCbac.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
+                and context.string == TotoWar.enums.uiPanels.recruitmentOptions
         end,
         function()
             self:onRecruitmentPanelClosed()
@@ -150,11 +163,12 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.ui.enums.events.panelOpened,
+        TotoWar.enums.uiEvents.panelOpened,
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             return
-                cm:is_local_players_turn()
+                TotoWarCbac.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
                 and not TotoWarCbac.playerManager.isInitializingArmySuppliesCost
                 and self:isRecruitmentPanel(context.string)
         end,
@@ -165,9 +179,11 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWarCbacPlayerManager.enums.events.selectedGeneralArmySuppliesCostChanged,
+        TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged,
         function()
-            return cm:is_local_players_turn()
+            return
+                TotoWarCbac.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
         end,
         function()
             self:onSelectedGeneralArmySuppliesCostChanged()
@@ -175,9 +191,11 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWarCbac.playerManager.enums.events.unitExchangeArmySuppliesCostChanged,
+        TotoWarCbac.enums.events.unitExchangeArmySuppliesCostChanged,
         function()
-            return cm:is_local_players_turn()
+            return
+                TotoWarCbac.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
         end,
         function()
             self:onUnitExchangeSuppliesCostChanged()
@@ -228,7 +246,7 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
 
     if not armySuppliesUIComponent then
         armySuppliesUIComponent = self:createArmySuppliesUIComponent(parentUIComponent)
-        armySuppliesUIComponent:SetDockingPoint(TotoWar.ui.enums.dockingPoints.topLeft)
+        armySuppliesUIComponent:SetDockingPoint(TotoWar.enums.uiDockingPoints.topLeft)
     end
 
     armySuppliesUIComponent:SetText(text, "")
@@ -312,7 +330,7 @@ function TotoWarCbacUIManager:getArmySuppliesCostText(armySuppliesCost)
     if armySuppliesCost.availableSupplies < 0 then
         armySuppliesCostText = string.format(
             "[[col:%s]]%s[[/col]][[img:%s]][[/img]]",
-            TotoWar.utils.enums.colors.red,
+            TotoWar.enums.colors.red,
             armySuppliesCost.availableSupplies,
             _armySuppliesDepletedWarningIconId)
     else
@@ -382,6 +400,18 @@ function TotoWarCbacUIManager:onCharacterDeselected()
     self:resetUIChangeFlags()
 
     self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
+end
+
+---Reacts to options being updated.
+function TotoWarCbacUIManager:onOptionsUpdated()
+    self.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+
+    -- Clearing the selection for two reasons :
+    -- - it resets its movement if the selected character was not able to move, otherwise the character could not be move anymore if the player army supplies option has been disabled
+    -- - it closes the unit list and recruitment UI which will hide army supplies if the player army supplies option has been disabled
+    CampaignUI.ClearSelection()
+
+    self.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETE")
 end
 
 ---Reacts to the recruitment panel being closed.
@@ -596,7 +626,7 @@ end
 function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
     local unitContext = TotoWar.ui:getUIComponentCCO(
         unitCardUIComponent,
-        TotoWar.ui.enums.ccoContextTypeIds.mainUnitRecord)
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord)
 
     local unitName = unitContext:Call("Name")
     local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
@@ -619,7 +649,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
         armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(
             externalHolderUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(
-            TotoWar.ui.enums.dockingPoints.bottomMiddle)
+            TotoWar.enums.uiDockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
             common.get_localised_string("totowar_cbac_unit_army_supplies_cost_tooltip"), true)
 
@@ -643,8 +673,8 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
             function() return unitBaseCost end)
 
         unitCardUIComponent:SetDisabled(true)
-        unitCardUIComponent:SetState(TotoWar.ui.enums.uiComponentStates.inactive)
-        unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", TotoWar.utils.enums.colors.red, unitBaseCostText)
+        unitCardUIComponent:SetState(TotoWar.enums.uiComponentStates.inactive)
+        unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", TotoWar.enums.colors.red, unitBaseCostText)
     elseif unitCardUIComponent:IsDisabled() then
         -- Reenabling the unit card if it was disabled
         unitCardUIComponent:SetDisabled(false)
