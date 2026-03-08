@@ -1,4 +1,4 @@
-require("script._lib.mod.totowar_core_options")
+require("script._lib.mod.totowar__mod_options")
 
 ---@diagnostic disable-next-line: undefined-global
 local mct = get_mct()

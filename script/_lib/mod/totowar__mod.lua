@@ -1,6 +1,6 @@
 ---TotoWar base mod.
----@class TotoWarCore
-TotoWarCore = {
+---@class TotoWarMod
+TotoWarMod = {
     ---Generic logger for elements that do not have a dedicated logger.
     ---@type TotoWarLogger
     genericLogger = nil,
@@ -21,47 +21,40 @@ TotoWarCore = {
     ---@type TotoWarUIUtils
     ui = nil
 }
-TotoWarCore.__index = TotoWarCore
+TotoWarMod.__index = TotoWarMod
 
----Instance.
----@type TotoWarCore
-local _instance = nil
-
----Gets the TotoWarCore mod instance.
----Allows the use TotoWar mods.
----@return TotoWarCore
-function TotoWar()
-    return _instance
-end
+---TotoWar base mod instance.
+---@type TotoWarMod
+TotoWar = nil
 
 ---Initializes a new instance.
----@return TotoWarCore
-function TotoWarCore.new()
-    _instance = setmetatable({}, TotoWarCore)
+---@return TotoWarMod
+function TotoWarMod.new()
+    TotoWar = setmetatable({}, TotoWarMod)
 
-    _instance.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
+    TotoWar.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
 
-    _instance.isDebug = TotoWarDefaultIsDebug
+    TotoWar.isDebug = TotoWarDefaultIsDebug
 
-    _instance.modsManager = TotoWarModsManager.new()
-    _instance.utils = TotoWarUtils.new()
-    _instance.ui = TotoWarUIUtils.new()
+    TotoWar.modsManager = TotoWarModsManager.new()
+    TotoWar.utils = TotoWarUtils.new()
+    TotoWar.ui = TotoWarUIUtils.new()
 
-    _instance:loadMctOptions()
+    TotoWar:loadMctOptions()
 
-    _instance:addListeners()
+    TotoWar:addListeners()
 
-    _instance.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
+    TotoWar.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
 
-    return _instance
+    return TotoWar
 end
 
 ---Adds event listeners.
-function TotoWarCore:addListeners()
+function TotoWarMod:addListeners()
     -- Listener for option updates
-    TotoWar().utils:addListener(
+    TotoWar.utils:addListener(
         "TotoWarCbac",
-        TotoWar().utils.enums.events.mctOptionsUpdated,
+        TotoWar.utils.enums.events.mctOptionsUpdated,
         true,
         function()
             self:loadMctOptions()
@@ -69,7 +62,7 @@ function TotoWarCore:addListeners()
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
-function TotoWarCore:loadMctOptions()
+function TotoWarMod:loadMctOptions()
     local mct = self.utils:getMct()
 
     if not mct then

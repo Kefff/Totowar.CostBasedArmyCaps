@@ -1,6 +1,6 @@
----TotoWar mod.
----@class TotoWarMod
-TotoWarMod = {
+---TotoWar mod definition.
+---@class TotoWarModDefinition
+TotoWarModDefinition = {
     ---Function for initializing the mod.
     ---@type function
     initializeFunction = nil,
@@ -13,23 +13,23 @@ TotoWarMod = {
     ---@type string
     name = nil
 }
-TotoWarMod.__index = TotoWarMod
+TotoWarModDefinition.__index = TotoWarModDefinition
 
 ---Initializes a new instance.
 ---@param name string Name of the mod.
 ---@param initializationFunction function Function for initializing the mod.
----@return TotoWarMod
-function TotoWarMod.new(name, initializationFunction)
-    TotoWar().genericLogger:logDebug(
+---@return TotoWarModDefinition
+function TotoWarModDefinition.new(name, initializationFunction)
+    TotoWar.genericLogger:logDebug(
         "TotoWarMod.new(%s): STARTED",
         function() return name end)
 
-    local instance = setmetatable({}, TotoWarMod)
+    local instance = setmetatable({}, TotoWarModDefinition)
 
     instance.initializeFunction = initializationFunction
     instance.name = name
 
-    TotoWar().genericLogger:logDebug(
+    TotoWar.genericLogger:logDebug(
         "TotoWarMod.new(%s): COMPLETED",
         function() return name end)
 

@@ -27,21 +27,21 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 ---@param unitArmySuppliesCost number Unit army supplies cost.
 ---@return TotoWarCbacUnitArmySuppliesCost
 function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
-    TotoWar().genericLogger:logDebug(
+    TotoWar.genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): STARTED",
-        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return unitArmySuppliesCost end)
 
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
 
-    instance.unitCaption = TotoWar().utils:getUnitCaption(unitKey)
+    instance.unitCaption = TotoWar.utils:getUnitCaption(unitKey)
     instance.unitArmySuppliesCost = unitArmySuppliesCost
     instance.unitKey = unitKey
     instance:addUnit()
 
-    TotoWar().genericLogger:logDebug(
+    TotoWar.genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): COMPLETED",
-        function() return TotoWar().utils:getUnitCaption(unitKey) end,
+        function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return unitArmySuppliesCost end)
 
     return instance
@@ -49,28 +49,28 @@ end
 
 ---Adds one unit.
 function TotoWarCbacUnitArmySuppliesCost:addUnit()
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): STARTED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): STARTED")
 
     self.totalArmySuppliesCost = self.totalArmySuppliesCost + self.unitArmySuppliesCost
     self.unitCount = self.unitCount + 1
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
 end
 
 ---Removes one unit.
 function TotoWarCbacUnitArmySuppliesCost:removeUnit()
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): STARTED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): STARTED")
 
     self.totalArmySuppliesCost = self.totalArmySuppliesCost - self.unitArmySuppliesCost
     self.unitCount = self.unitCount - 1
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): COMPLETED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): COMPLETED")
 end
 
 ---Gets a unit army supplies cost as a tooltip string.
 ---@return string
 function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: STARTED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: STARTED")
 
     local tooltipText = ""
 
@@ -88,7 +88,7 @@ function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
             self.unitArmySuppliesCost)
     end
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: COMPLETED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: COMPLETED")
 
     return tooltipText
 end

@@ -1,9 +1,6 @@
----@type TotoWarCbac
-local _instance = nil
-
 ---TotoWar mod form managing cost-Based army caps.
----@class TotoWarCbac
-TotoWarCbac = {
+---@class TotoWarCbacMod
+TotoWarCbacMod = {
     ---Total army supplies available in an army for the AI.
     ---@type number
     aiArmyArmySupplies = nil,
@@ -33,61 +30,59 @@ TotoWarCbac = {
     uiManager = nil
 
 }
-TotoWarCbac.__index = TotoWarCbac
+TotoWarCbacMod.__index = TotoWarCbacMod
 
----Gets the TotoWarCbac mod instance.
----@return TotoWarCbac
-function TotoWar_Cbac()
-    return _instance
-end
+---TotoWar Cost-Based Army Cost mod instance.
+---@type TotoWarCbacMod
+TotoWarCbac = nil
 
 ---Initializes a new instance.
----@return TotoWarCbac
-function TotoWarCbac.new()
-    _instance = setmetatable({}, TotoWarCbac)
+---@return TotoWarCbacMod
+function TotoWarCbacMod.new()
+    TotoWarCbac = setmetatable({}, TotoWarCbacMod)
 
-    _instance.logger = TotoWarLogger.new("TotoWar_Cbac")
+    TotoWarCbac.logger = TotoWarLogger.new("TotoWar_Cbac")
 
-    _instance.aiArmyArmySupplies = TotoWarCbacDefaultAiArmySupplies
-    _instance.aiUnitsToDiscardMaximumNumber = TotoWarCbacDefaultAiUnitsToDiscardMaximumNumber
-    _instance.playerArmySupplies = TotoWarCbacDefaultPlayerArmySupplies
-    _instance:loadMctOptions()
+    TotoWarCbac.aiArmyArmySupplies = TotoWarCbacDefaultAiArmySupplies
+    TotoWarCbac.aiUnitsToDiscardMaximumNumber = TotoWarCbacDefaultAiUnitsToDiscardMaximumNumber
+    TotoWarCbac.playerArmySupplies = TotoWarCbacDefaultPlayerArmySupplies
+    TotoWarCbac:loadMctOptions()
 
-    _instance.aiManager = TotoWarCbacAiManager:new()
-    _instance.playerManager = TotoWarCbacPlayerManager:new()
-    _instance.uiManager = TotoWarCbacUIManager:new()
+    TotoWarCbac.aiManager = TotoWarCbacAiManager:new()
+    TotoWarCbac.playerManager = TotoWarCbacPlayerManager:new()
+    TotoWarCbac.uiManager = TotoWarCbacUIManager:new()
 
-    _instance:addListeners()
+    TotoWarCbac:addListeners()
 
-    _instance.logger:logDebug("new(): COMPLETED")
+    TotoWarCbac.logger:logDebug("new(): COMPLETED")
 
-    return _instance
+    return TotoWarCbac
 end
 
 ---Adds event listeners.
-function TotoWarCbac:addListeners()
+function TotoWarCbacMod:addListeners()
     self.logger:logDebug("addListeners(): STARTED")
 
     -- Listener for option updates
-    TotoWar().utils:addListener(
+    TotoWar.utils:addListener(
         "TotoWarCbac",
-        TotoWar().utils.enums.events.mctOptionsUpdated,
+        TotoWar.utils.enums.events.mctOptionsUpdated,
         true,
         function()
             self:loadMctOptions()
         end)
 
     -- Manager listeners
-    _instance.aiManager:addListeners()
-    _instance.playerManager:addListeners()
-    _instance.uiManager:addListeners()
+    TotoWarCbac.aiManager:addListeners()
+    TotoWarCbac.playerManager:addListeners()
+    TotoWarCbac.uiManager:addListeners()
 
     self.logger:logDebug("addListeners(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
-function TotoWarCbac:loadMctOptions()
-    local mct = TotoWar().utils:getMct()
+function TotoWarCbacMod:loadMctOptions()
+    local mct = TotoWar.utils:getMct()
 
     if not mct then
         return

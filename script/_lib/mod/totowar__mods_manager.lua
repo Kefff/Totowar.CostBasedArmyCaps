@@ -6,7 +6,7 @@ TotoWarModsManager = {
     logger = nil,
 
     ---List of registered TotoWar mods.
-    ---@type TotoWarMod[]
+    ---@type TotoWarModDefinition[]
     mods = nil
 }
 TotoWarModsManager.__index = TotoWarModsManager
@@ -26,7 +26,7 @@ end
 
 ---Finds a registered mod.
 ---@param modName string Mod name.
----@return TotoWarMod | nil
+---@return TotoWarModDefinition | nil
 function TotoWarModsManager:findMod(modName)
     self.logger:logDebug(
         "findMod(\"%s\"): STARTED",
@@ -52,7 +52,7 @@ end
 ---Gets a registered mod.
 ---Logs an error when the mod is not found.
 ---@param modName string Mod name.
----@return TotoWarMod
+---@return TotoWarModDefinition
 function TotoWarModsManager:getMod(modName)
     self.logger:logDebug(
         "getMod(\"%s\"): STARTED",
@@ -103,7 +103,7 @@ function TotoWarModsManager:registerMod(modName, initializeFunction)
     if mod then
         self.logger:logWarning("Mod \"%s\" is already registered. New registration has been ignored.", modName)
     else
-        mod = TotoWarMod.new(modName, initializeFunction)
+        mod = TotoWarModDefinition.new(modName, initializeFunction)
         table.insert(self.mods, mod)
 
         self.logger:logInfo("Mod \"%s\" registered", modName)

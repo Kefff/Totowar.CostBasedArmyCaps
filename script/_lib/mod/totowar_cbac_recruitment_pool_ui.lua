@@ -42,7 +42,7 @@ function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, upd
     instance.uiComponentQuery = uiComponentQuery
     instance.updateUIFunction = updateUIFunction
 
-    TotoWar().genericLogger:logDebug("TotoWarCbacRecruitmentPoolUI.new(): COMPLETED")
+    TotoWar.genericLogger:logDebug("TotoWarCbacRecruitmentPoolUI.new(): COMPLETED")
 
     return instance
 end
