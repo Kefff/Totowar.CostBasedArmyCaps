@@ -3,15 +3,15 @@
 TotoWarCbacMod = {
     ---Total army supplies available in an army for the AI.
     ---@type number
-    aiArmyArmySupplies = nil,
+    aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
+
+    ---Indicates whether army supplies restrictions are enabled for AI armies.
+    ---@type boolean
+    aiArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled,
 
     ---Maximum number of units that can be discarded in order to make the recruitment of a new unit AI possible
     ---@type number
-    aiUnitsToDiscardMaximumNumber = nil,
-
-    ---Total army supplies available in an army for the player.
-    ---@type number
-    playerArmySupplies = nil,
+    aiDisposableUnitsMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiDisposableUnitsMaximumAmount,
 
     ---Manager for AI army supplies.
     ---@type TotoWarCbacAiManager
@@ -20,6 +20,14 @@ TotoWarCbacMod = {
     ---Logger.
     ---@type TotoWarLogger
     logger = nil,
+
+    ---Total army supplies available in an army for the player.
+    ---@type number
+    playerArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount,
+
+    ---Indicates whether army supplies restrictions are enabled for player armies.
+    ---@type boolean
+    playerArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled,
 
     ---Manager for player army supplies.
     ---@type TotoWarCbacPlayerManager
@@ -43,9 +51,6 @@ function TotoWarCbacMod.new()
 
     TotoWarCbac.logger = TotoWarLogger.new("TotoWar_Cbac")
 
-    TotoWarCbac.aiArmyArmySupplies = TotoWarCbacDefaultAiArmySupplies
-    TotoWarCbac.aiUnitsToDiscardMaximumNumber = TotoWarCbacDefaultAiUnitsToDiscardMaximumNumber
-    TotoWarCbac.playerArmySupplies = TotoWarCbacDefaultPlayerArmySupplies
     TotoWarCbac:loadMctOptions()
 
     TotoWarCbac.aiManager = TotoWarCbacAiManager:new()
@@ -90,12 +95,18 @@ function TotoWarCbacMod:loadMctOptions()
 
     self.logger:logDebug("addMctOptions(): STARTED")
 
-    local options = mct:get_mod_by_key(TotoWarModName)
-    self.aiArmyArmySupplies = options:get_option_by_key(TotoWarCbacAiArmySuppliesOptionName):get_finalized_setting()
-    self.aiUnitsToDiscardMaximumNumber = options
-        :get_option_by_key(TotoWarCbacAiUnitsToDiscardMaximumNumberOptionName)
+    local options = mct:get_mod_by_key(TotoWar_ModName)
+    self.aiArmySuppliesAmount = options:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
         :get_finalized_setting()
-    self.playerArmySupplies = options:get_option_by_key(TotoWarCbacPlayerArmySuppliesOptionName):get_finalized_setting()
+    self.aiArmySuppliesEnabled = options:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesEnabled)
+        :get_finalized_setting()
+    self.aiDisposableUnitsMaximumAmount = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount)
+        :get_finalized_setting()
+    self.playerArmySuppliesAmount = options:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
+        :get_finalized_setting()
+    self.playerArmySuppliesEnabled = options:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
+        :get_finalized_setting()
 
     self.logger:logDebug("addMctOptions(): COMPLETED")
 end

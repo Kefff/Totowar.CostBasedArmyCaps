@@ -7,7 +7,7 @@ TotoWarMod = {
 
     ---Indicates whether debug messages are logged.
     ---@type boolean
-    isDebug = nil,
+    debugEnabled = TotoWar_OptionDefaultValue_DebugEnabled,
 
     ---Mods manager.
     ---@type TotoWarModsManager
@@ -33,8 +33,6 @@ function TotoWarMod.new()
     TotoWar = setmetatable({}, TotoWarMod)
 
     TotoWar.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
-
-    TotoWar.isDebug = TotoWarDefaultIsDebug
 
     TotoWar.modsManager = TotoWarModsManager.new()
     TotoWar.utils = TotoWarUtils.new()
@@ -71,8 +69,8 @@ function TotoWarMod:loadMctOptions()
 
     self.genericLogger:logDebug("addMctOptions(): STARTED")
 
-    local options = mct:get_mod_by_key(TotoWarModName)
-    self.isDebug = options:get_option_by_key(TotoWarDebugOptionName):get_finalized_setting()
+    local options = mct:get_mod_by_key(TotoWar_ModName)
+    self.debugEnabled = options:get_option_by_key(TotoWar_OptionName_DebugEnabled):get_finalized_setting()
 
     self.genericLogger:logDebug("addMctOptions(): COMPLETED")
 end

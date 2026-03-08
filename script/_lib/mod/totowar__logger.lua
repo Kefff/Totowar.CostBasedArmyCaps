@@ -87,15 +87,17 @@ end
 ---@param message string Message to log.
 ---@param ... function Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
-    if TotoWar.isDebug then
-        local parameters = {}
-
-        for i, valueFunction in ipairs({ ... }) do
-            parameters[i] = tostring(valueFunction())
-        end
-
-        log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
+    if not TotoWar.debugEnabled then
+        return
     end
+
+    local parameters = {}
+
+    for i, valueFunction in ipairs({ ... }) do
+        parameters[i] = tostring(valueFunction())
+    end
+
+    log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
 end
 
 ---Logs an error message.

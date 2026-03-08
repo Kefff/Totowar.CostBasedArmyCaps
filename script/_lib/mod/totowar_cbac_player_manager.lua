@@ -290,7 +290,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
         "initializeArmySuppliesCost(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(general) end)
 
-    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySupplies)
+    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySuppliesAmount)
 
     -- Adding units from the general army
     local units = general:military_force():unit_list()
@@ -358,7 +358,7 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
     local areArmySuppliesVisible =
         TotoWar.utils:isGeneral(character)
         and (TotoWar.utils:isPlayerFaction(character:faction():name())
-            or TotoWar.isDebug) -- In debug mode, we see the army supplies cost or other faction generals
+            or TotoWar.debugEnabled) -- In debug mode, we see the army supplies cost or other faction generals
 
     if areArmySuppliesVisible then
         if character:cqi() ~= self.selectedGeneral
@@ -522,7 +522,7 @@ function TotoWarCbacPlayerManager:onSelectedGeneralArmySuppliesCostChanged()
 
     local needsSelectedGeneralMovementUpdate = true
 
-    if TotoWar.isDebug then
+    if TotoWar.debugEnabled then
         -- In debug mode, if we select a general from another faction, we see the army supplies cost
         -- but we do not want to block the army movement
         needsSelectedGeneralMovementUpdate = TotoWar.utils:isPlayerFaction(self.selectedGeneral:faction():name())
@@ -672,8 +672,8 @@ end
 function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
     self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
-    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySupplies)
-    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySupplies)
+    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySuppliesAmount)
+    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.playerArmySuppliesAmount)
 
     local unitExchangePool1UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool1)
     self:updateUnitExchangeArmySuppliesCost(

@@ -1,8 +1,8 @@
 ---Name of the TotoWar base mod.
-TotoWarModName = "totowar"
+TotoWar_ModName = "totowar"
 
----Name of the debug option.
-TotoWarDebugOptionName = "totowar_debug"
+---Default value for the option that enables debug logs.
+TotoWar_OptionDefaultValue_DebugEnabled = false
 
---- Default value indicating whether the debug mode is enabled.
-TotoWarDefaultIsDebug = false
+---Name of the option that enables debug logs.
+TotoWar_OptionName_DebugEnabled = "totowar_cbac_debugEnabled"

@@ -11,7 +11,7 @@ local _armySuppliesUIComponentName = "totowar_cbac_army_supplies"
 
 ---ID of the depleted army supplies warning icon.
 ---@type string
-local _armySuppliesDepletedWarningIconId = "totowar_cbac_army_supplies_depleted"
+local _armySuppliesDepletedWarningIconId = "totowar_alert"
 
 ---Path of the army supplies icon.
 ---@type string
