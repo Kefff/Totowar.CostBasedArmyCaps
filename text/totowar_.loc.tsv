@@ -1,0 +1,6 @@
+key	text	tooltip
+#Loc;1;text/totowar_.loc		
+totowar_mct_description	Options for TotoWar mods	false
+totowar_mct_section_title	Global options	false
+totowar_mct_option_text_debug_enabled	Debug mode [[img:totowar_alert]][[/img]][[col:red]]HEAVY PERFORMANCE IMPACT[[/col]]	false
+totowar_mct_option_tooltip_debug_enabled	Enables the debug mode for TotoWar mods.\\n\\n[[img:totowar_alert]][[/img]][[col:red]]THIS HEAVILY REDUCES THE GAME PERFORMANCES ! ONLY ACTIVATE THIS OPTION WHEN NEEDED.[[/col]]\\n\\nDebug mode creates a [[col:alliance_ally]]totowar_logs.txt[[/col]] file in your game folder in which advanced debug logs are stored.\\nOnly useful when you need to report a bug in order to be able to figure out what is happening.\\n\\n[[col:alliance_ally]]Unchecked[[/col]] by default.	true

@@ -1,7 +1,18 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
-totowar_cbac_army_supplies_cost_tooltip	Army supplies||Amount of supplies the army can provide to sustain additional recruited units.|| ||Total army supplies: [[img:icon_merc]][[/img]]%s||Consumed by units: [[img:icon_merc]]%s||Available for recruitment: [[img:icon_merc]]%s%s||%s	true
-totowar_cbac_army_supplies_cost_tooltip_detail	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
-totowar_cbac_army_supplies_cost_tooltip_detail_multiple	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s ([[col:alliance_ally]]%s[[/col]] x [[img:icon_merc]][[/img]]%s)	true
-totowar_cbac_unit_army_supplies_cost_tooltip	Army supplies||This unit consumes this amount of [[img:icon_merc]][[/img]]Army supplies.	true
-totowar_cbac_unit_army_supplies_cost_tooltip_depleted	Insufficient [[img:icon_merc]][[/img]]Army supplies to sustain all recruited units.||The army cannot march until a unit is dismissed or transferred to another army.
+totowar_cbac_tooltip_army_supplies_cost	Army supplies||Amount of supplies the army can provide to sustain additional recruited units.|| ||Total army supplies: [[img:icon_merc]][[/img]]%s||Consumed by units: [[img:icon_merc]]%s||Available for recruitment: [[img:icon_merc]]%s%s||%s	true
+totowar_cbac_tooltip_army_supplies_cost_detail	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
+totowar_cbac_tooltip_army_supplies_cost_detail_multiple	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s ([[col:alliance_ally]]%s[[/col]] x [[img:icon_merc]][[/img]]%s)	true
+totowar_cbac_tooltip_unit_army_supplies_cost	Army supplies||This unit consumes this amount of [[img:icon_merc]][[/img]]Army supplies.	true
+totowar_cbac_tooltip_unit_army_supplies_cost_depleted	Insufficient [[img:icon_merc]][[/img]]Army supplies to sustain all recruited units.||The army cannot march until a unit is dismissed or transferred to another army.	false
+totowar_cbac_mct_section_title	Cost-Based Army Caps	false
+totowar_cbac_mct_option_text_player_army_supplies_enabled	Army supplies restrictions for player armies	false
+totowar_cbac_mct_option_text_player_army_supplies	Army supplies for player armies	false
+totowar_cbac_mct_option_text_ai_army_supplies_enabled	Army supplies restrictions for AI armies	false
+totowar_cbac_mct_option_text_ai_army_supplies	Army supplies for AI armies	false
+totowar_cbac_mct_option_text_ai_disposable_units_maximum_amount_option	Number of units the AI can disband	false
+totowar_cbac_mct_option_tooltip_player_army_supplies_enabled	Enables army supplies restrictions for player armies.\\n\\nIf the combined army supplies cost of an army's units exceeds the limit, the army becomes immobilized until units are either disbanded or transferred to another army.\\n\\n[[col:alliance_ally]]Checked[[/col]] by default.	true
+totowar_cbac_mct_option_tooltip_player_army_supplies	Amount of [[img:icon_merc]][[/img]]Army supplies available for recruiting units in a player's armies.\\n\\nA unit's army supplies cost is identical to its cost in a skirmish battle.\\n\\n[[col:alliance_ally]]12400[[/col]] by default.	true
+totowar_cbac_mct_option_tooltip_ai_army_supplies_enabled	Enables army supplies restrictions for AI armies.\\n\\nWhen an AI faction recruits a new unit, if the combined supply cost of the army's units exceeds the limit, the AI automatically disbands some of its cheapest units to stay within the cap.\\nThe AI faction is then reimbursed for the cost of the disbanded units.\\n\\n[[col:alliance_ally]]Checked[[/col]] by default.	true
+totowar_cbac_mct_option_tooltip_ai_army_supplies	Amount of [[img:icon_merc]][[/img]]Army supplies available for recruiting units in AI faction armies.\\n\\nA unit's army supplies cost is the same as its cost in a skirmish battle.\\n\\n[[col:alliance_ally]]12400[[/col]] by default.	true
+totowar_cbac_mct_option_tooltip_ai_disposable_units_maximum_amount_option	Determines how many units an AI faction can disband when an army's total [[img:icon_merc]][[/img]]Army supplies cost exceeds the allowed limit.\\n\\n[[col:alliance_ally]]3[[/col]] by default.	true

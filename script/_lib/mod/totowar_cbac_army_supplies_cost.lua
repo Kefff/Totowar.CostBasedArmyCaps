@@ -181,11 +181,11 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
         depletedArmySuppliesWarning = string.format(
             "\n\n[[col:%s]]%s[[/col]]",
             TotoWar.enums.colors.red,
-            common.get_localised_string("totowar_cbac_unit_army_supplies_cost_tooltip_depleted"))
+            common.get_localised_string("totowar_cbac_tooltip_unit_army_supplies_cost_depleted"))
     end
 
     local tooltipText = string.format(
-        common.get_localised_string("totowar_cbac_army_supplies_cost_tooltip"),
+        common.get_localised_string("totowar_cbac_tooltip_army_supplies_cost"),
         TotoWarCbac.playerArmySuppliesAmount,
         self.totalCost,
         availableArmySuppliesString,
