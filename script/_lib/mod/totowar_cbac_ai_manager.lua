@@ -57,6 +57,14 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
     table.sort(
         armySuppliesCost.unitGroups,
         function(a, b)
+            if a.unitArmySuppliesCost == b.unitArmySuppliesCost then
+                if a.unitKey == lastRecruitedUnit.unit_key then
+                    return true
+                end
+
+                return false
+            end
+
             return a.unitArmySuppliesCost < b.unitArmySuppliesCost
         end)
 
