@@ -9,7 +9,7 @@ TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount = 12400
 TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled = true
 
 ---Default value for the maximum amount of units that can be discarded in AI armies in order to make the recruitment of a new unit AI possible.
-TotoWar_Cbac_OptionDefaultValue_AiDisposableUnitsMaximumAmount = 3
+TotoWar_Cbac_OptionDefaultValue_AiDisposableUnitsMaximumAmount = 2
 
 ---Default value for the amount of available army supplies in player armies.
 ---Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.

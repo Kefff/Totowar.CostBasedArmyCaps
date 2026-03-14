@@ -371,7 +371,8 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
             or TotoWar.debugEnabled) -- In debug mode, we see the army supplies cost or other faction generals
 
     if areArmySuppliesVisible then
-        if character:cqi() ~= self.selectedGeneral
+        if self.selectedGeneral == nil
+            or character:cqi() ~= self.selectedGeneral:cqi()
         then
             self.selectedGeneral = character
             self.isInitializingArmySuppliesCost = true

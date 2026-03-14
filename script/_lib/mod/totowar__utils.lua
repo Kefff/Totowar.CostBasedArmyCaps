@@ -61,7 +61,13 @@ end
 function TotoWarUtils:canRecruitUnits(army)
     self.logger:logDebug(
         "canRecruitUnits(%s): STARTED",
-        function() return army:command_queue_index() end)
+        function()
+            if army:has_general() then
+                return self:getCharacterCaption(army:general_character())
+            end
+
+            return army:command_queue_index()
+        end)
 
     local canRecruitUnits =
         army:has_general()
@@ -71,7 +77,13 @@ function TotoWarUtils:canRecruitUnits(army)
 
     self.logger:logDebug(
         "canRecruitUnits(%s): COMPLETED => %s",
-        function() return army:command_queue_index() end,
+        function()
+            if army:has_general() then
+                return self:getCharacterCaption(army:general_character())
+            end
+
+            return army:command_queue_index()
+        end,
         function() return canRecruitUnits end)
 
     return canRecruitUnits
@@ -81,7 +93,7 @@ end
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
 function TotoWarUtils:getCharacterCaption(character)
     self.logger:logDebug(
-        "getCharacterName(%s): STARTED",
+        "getCharacterCaption(%s): STARTED",
         function() return character:cqi() end)
 
     local caption = common.get_localised_string(character:get_forename())
@@ -92,7 +104,7 @@ function TotoWarUtils:getCharacterCaption(character)
     end
 
     self.logger:logDebug(
-        "getCharacterName(%s): COMPLETED => %s",
+        "getCharacterCaption(%s): COMPLETED => %s",
         function() return character:cqi() end,
         function() return caption end)
 

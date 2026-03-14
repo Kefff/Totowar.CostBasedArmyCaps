@@ -24,7 +24,7 @@ function TotoWarCbacAiManager:addListeners()
     self.logger:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
-        "TotoWarCbacPlayerManager",
+        "TotoWarCbacAiManager",
         TotoWar.enums.uiEvents.unitTrained,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
@@ -46,9 +46,11 @@ end
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army.
 ---@param lastRecruitedUnit UNIT_SCRIPT_INTERFACE Last unit recruited. We prioritize getting rid of units cheaper than this unit. Otherwise, we remove this unit.
 function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, lastRecruitedUnit)
+    local general = army:general_character()
+
     self.logger:logDebug(
         "adjustAiArmyComposition(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
         function() return armySuppliesCost.totalCost end
@@ -99,7 +101,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
 
                 self.logger:logDebug(
                     "adjustAiArmyComposition(%s from %s, %s, %s): ADDED TO DISPOSABLE UNITS => %s (%s)",
-                    function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+                    function() return TotoWar.utils:getCharacterCaption(general) end,
                     function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
                     function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
                     function() return armySuppliesCost.totalCost end,
@@ -126,12 +128,12 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
     if unitsToDiscard then
         -- Removing the units we were able to find to make room for the last recruited unit and reimbursing the AI for their real cost (not the base cost)
         for index, unitToDiscard in ipairs(unitsToDiscard) do
-            cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitToDiscard.key)
+            cm:remove_unit_from_character(cm:char_lookup_str(general), unitToDiscard.key)
             cm:treasury_mod(army:faction():name(), army:faction():treasury() + unitToDiscard.realCost)
 
             self.logger:logDebug(
                 "adjustAiArmyComposition(%s from %s, %s, %s): REMOVED UNIT => %s (%s, %s)",
-                function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+                function() return TotoWar.utils:getCharacterCaption(general) end,
                 function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
                 function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
                 function() return armySuppliesCost.totalCost end,
@@ -143,11 +145,11 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
         -- Removing the last recruited unit and reimbursing the AI for their real cost (not the base cost)
         local lastRecruitedUnitRealCost = cco("CcoCampaignUnit", lastRecruitedUnit:command_queue_index()):Call("Cost")
         cm:treasury_mod(army:faction():name(), army:faction():treasury() + lastRecruitedUnitRealCost)
-        cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), lastRecruitedUnit:unit_key())
+        cm:remove_unit_from_character(cm:char_lookup_str(general), lastRecruitedUnit:unit_key())
 
         self.logger:logDebug(
             "adjustAiArmyComposition(%s from %s, %s, %s): REMOVED LAST RECRUITED UNIT => %s (%s, %s)",
-            function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+            function() return TotoWar.utils:getCharacterCaption(general) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
             function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
             function() return armySuppliesCost.totalCost end,
@@ -158,7 +160,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
 
     self.logger:logDebug(
         "adjustAiArmyComposition(%s from %s, %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
         function() return armySuppliesCost.totalCost end
@@ -301,9 +303,21 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
+    if not army:has_general() then
+        self.logger:logDebug(
+            "[EVENT] onAiUnitRecruited(%s from %s, %s): NOT EXECUTED",
+            function() return army:command_queue_index() end,
+            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+
+        return
+    end
+
+    local general = army:general_character()
+
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
@@ -321,7 +335,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
 
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 end
