@@ -651,7 +651,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(
             TotoWar.enums.uiDockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
-            common.get_localised_string("totowar_cbac_tooltip_unit_army_supplies_cost"), true)
+            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
 
         -- Resizing the container to have enough space to display the new component
         TotoWar.ui:resizeUIComponent(unitCardUIComponent, 0, armySuppliesCostUIComponent:Height())

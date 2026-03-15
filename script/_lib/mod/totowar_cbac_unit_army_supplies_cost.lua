@@ -76,14 +76,14 @@ function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     if self.unitCount > 1 then
         tooltipText = tooltipText .. string.format(
-            common.get_localised_string("totowar_cbac_tooltip_army_supplies_cost_detail_multiple"),
+            common.get_localised_string("totowar_cbac_tooltip_armySuppliesCostDetailsMultiple"),
             self.unitCaption,
             self.totalArmySuppliesCost,
             self.unitCount,
             self.unitArmySuppliesCost)
     else
         tooltipText = tooltipText .. string.format(
-            common.get_localised_string("totowar_cbac_tooltip_army_supplies_cost_detail"),
+            common.get_localised_string("totowar_cbac_tooltip_armySuppliesCostDetails"),
             self.unitCaption,
             self.unitArmySuppliesCost)
     end

@@ -70,12 +70,11 @@ function TotoWarCbacMod.new()
 
     TotoWarCbac.logger = TotoWarLogger.new("TotoWar_Cbac")
 
-    TotoWarCbac:loadMctOptions()
-
     TotoWarCbac.aiManager = TotoWarCbacAiManager:new()
     TotoWarCbac.playerManager = TotoWarCbacPlayerManager:new()
     TotoWarCbac.uiManager = TotoWarCbacUIManager:new()
 
+    TotoWarCbac:loadMctOptions()
     TotoWarCbac:addListeners()
 
     TotoWarCbac.logger:logDebug("new(): COMPLETED")
@@ -115,16 +114,31 @@ function TotoWarCbacMod:loadMctOptions()
     self.logger:logDebug("loadMctOptions(): STARTED")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
-    self.aiArmySuppliesAmount = options:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
+
+    self.aiArmySuppliesAmount = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
         :get_finalized_setting()
-    self.aiArmySuppliesEnabled = options:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesEnabled)
+    self.aiArmySuppliesEnabled = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesEnabled)
         :get_finalized_setting()
     self.aiDisposableUnitsMaximumAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount)
         :get_finalized_setting()
-    self.playerArmySuppliesAmount = options:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
+    self.playerArmySuppliesAmount = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
         :get_finalized_setting()
-    self.playerArmySuppliesEnabled = options:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
+    self.playerArmySuppliesEnabled = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
+        :get_finalized_setting()
+
+    self.aiManager.logger.isEnabled = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiManagerLoggerEnabled)
+        :get_finalized_setting()
+    self.playerManager.logger.isEnabled = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_PlayerManagerLoggerEnabled)
+        :get_finalized_setting()
+    self.uiManager.logger.isEnabled = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_UiManagerLoggerEnabled)
         :get_finalized_setting()
 
     self.logger:logDebug("loadMctOptions(): COMPLETED")

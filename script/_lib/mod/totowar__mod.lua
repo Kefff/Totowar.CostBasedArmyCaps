@@ -187,7 +187,6 @@ function TotoWarMod.new()
     TotoWar.ui = TotoWarUIUtils.new()
 
     TotoWar:loadMctOptions()
-
     TotoWar:addListeners()
 
     TotoWar.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
@@ -218,7 +217,18 @@ function TotoWarMod:loadMctOptions()
     self.genericLogger:logDebug("loadMctOptions(): STARTED")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
-    self.debugEnabled = options:get_option_by_key(TotoWar_OptionName_DebugEnabled):get_finalized_setting()
+    self.genericLogger.isEnabled = options
+        :get_option_by_key(TotoWar_OptionName_GenericLoggerEnabled)
+        :get_finalized_setting()
+    self.ui.logger.isEnabled = options
+        :get_option_by_key(TotoWar_OptionName_UiUtilsLoggerEnabled)
+        :get_finalized_setting()
+    self.utils.logger.isEnabled = options
+        :get_option_by_key(TotoWar_OptionName_UtilsLoggerEnabled)
+        :get_finalized_setting()
+    self.debugEnabled = options
+        :get_option_by_key(TotoWar_OptionName_DebugEnabled)
+        :get_finalized_setting()
 
     self.genericLogger:logDebug("loadMctOptions(): COMPLETED")
 end
