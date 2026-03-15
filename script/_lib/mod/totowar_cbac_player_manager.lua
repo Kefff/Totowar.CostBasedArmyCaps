@@ -365,41 +365,35 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
         function() return TotoWar.utils:getCharacterCaption(character) end,
         function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
 
-    local areArmySuppliesVisible =
-        TotoWar.utils:isGeneral(character)
+    if TotoWar.utils:isGeneral(character)
         and (TotoWar.utils:isPlayerFaction(character:faction():name())
             or TotoWar.debugEnabled) -- In debug mode, we see the army supplies cost or other faction generals
+    then
+        self.selectedGeneral = character
+        self.isInitializingArmySuppliesCost = true
 
-    if areArmySuppliesVisible then
-        if self.selectedGeneral == nil
-            or character:cqi() ~= self.selectedGeneral:cqi()
-        then
-            self.selectedGeneral = character
-            self.isInitializingArmySuppliesCost = true
-
-            if cm:get_campaign_ui_manager():is_panel_open(TotoWar.enums.uiPanels.unitsPanel) then
-                cm:real_callback(
-                    function()
-                        --- Initializing the army supplies cost for the newly selected army
-                        self:initializeArmySuppliesCost(character)
-                    end,
-                    50) -- 50ms delay otherwise the units_panel is not up to date an still contains the units of the previously selected general army
-            else
-                --- Adding a one-time listener that waits for the unit_panel to open before
-                --- initializing the army supplies cost because we need to get the cost of the
-                --- units being recruited
-                TotoWar.utils:addListener(
-                    "TotoWarCbacPlayerManager_UnitsPanel",
-                    TotoWar.enums.uiEvents.panelOpened,
-                    ---@param context TotoWarEventContext_PanelOpenedOrClosed
-                    function(context)
-                        return context.string == TotoWar.enums.uiPanels.unitsPanel
-                    end,
-                    function()
-                        self:initializeArmySuppliesCost(character)
-                    end,
-                    false)
-            end
+        if cm:get_campaign_ui_manager():is_panel_open(TotoWar.enums.uiPanels.unitsPanel) then
+            cm:real_callback(
+                function()
+                    --- Initializing the army supplies cost for the newly selected army
+                    self:initializeArmySuppliesCost(character)
+                end,
+                50) -- 50ms delay otherwise the units_panel is not up to date an still contains the units of the previously selected general army
+        else
+            --- Adding a one-time listener that waits for the unit_panel to open before
+            --- initializing the army supplies cost because we need to get the cost of the
+            --- units being recruited
+            TotoWar.utils:addListener(
+                "TotoWarCbacPlayerManager_UnitsPanel",
+                TotoWar.enums.uiEvents.panelOpened,
+                ---@param context TotoWarEventContext_PanelOpenedOrClosed
+                function(context)
+                    return context.string == TotoWar.enums.uiPanels.unitsPanel
+                end,
+                function()
+                    self:initializeArmySuppliesCost(character)
+                end,
+                false)
         end
     elseif self.selectedGeneralArmySuppliesCost then
         self.selectedGeneral = nil

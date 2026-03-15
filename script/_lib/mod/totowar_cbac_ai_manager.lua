@@ -28,15 +28,81 @@ function TotoWarCbacAiManager:addListeners()
         TotoWar.enums.uiEvents.unitTrained,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
-            return
-                TotoWarCbac.aiArmySuppliesEnabled
+            -- return
+            --     TotoWarCbac.aiArmySuppliesEnabled
+            --     and not cm:is_local_players_turn()
+            --     and TotoWar.utils:canRecruitUnits(context:unit():military_force())
+
+            -- TEST
+            self.logger:logDebug(
+                "[TEST] FORCE TYPE => %s from %s | %s",
+                function()
+                    if context:unit():has_force_commander() then
+                        return TotoWar.utils:getCharacterCaption(context:unit():force_commander())
+                    end
+
+                    return "???"
+                end,
+                function() return TotoWar.utils:getFactionCaption(context:unit():faction():name()) end,
+                function()
+                    if context:unit():military_force() then
+                        return context:unit():military_force():force_type():key()
+                    end
+
+                    return "???"
+                end)
+
+            if TotoWarCbac.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
-                and TotoWar.utils:canRecruitUnits(context:unit():military_force())
+                and context:unit():military_force()
+            then
+                local canRecruitUnits = TotoWar.utils:canRecruitUnits(context:unit():military_force())
+
+                self.logger:logDebug(
+                    "[TEST] CAN RECRUIT UNITS => %s from %s | %s",
+                    function()
+                        if context:unit():has_force_commander() then
+                            return TotoWar.utils:getCharacterCaption(context:unit():force_commander())
+                        end
+
+                        return "???"
+                    end,
+                    function() return TotoWar.utils:getFactionCaption(context:unit():faction():name()) end,
+                    function() return canRecruitUnits end)
+
+                return canRecruitUnits
+            end
+
+            return false
+            -- /TEST
         end,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
             self:onAiUnitRecruited(context:unit():military_force(), context:unit())
         end)
+
+    -- TEST
+    TotoWar.utils:addListener(
+        "TotoWarCbacAiManager",
+        TotoWar.enums.uiEvents.unitDisbanded,
+        function()
+            return not cm:is_local_players_turn()
+        end,
+        ---@param context TotoWarEventContext_UnitDisbanded
+        function(context)
+            self.logger:logDebug(
+                "[TEST] AI UNIT DISBANDED => %s from %s | %s",
+                function()
+                    if context:unit():has_force_commander() then
+                        return TotoWar.utils:getCharacterCaption(context:unit():force_commander())
+                    end
+
+                    return "???"
+                end,
+                function() return TotoWar.utils:getFactionCaption(context:unit():faction():name()) end,
+                function() return TotoWar.utils:getUnitCaption(context:unit():unit_key()) end)
+        end)
+    -- /TEST
 
     self.logger:logDebug("addListeners(): COMPLETED")
 end
@@ -53,8 +119,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
         function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
-        function() return armySuppliesCost.totalCost end
-    )
+        function() return armySuppliesCost.totalCost end)
 
     table.sort(
         armySuppliesCost.unitGroups,
@@ -106,8 +171,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
                     function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
                     function() return armySuppliesCost.totalCost end,
                     function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end,
-                    function() return unitGroup.unitArmySuppliesCost end
-                )
+                    function() return unitGroup.unitArmySuppliesCost end)
 
                 table.insert(
                     disposableUnits,
@@ -163,8 +227,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, la
         function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
-        function() return armySuppliesCost.totalCost end
-    )
+        function() return armySuppliesCost.totalCost end)
 end
 
 ---Gets the keys of units to discard from an army in order to not exceed the army supplies.
