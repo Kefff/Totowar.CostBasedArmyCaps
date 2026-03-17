@@ -27,8 +27,8 @@ end
 ---Adds a listener.
 ---@param listenerNamePrefix string Prefix added to the event to name the listener.
 ---@param event string Event.
----@param conditionFunction function | true Function for checking whether the callback should be called when the event is triggered. Takes a context as an argument. Return a boolean. Can be `true` instead of a function to always trigger the callback function.
----@param callbackFunction function Function to execute when the event is triggered and the condition function returns `true`.
+---@param conditionFunction boolean | fun(eventParameter: any): boolean Function for checking whether the callback should be called when the event is triggered. Takes a context as an argument. Return a boolean. Can be `true` instead of a function to always trigger the callback function.
+---@param callbackFunction fun(eventParameter: any): nil Function to execute when the event is triggered and the condition function returns `true`.
 ---@param isPermanent boolean? Indicates whether the listener is permanent or it should be removed immediately after the event is triggered.
 function TotoWarUtils:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
     if isPermanent == nil then
@@ -240,4 +240,70 @@ function TotoWarUtils:isPlayerFactionGeneral(character)
         function() return isPlayerFactionGeneral end)
 
     return isPlayerFactionGeneral
+end
+
+---Indicates whether a list contains an element that matches a predicate.
+---@param list any[] List.
+---@param predicate fun(item: any): boolean Predicate.
+---@return boolean
+function TotoWarUtils:tableAny(list, predicate)
+    self.logger:logDebug("tableAny(%s): STARTED", function() return #list end)
+
+    local exists = self:tableFirstOrDefault(list, predicate) ~= nil
+
+    self.logger:logDebug(
+        "tableAny(%s) => %s",
+        function() return #list end,
+        function() return exists end)
+
+    return exists
+end
+
+---Gets the first element of a table that matches a predicate, or nil if there are none.
+---@param list any[] List.
+---@param predicate fun(item: any): boolean Predicate.
+---@return any
+function TotoWarUtils:tableFirstOrDefault(list, predicate)
+    self.logger:logDebug("tableFirstOrDefault(%s): STARTED", function() return #list end)
+
+    for index, value in ipairs(list) do
+        local predicateResult = predicate(value)
+
+        if predicateResult then
+            self.logger:logDebug("tableFirstOrDefault(%s): COMPLETED", function() return #list end)
+
+            return value
+        end
+    end
+
+
+    self.logger:logDebug("tableFirstOrDefault(%s): NOT FOUND", function() return #list end)
+
+    return nil
+end
+
+---Filters a list based on a predicate.
+---@param list any[] List.
+---@param predicate fun(item: any): boolean Predicate.
+---@return any[]
+function TotoWarUtils:tableWhere(list, predicate)
+    self.logger:logDebug("tableWhere(%s): STARTED", function() return #list end)
+
+    local filteredTable = {}
+
+    for index, value in ipairs(list) do
+        local predicateResult = predicate(value)
+
+        if predicateResult then
+            table.insert(filteredTable)
+        end
+    end
+
+    self.logger:logDebug(
+        "tableFirstOrDefault(%s): COMPLETED => %s",
+        function() return #list end,
+        function() return #filteredTable end
+    )
+
+    return filteredTable
 end

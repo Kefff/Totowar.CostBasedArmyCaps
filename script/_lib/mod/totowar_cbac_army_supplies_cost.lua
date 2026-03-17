@@ -51,20 +51,16 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
         local unitGroup = TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
         table.insert(self.inRecruitmentMercenaryUnits, unitGroup)
     else
-        local found = false
+        ---@type TotoWarCbacUnitArmySuppliesCost
+        local unitGroup = TotoWar.utils:tableFirstOrDefault(
+            self.unitGroups,
+            ---@param ug TotoWarCbacUnitArmySuppliesCost
+            function(ug) return ug.unitKey == unitKey end)
 
-        for index, unitGroup in ipairs(self.unitGroups) do
-            found = unitGroup.unitKey == unitKey
-
-            if found then
-                unitArmySuppliesCost = unitGroup.unitArmySuppliesCost
-                unitGroup:addUnit()
-
-                break;
-            end
-        end
-
-        if not found then
+        if unitGroup then
+            unitArmySuppliesCost = unitGroup.unitArmySuppliesCost
+            unitGroup:addUnit()
+        else
             unitArmySuppliesCost = common.get_context_value("CcoMainUnitRecord", unitKey, "BaseCost")
             local unitGroup = TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
             table.insert(self.unitGroups, unitGroup)

@@ -59,7 +59,7 @@ end
 ---@param instance TotoWarLogger Logger instance.
 ---@param severity string Severity.
 ---@param message string Message to log.
----@param ... any Message parameters.
+---@param ... boolean | integer | number | string Message parameters.
 local function log(instance, severity, message, ...)
     if not instance.isEnabled then
         return
@@ -85,7 +85,7 @@ end
 
 ---Logs a debug message.
 ---@param message string Message to log.
----@param ... function Functions for getting parameter values.
+---@param ... (fun(): boolean | integer | number | string) Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
     if not TotoWar.debugEnabled then
         return
@@ -102,21 +102,21 @@ end
 
 ---Logs an error message.
 ---@param message string Message to log.
----@param ... any Message parameters.
+---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logError(message, ...)
     log(self, TotoWarLoggerSeverity.error, message, ...)
 end
 
 ---Logs an information message.
 ---@param message string Message to log.
----@param ... any Message parameters.
+---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logInfo(message, ...)
     log(self, TotoWarLoggerSeverity.info, message, ...)
 end
 
 ---Logs an warning message.
 ---@param message string Message to log.
----@param ... any Message parameters.
+---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logWarning(message, ...)
     log(self, TotoWarLoggerSeverity.warning, message, ...)
 end

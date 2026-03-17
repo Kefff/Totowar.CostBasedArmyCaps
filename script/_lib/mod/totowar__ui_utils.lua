@@ -144,31 +144,23 @@ function TotoWarUIUtils:isUIComponentChildOf(uiComponent, parentNames)
         function() return uiComponent:Id() end,
         function() return parentNamesText end)
 
-    for index, parentName in ipairs(parentNames) do
-        if not uicomponent_has_parent_filter(
+    local hasParent = TotoWar.utils:tableAny(
+        parentNames,
+        ---@param pn string
+        function(pn)
+            return (uicomponent_has_parent_filter(
                 uiComponent,
                 ---@param uic UIC
-                function(uic)
-                    return uic:Id() == parentName
-                end)
-        then
-            self.logger:logDebug(
-                "isUIComponentChildOf(%s, %s): COMPETED => %s",
-                function() return uiComponent:Id() end,
-                function() return parentNamesText end,
-                function() return false end)
-
-            return false
-        end
-    end
+                function(uic) return uic:Id() == pn end))
+        end)
 
     self.logger:logDebug(
         "isUIComponentChildOf(%s, %s): COMPETED => %s",
         function() return uiComponent:Id() end,
         function() return parentNamesText end,
-        function() return true end)
+        function() return hasParent end)
 
-    return true
+    return hasParent
 end
 
 ---Offsets the children of a UI component.

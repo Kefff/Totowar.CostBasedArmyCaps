@@ -136,7 +136,7 @@ function TotoWarCbacPlayerManager:addListeners()
                 TotoWarCbac.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and context.string == TotoWar.enums.uiPanels.mercenaryRecruitment
-                and self.selectedGeneralArmySuppliesCost
+                and self.selectedGeneralArmySuppliesCost ~= nil
         end,
         function()
             self:onMercenaryRecruitmentPanelClosed()
@@ -166,7 +166,7 @@ function TotoWarCbacPlayerManager:addListeners()
                 TotoWarCbac.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and context.string == TotoWar.enums.uiPanels.mercenaryRecruitment
-                and self.selectedGeneralArmySuppliesCost
+                and self.selectedGeneralArmySuppliesCost ~= nil
         end,
         function()
             self:onMercenaryRecruitmentPanelOpened()
@@ -266,7 +266,7 @@ function TotoWarCbacPlayerManager:addListeners()
             -- clicked on the mercenary panel recruitment button
                 TotoWarCbac.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
-                and self.selectedGeneralArmySuppliesCost
+                and self.selectedGeneralArmySuppliesCost ~= nil
         end,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)

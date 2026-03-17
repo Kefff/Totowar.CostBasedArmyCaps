@@ -28,11 +28,6 @@ function TotoWarCbacAiManager:addListeners()
         TotoWar.enums.uiEvents.unitTrained,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
-            -- return
-            --     TotoWarCbac.aiArmySuppliesEnabled
-            --     and not cm:is_local_players_turn()
-            --     and TotoWar.utils:canRecruitUnits(context:unit():military_force())
-
             -- TEST
             self.logger:logDebug(
                 "[TEST] FORCE TYPE => %s from %s | %s",
@@ -51,30 +46,13 @@ function TotoWarCbacAiManager:addListeners()
 
                     return "???"
                 end)
+            -- /TEST
 
-            if TotoWarCbac.aiArmySuppliesEnabled
+            return
+                TotoWarCbac.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
                 and context:unit():military_force()
-            then
-                local canRecruitUnits = TotoWar.utils:canRecruitUnits(context:unit():military_force())
-
-                self.logger:logDebug(
-                    "[TEST] CAN RECRUIT UNITS => %s from %s | %s",
-                    function()
-                        if context:unit():has_force_commander() then
-                            return TotoWar.utils:getCharacterCaption(context:unit():force_commander())
-                        end
-
-                        return "???"
-                    end,
-                    function() return TotoWar.utils:getFactionCaption(context:unit():faction():name()) end,
-                    function() return canRecruitUnits end)
-
-                return canRecruitUnits
-            end
-
-            return false
-            -- /TEST
+                and TotoWar.utils:canRecruitUnits(context:unit():military_force())
         end,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
@@ -366,16 +344,6 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
-    if not army:has_general() then
-        self.logger:logDebug(
-            "[EVENT] onAiUnitRecruited(%s from %s, %s): NOT EXECUTED",
-            function() return army:command_queue_index() end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
-
-        return
-    end
-
     local general = army:general_character()
 
     self.logger:logDebug(

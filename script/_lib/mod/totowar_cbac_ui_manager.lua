@@ -439,15 +439,10 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     local recruitmentPoolsToUpdate = {}
 
     for i, recruitmentPool in ipairs(recruitmentPools) do
-        local wasOpen = false
-
-        for j, lastOpenedRecruitmentPool in ipairs(self.lastOpenedRecruitmentPools) do
-            if recruitmentPool.name == lastOpenedRecruitmentPool then
-                wasOpen = true
-
-                break
-            end
-        end
+        local wasOpen = TotoWar.utils:tableAny(
+            self.lastOpenedRecruitmentPools,
+            ---@param lorp string
+            function(lorp) return lorp == recruitmentPool.name end)
 
         if not wasOpen then
             table.insert(recruitmentPoolsToUpdate, recruitmentPool)
@@ -630,6 +625,10 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     local unitName = unitContext:Call("Name")
     local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
+
+    if unitBaseCost == nil then
+        unitBaseCost = 0
+    end
 
     self.logger:logDebug(
         "updateRecruitableUnitCard(%s): STARTED => (%s, %s)",

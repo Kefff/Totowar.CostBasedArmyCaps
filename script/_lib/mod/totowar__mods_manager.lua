@@ -92,7 +92,7 @@ end
 
 ---Registers a TotoWar Mod.
 ---@param modName string Mods name.
----@param initializeFunction function Function for initializing the mod.
+---@param initializeFunction fun(modsManager: TotoWarModsManager): nil Function for initializing the mod.
 function TotoWarModsManager:registerMod(modName, initializeFunction)
     self.logger:logDebug(
         "registerMod(\"%s\"): STARTED",
