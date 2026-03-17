@@ -51,10 +51,8 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
         local unitGroup = TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
         table.insert(self.inRecruitmentMercenaryUnits, unitGroup)
     else
-        ---@type TotoWarCbacUnitArmySuppliesCost
         local unitGroup = TotoWar.utils:tableFirstOrDefault(
             self.unitGroups,
-            ---@param ug TotoWarCbacUnitArmySuppliesCost
             function(ug) return ug.unitKey == unitKey end)
 
         if unitGroup then

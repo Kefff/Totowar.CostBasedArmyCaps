@@ -243,8 +243,9 @@ function TotoWarUtils:isPlayerFactionGeneral(character)
 end
 
 ---Indicates whether a list contains an element that matches a predicate.
----@param list any[] List.
----@param predicate fun(item: any): boolean Predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
 function TotoWarUtils:tableAny(list, predicate)
     self.logger:logDebug("tableAny(%s): STARTED", function() return #list end)
@@ -260,9 +261,10 @@ function TotoWarUtils:tableAny(list, predicate)
 end
 
 ---Gets the first element of a table that matches a predicate, or nil if there are none.
----@param list any[] List.
----@param predicate fun(item: any): boolean Predicate.
----@return any
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return T
 function TotoWarUtils:tableFirstOrDefault(list, predicate)
     self.logger:logDebug("tableFirstOrDefault(%s): STARTED", function() return #list end)
 
@@ -283,9 +285,10 @@ function TotoWarUtils:tableFirstOrDefault(list, predicate)
 end
 
 ---Filters a list based on a predicate.
----@param list any[] List.
----@param predicate fun(item: any): boolean Predicate.
----@return any[]
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return T[]
 function TotoWarUtils:tableWhere(list, predicate)
     self.logger:logDebug("tableWhere(%s): STARTED", function() return #list end)
 

@@ -441,7 +441,6 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     for i, recruitmentPool in ipairs(recruitmentPools) do
         local wasOpen = TotoWar.utils:tableAny(
             self.lastOpenedRecruitmentPools,
-            ---@param lorp string
             function(lorp) return lorp == recruitmentPool.name end)
 
         if not wasOpen then
