@@ -12,7 +12,6 @@ local TotoWarLoggerSeverity = {
 ---@class TotoWarLogger
 TotoWarLogger = {
     ---Indicates whether the logger is enabled.
-    ---@type boolean
     isEnabled = true,
 
     ---Log file name.

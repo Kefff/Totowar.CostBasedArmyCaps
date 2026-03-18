@@ -2,7 +2,7 @@
 ---@class TotoWarModDefinition
 TotoWarModDefinition = {
     ---Function for initializing the mod.
-    ---@type fun(modsManager: TotoWarModsManager): nil
+    ---@type fun(modsManager: TotoWarModsManager)
     initializeFunction = nil,
 
     ---Instance of the mod.
@@ -17,7 +17,7 @@ TotoWarModDefinition.__index = TotoWarModDefinition
 
 ---Initializes a new instance.
 ---@param name string Name of the mod.
----@param initializationFunction fun(modsManager: TotoWarModsManager): nil Function for initializing the mod.
+---@param initializationFunction fun(modsManager: TotoWarModsManager) Function for initializing the mod.
 ---@return TotoWarModDefinition
 function TotoWarModDefinition.new(name, initializationFunction)
     TotoWar.genericLogger:logDebug(

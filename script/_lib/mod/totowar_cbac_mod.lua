@@ -2,15 +2,12 @@
 ---@class TotoWarCbacMod
 TotoWarCbacMod = {
     ---Total army supplies available in an army for the AI.
-    ---@type number
     aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
 
     ---Indicates whether army supplies restrictions are enabled for AI armies.
-    ---@type boolean
     aiArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled,
 
     ---Maximum number of units that can be discarded in order to make the recruitment of a new unit AI possible
-    ---@type number
     aiDisposableUnitsMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiDisposableUnitsMaximumAmount,
 
     ---Manager for AI army supplies.
@@ -41,11 +38,9 @@ TotoWarCbacMod = {
     logger = nil,
 
     ---Total army supplies available in an army for the player.
-    ---@type number
     playerArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount,
 
     ---Indicates whether army supplies restrictions are enabled for player armies.
-    ---@type boolean
     playerArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled,
 
     ---Manager for player army supplies.

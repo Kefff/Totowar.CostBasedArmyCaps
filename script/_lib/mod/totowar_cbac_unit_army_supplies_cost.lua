@@ -1,11 +1,9 @@
 ---@class TotoWarCbacUnitArmySuppliesCost
 TotoWarCbacUnitArmySuppliesCost = {
     ---Army supplies cost of all the units of this type.
-    ---@type number
     totalArmySuppliesCost = 0,
 
     ---Army supplies cost of one unit of this type.
-    ---@type number
     unitArmySuppliesCost = 0,
 
     ---Caption of the unit.
@@ -13,7 +11,6 @@ TotoWarCbacUnitArmySuppliesCost = {
     unitCaption = nil,
 
     ---Number of units of this type.
-    ---@type number
     unitCount = 0,
 
     ---Key of the unit.

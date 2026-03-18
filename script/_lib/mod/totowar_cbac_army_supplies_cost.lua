@@ -14,7 +14,7 @@ TotoWarCbacArmySuppliesCost = {
     unitGroups = nil,
 
     ---Total army supplies cost
-    ---@type number
+    ---@type integer
     totalCost = nil,
 }
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost

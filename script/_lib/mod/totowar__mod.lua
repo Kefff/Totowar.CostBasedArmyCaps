@@ -6,7 +6,6 @@ TotoWarMod = {
     genericLogger = nil,
 
     ---Indicates whether debug messages are logged.
-    ---@type boolean
     debugEnabled = TotoWar_OptionDefaultValue_DebugEnabled,
 
     ---Enums
@@ -48,15 +47,12 @@ TotoWarMod = {
         ---@class TotoWarUIUtils_Enums_UIComponentStates
         uiComponentStates = {
             ---Active.
-            ---@type string
             active = "active",
 
             ---Inactive.
-            ---@type string
             inactive = "inactive",
 
             ---Selected.
-            ---@type string
             selected = "selected"
         },
 
@@ -133,26 +129,21 @@ TotoWarMod = {
         uiPatterns = {
             ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
-            ---@type string
             inRecruitmentMercenaryUnitCard = "^temp_merc_",
 
             ---Pattern for identifying a UI component corresponding to the unit card of recruitable standard
             ---unit in the selected army recruitment queue.
-            ---@type string
             inRecruitmentStandardUnitCard = "^QueuedLandUnit",
 
             ---Pattern for identifying a UI component corresponding to the unit card of a mercenary
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
             ---queue.
-            ---@type string
             recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$",
 
             ---Pattern for identifying a UI component corresponding to the unit card of an agent during unit exchange.
-            ---@type string
             unitExchangeAgentCard = "^AgentCard",
 
             ---Pattern for identifying a UI component corresponding to a unit card during unit exchange.
-            ---@type string
             unitExchangeUnitCard = "^UnitCard"
         }
     },

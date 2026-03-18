@@ -1,7 +1,6 @@
 ---@class TotoWarCbacAiDisposableUnit
 TotoWarCbacAiDisposableUnit = {
     ---Army supplies cost of the unit.
-    ---@type number
     armySuppliesCost = 0,
 
     ---Unit key.
@@ -10,7 +9,6 @@ TotoWarCbacAiDisposableUnit = {
 
     ---Real cost for recruiting the unit.
     ---Used to reimburse the AI when removing a recruited unit that exceeds the army supplies cost available.
-    ---@type number
     realCost = 0
 }
 TotoWarCbacAiDisposableUnit.__index = TotoWarCbacAiDisposableUnit

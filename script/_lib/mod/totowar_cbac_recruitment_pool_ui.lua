@@ -2,8 +2,7 @@
 ---@class TotoWarCbacRecruitmentPoolUI
 TotoWarCbacRecruitmentPoolUI = {
     ---Indicates whether the recruitment pool UI component has been resized to be able to display army supplies cost under each unit price.
-    ---@type boolean
-    isResized = nil,
+    isResized = false,
 
     ---Name.
     ---@type string
@@ -18,7 +17,7 @@ TotoWarCbacRecruitmentPoolUI = {
     uiComponentQuery = nil,
 
     ---Function to call to updated the recruitment pool UI.
-    ---@type function
+    ---@type fun()
     updateUIFunction = nil,
 
     ---Update mode defining when the recruitment pool must be updated.
@@ -31,7 +30,7 @@ TotoWarCbacRecruitmentPoolUI.__index = TotoWarCbacRecruitmentPoolUI
 ---@param name string Name.
 ---@param panelName string Name of the panel in which the recruitment pool is displayed.
 ---@param uiComponentQuery string[] Query for finding the corresponding  UI component.
----@param updateUIFunction function Function to call to updated the recruitment pool UI.
+---@param updateUIFunction fun() Function to call to updated the recruitment pool UI.
 ---@return TotoWarCbacRecruitmentPoolUI
 function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, updateUIFunction)
     local instance = setmetatable({}, TotoWarCbacRecruitmentPoolUI)

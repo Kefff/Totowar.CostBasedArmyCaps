@@ -24,7 +24,7 @@ TotoWarEventContext_PanelOpenedOrClosed = {
 ---@class TotoWarEventContext_UnitAddedToRecruitment
 TotoWarEventContext_UnitAddedToRecruitment = {
     ---Number of turns to recruit.
-    ---@type number
+    ---@type integer
     time_to_build = nil,
 }
 ---Gets the faction.

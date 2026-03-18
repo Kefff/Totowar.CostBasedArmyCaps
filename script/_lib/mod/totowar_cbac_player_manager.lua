@@ -253,7 +253,6 @@ function TotoWarCbacPlayerManager:addListeners()
         end,
         ---@param context TotoWarEventContext_UnitRemovedFromRecruitment
         function(context)
-            ---@type string
             self:onUnitRemovedFromRecruitment(context:main_unit_record())
         end)
 

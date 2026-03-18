@@ -2,19 +2,15 @@
 local _alliedRecruitmentPoolUIComponentTargetHeight = 229
 
 ---Height of the UI components that displays army supplies and army supplies cost.
----@type number
 local _armySuppliesCostUIComponentHeight = 24
 
 ---Name of the UI component that displays army supplies.
----@type string
 local _armySuppliesUIComponentName = "totowar_cbac_army_supplies"
 
 ---ID of the depleted army supplies warning icon.
----@type string
 local _armySuppliesDepletedWarningIconId = "totowar_alert"
 
 ---Path of the army supplies icon.
----@type string
 local _armySuppliesIconPath = "ui/skins/default/merc.png"
 
 ---Height the global recruitment pool UI component should measure when displaying army supplies cost.
@@ -30,11 +26,9 @@ local _mercenaryRecruitmentPoolListBoxUIComponentTargetHeight = 208
 local _mercenaryRecruitmentPoolUIComponentTargetHeight = 272
 
 ---Template of the UI component that displays unit army supplies.
----@type string
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
 
 ---Y offset of the UI component that displays unit army supplies cost.
----@type number
 local _unitArmySuppliesCostUIComponentOffsetY = -18
 
 ---Manager in charge of displaying army supplies cost in the UI.
