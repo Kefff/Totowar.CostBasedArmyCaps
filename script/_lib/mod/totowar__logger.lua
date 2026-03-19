@@ -86,7 +86,7 @@ end
 ---@param message string Message to log.
 ---@param ... (fun(): boolean | integer | number | string) Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
-    if not TotoWar.debugEnabled then
+    if not TotoWar.options.debugEnabled then
         return
     end
 

@@ -49,7 +49,7 @@ function TotoWarCbacAiManager:addListeners()
             -- /TEST
 
             return
-                TotoWarCbac.aiArmySuppliesEnabled
+                TotoWarCbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
                 and context:unit():military_force()
                 and TotoWar.utils:canRecruitUnits(context:unit():military_force())
@@ -259,7 +259,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
         local totalArmySuppliesCost = 0
         local currentIndex = 0
 
-        for j = 0, TotoWarCbac.aiDisposableUnitsMaximumAmount - 1, 1 do
+        for j = 0, TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount - 1, 1 do
             if totalArmySuppliesCost >= armySuppliesCostToDiscard then
                 break
             end
@@ -290,7 +290,7 @@ function TotoWarCbacAiManager:getUnitsToDiscardRecursive(
                 function() return unitToDiscard.realCost end)
 
             if armySuppliesCostToDiscard > 0
-                and #unitsToDiscard < TotoWarCbac.aiDisposableUnitsMaximumAmount
+                and #unitsToDiscard < TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount
                 and currentIndex > 1
             then
                 self:getUnitsToDiscardRecursive(
@@ -352,7 +352,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    local armySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.aiArmySuppliesAmount)
+    local armySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.options.aiArmySuppliesAmount)
     local units = army:unit_list()
 
     for i = 0, units:num_items() - 1, 1 do

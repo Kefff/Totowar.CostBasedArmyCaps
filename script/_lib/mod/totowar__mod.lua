@@ -5,9 +5,6 @@ TotoWarMod = {
     ---@type TotoWarLogger
     genericLogger = nil,
 
-    ---Indicates whether debug messages are logged.
-    debugEnabled = TotoWar_OptionDefaultValue_DebugEnabled,
-
     ---Enums
     ---@class TotoWar_Enums
     enums = {
@@ -152,6 +149,13 @@ TotoWarMod = {
     ---@type TotoWarModsManager
     modsManager = nil,
 
+    ---Options
+    ---@class TotoWar_Options
+    options = {
+        ---Indicates whether debug messages are logged.
+        debugEnabled = TotoWar_OptionDefaultValue_DebugEnabled,
+    },
+
     ---Utility tools for TotoWar mods.
     ---@type TotoWarUtils
     utils = nil,
@@ -217,7 +221,7 @@ function TotoWarMod:loadMctOptions()
     self.utils.logger.isEnabled = options
         :get_option_by_key(TotoWar_OptionName_UtilsLoggerEnabled)
         :get_finalized_setting()
-    self.debugEnabled = options
+    self.options.debugEnabled = options
         :get_option_by_key(TotoWar_OptionName_DebugEnabled)
         :get_finalized_setting()
 

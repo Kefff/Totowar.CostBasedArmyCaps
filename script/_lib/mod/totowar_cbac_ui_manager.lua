@@ -125,7 +125,7 @@ function TotoWarCbacUIManager:addListeners()
         ---@param context CharacterSelected
         function(context)
             return
-                TotoWarCbac.playerArmySuppliesEnabled
+                TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and not TotoWar.utils:isPlayerFaction(context:character():faction():name())
         end,
@@ -147,7 +147,7 @@ function TotoWarCbacUIManager:addListeners()
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             return
-                TotoWarCbac.playerArmySuppliesEnabled
+                TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and context.string == TotoWar.enums.uiPanels.recruitmentOptions
         end,
@@ -161,7 +161,7 @@ function TotoWarCbacUIManager:addListeners()
         ---@param context TotoWarEventContext_PanelOpenedOrClosed
         function(context)
             return
-                TotoWarCbac.playerArmySuppliesEnabled
+                TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and not TotoWarCbac.playerManager.isInitializingArmySuppliesCost
                 and self:isRecruitmentPanel(context.string)
@@ -176,7 +176,7 @@ function TotoWarCbacUIManager:addListeners()
         TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged,
         function()
             return
-                TotoWarCbac.playerArmySuppliesEnabled
+                TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
         end,
         function()
@@ -188,7 +188,7 @@ function TotoWarCbacUIManager:addListeners()
         TotoWarCbac.enums.events.unitExchangeArmySuppliesCostChanged,
         function()
             return
-                TotoWarCbac.playerArmySuppliesEnabled
+                TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
         end,
         function()
