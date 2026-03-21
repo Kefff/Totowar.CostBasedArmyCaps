@@ -8,8 +8,19 @@ TotoWarCbacMod = {
     ---Enums
     ---@class TotoWarCbac_Enums
     enums = {
+        ---Unit types composing an army.
+        ---@class TotoWarCbac_Enums_ArmyCompositionUnitTypes
+        armyCompositionUnitTypes = {
+            agent = "agent",
+            artillery = "artillery",
+            cavalryAndMonsters = "cavalryAndMonsters",
+            general = "general",
+            meleeInfantry = "meleeInfantry",
+            rangedInfantry = "rangedInfantry",
+        },
+
         ---Events.
-        ---@class TotoWarCbac_Enums_Event
+        ---@class TotoWarCbac_Enums_Events
         events = {
             ---Event triggered when options are updated.
             ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
@@ -21,12 +32,25 @@ TotoWarCbacMod = {
 
             ---Event triggered when the army supplies cost of army exchanging units changes.
             unitExchangeArmySuppliesCostChanged = "TotoWarCbac_UnitExchangeArmySuppliesCostChanged",
+        },
+
+        ---Recruitment pool names.
+        ---@class TotoWarCbac_Enums_UiRecruitmentPoolNames
+        uiRecruitmentPoolNames = {
+            allied = "allied",
+            global = "global",
+            local_ = "local", -- local is a reserved word
+            mercenary = "mercenary"
         }
     },
 
     ---Options
     ---@class TotoWarCbac_Options
     options = {
+        ---Maximum amount of agents in AI armies.
+        aiArmyAgentMaximumAmount =
+            TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount,
+
         ---Maximum percentage of artillery to target in AI armies.
         aiArmyArtilleryMaximumPercentage =
             TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage,
@@ -130,6 +154,9 @@ function TotoWarCbacMod:loadMctOptions()
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
 
+    self.aiArmyAgentMaximumAmount = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount)
+        :get_finalized_setting()
     self.aiArmyArtilleryMaximumPercentage = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage)
         :get_finalized_setting()

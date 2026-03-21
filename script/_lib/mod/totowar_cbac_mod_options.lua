@@ -1,6 +1,9 @@
 ---Name of the TotoWar Cost-Based Army Caps mod.
 TotoWar_Cbac_ModName = "totowar_cost_based_army_caps"
 
+---Name of the option for the maximum amount of agents in AI armies.
+TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount = 2
+
 ---Default value for the maximum percentage of artillery to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage = 20
 
@@ -39,9 +42,11 @@ TotoWar_Cbac_OptionDefaultValue_PlayerManagerLoggerEnabled = true
 ---Default value for the option that enables the UI manager logger.
 TotoWar_Cbac_OptionDefaultValue_UiManagerLoggerEnabled = true
 
+---Name of the option for the maximum amount of agents in AI armies.
+TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount = "totowar_cbac_aiArmyAgentMaximumAmount"
+
 ---Name of the option for the maximum percentage of artillery to target in AI armies.
-TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage =
-"totowar_cbac_aiArmyArtilleryMaximumPercentage"
+TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage = "totowar_cbac_aiArmyArtilleryMaximumPercentage"
 
 ---Name of the option for the maximum percentage of cavalry and monsters to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage =

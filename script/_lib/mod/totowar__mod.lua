@@ -41,7 +41,7 @@ TotoWarMod = {
         },
 
         ---UI component states.
-        ---@class TotoWarUIUtils_Enums_UIComponentStates
+        ---@class TotoWar_Enums_UIComponentStates
         uiComponentStates = {
             ---Active.
             active = "active",
@@ -68,7 +68,7 @@ TotoWarMod = {
         },
 
         ---UI events.
-        ---@class TotoWarUIUtils_Enums_Events
+        ---@class TotoWar_Enums_Events
         uiEvents = {
             ---Event triggered when a character is deselected.
             ---Is not triggered when a character is already selected and the player selects another character.
@@ -122,7 +122,7 @@ TotoWarMod = {
         },
 
         ---Patterns for finding UI elements.
-        ---@class TotoWarUIUtils_Enums_Patterns
+        ---@class TotoWar_Enums_Patterns
         uiPatterns = {
             ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
             ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).

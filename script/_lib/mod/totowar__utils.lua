@@ -169,12 +169,12 @@ function TotoWarUtils:isCharacter(unitKey)
         "isCharacter(%s): STARTED",
         function() return self:getUnitCaption(unitKey) end)
 
-    -- This is a bit of a hack but it's the only way I have found to tell if a unit is a character based on the unit key
-    local categoryParentIcon = common.get_context_value(
+    ---@type string
+    local unitGroup = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
-        "CategoryParentIcon()")
-    local isCharacter = categoryParentIcon == "commander" or categoryParentIcon == "hero"
+        "UiUnitGroupContext.ParentGroup.Key")
+    local isCharacter = unitGroup:find("commander") ~= nil or unitGroup:find("agent") ~= nil
 
     self.logger:logDebug(
         "isCharacter(%s): COMPLETED => %s",
@@ -240,6 +240,28 @@ function TotoWarUtils:isPlayerFactionGeneral(character)
         function() return isPlayerFactionGeneral end)
 
     return isPlayerFactionGeneral
+end
+
+---Rounds a number to the nearest integer.
+---@param number_ number Number.
+---@return integer
+function TotoWarUtils:roundToNearestInteger(number_)
+    self.logger:logDebug("roundToNearestInteger(%s): STARTED", function() return number_ end)
+
+    local result = 0
+
+    if number_ >= 0 then
+        result = math.floor(number_ + 0.5)
+    else
+        result = math.ceil(number_ - 0.5)
+    end
+
+    self.logger:logDebug("roundToNearestInteger(%s): COMPLETED => %s",
+        function() return number_ end,
+        function() return result end
+    )
+
+    return result
 end
 
 ---Indicates whether a list contains an element that matches a predicate.

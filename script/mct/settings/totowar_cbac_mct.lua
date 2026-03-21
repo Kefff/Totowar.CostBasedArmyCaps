@@ -80,57 +80,70 @@ if mct then
     aiArmySuppliesAmountOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_aiArmySupplies")
     cbacAiSection:assign_option(aiArmySuppliesAmountOption)
 
-    local aiArmyMeleeInfantryMaximumPercentage = totoWarMod:add_new_option(
+    local aiArmyAgentMaximumAmountOption = totoWarMod:add_new_option(
+        TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount,
+        "slider")
+    aiArmyAgentMaximumAmountOption:slider_set_min_max(0, 20)
+    aiArmyAgentMaximumAmountOption:slider_set_step_size(1)
+    aiArmyAgentMaximumAmountOption:set_default_value(
+        TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount)
+    aiArmyAgentMaximumAmountOption:set_text(
+        "totowar_cbac_mct_option_caption_aiArmyAgentMaximumAmount")
+    aiArmyAgentMaximumAmountOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_aiArmyAgentMaximumAmount")
+    cbacAiSection:assign_option(aiArmyAgentMaximumAmountOption)
+
+    local aiArmyMeleeInfantryMaximumPercentageOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage,
         "slider")
-    aiArmyMeleeInfantryMaximumPercentage:slider_set_min_max(0, 100)
-    aiArmyMeleeInfantryMaximumPercentage:slider_set_step_size(10)
-    aiArmyMeleeInfantryMaximumPercentage:set_default_value(
+    aiArmyMeleeInfantryMaximumPercentageOption:slider_set_min_max(0, 100)
+    aiArmyMeleeInfantryMaximumPercentageOption:slider_set_step_size(1)
+    aiArmyMeleeInfantryMaximumPercentageOption:set_default_value(
         TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage)
-    aiArmyMeleeInfantryMaximumPercentage:set_text(
+    aiArmyMeleeInfantryMaximumPercentageOption:set_text(
         "totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage")
-    aiArmyMeleeInfantryMaximumPercentage:set_tooltip_text(
+    aiArmyMeleeInfantryMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyMeleeInfantryMaximumPercentage")
-    cbacAiSection:assign_option(aiArmyMeleeInfantryMaximumPercentage)
+    cbacAiSection:assign_option(aiArmyMeleeInfantryMaximumPercentageOption)
 
-    local aiArmyRangedInfantryMaximumPercentage = totoWarMod:add_new_option(
+    local aiArmyRangedInfantryMaximumPercentageOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyRangedInfantryMaximumPercentage,
         "slider")
-    aiArmyRangedInfantryMaximumPercentage:slider_set_min_max(0, 100)
-    aiArmyRangedInfantryMaximumPercentage:slider_set_step_size(10)
-    aiArmyRangedInfantryMaximumPercentage:set_default_value(
+    aiArmyRangedInfantryMaximumPercentageOption:slider_set_min_max(0, 100)
+    aiArmyRangedInfantryMaximumPercentageOption:slider_set_step_size(1)
+    aiArmyRangedInfantryMaximumPercentageOption:set_default_value(
         TotoWar_Cbac_OptionDefaultValue_AiArmyRangedInfantryMaximumPercentage)
-    aiArmyRangedInfantryMaximumPercentage:set_text(
+    aiArmyRangedInfantryMaximumPercentageOption:set_text(
         "totowar_cbac_mct_option_caption_aiArmyRangedInfantryMaximumPercentage")
-    aiArmyRangedInfantryMaximumPercentage:set_tooltip_text(
+    aiArmyRangedInfantryMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyRangedInfantryMaximumPercentage")
-    cbacAiSection:assign_option(aiArmyRangedInfantryMaximumPercentage)
+    cbacAiSection:assign_option(aiArmyRangedInfantryMaximumPercentageOption)
 
-    local aiArmyCavalryAndMonstersMaximumPercentage = totoWarMod:add_new_option(
+    local aiArmyCavalryAndMonstersMaximumPercentageOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage,
         "slider")
-    aiArmyCavalryAndMonstersMaximumPercentage:slider_set_min_max(0, 100)
-    aiArmyCavalryAndMonstersMaximumPercentage:slider_set_step_size(10)
-    aiArmyCavalryAndMonstersMaximumPercentage:set_default_value(
+    aiArmyCavalryAndMonstersMaximumPercentageOption:slider_set_min_max(0, 100)
+    aiArmyCavalryAndMonstersMaximumPercentageOption:slider_set_step_size(1)
+    aiArmyCavalryAndMonstersMaximumPercentageOption:set_default_value(
         TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage)
-    aiArmyCavalryAndMonstersMaximumPercentage:set_text(
+    aiArmyCavalryAndMonstersMaximumPercentageOption:set_text(
         "totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage")
-    aiArmyCavalryAndMonstersMaximumPercentage:set_tooltip_text(
+    aiArmyCavalryAndMonstersMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyCavalryAndMonstersMaximumPercentage")
-    cbacAiSection:assign_option(aiArmyCavalryAndMonstersMaximumPercentage)
+    cbacAiSection:assign_option(aiArmyCavalryAndMonstersMaximumPercentageOption)
 
-    local aiArmyArtilleryMaximumPercentage = totoWarMod:add_new_option(
+    local aiArmyArtilleryMaximumPercentageOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage,
         "slider")
-    aiArmyArtilleryMaximumPercentage:slider_set_min_max(0, 100)
-    aiArmyArtilleryMaximumPercentage:slider_set_step_size(10)
-    aiArmyArtilleryMaximumPercentage:set_default_value(
+    aiArmyArtilleryMaximumPercentageOption:slider_set_min_max(0, 100)
+    aiArmyArtilleryMaximumPercentageOption:slider_set_step_size(1)
+    aiArmyArtilleryMaximumPercentageOption:set_default_value(
         TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage)
-    aiArmyArtilleryMaximumPercentage:set_text(
+    aiArmyArtilleryMaximumPercentageOption:set_text(
         "totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage")
-    aiArmyArtilleryMaximumPercentage:set_tooltip_text(
+    aiArmyArtilleryMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyArtilleryMaximumPercentage")
-    cbacAiSection:assign_option(aiArmyArtilleryMaximumPercentage)
+    cbacAiSection:assign_option(aiArmyArtilleryMaximumPercentageOption)
 
     local aiDisposableUnitsMaximumAmountOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount,

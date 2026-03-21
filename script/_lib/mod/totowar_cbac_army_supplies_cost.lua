@@ -9,13 +9,13 @@ TotoWarCbacArmySuppliesCost = {
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     inRecruitmentMercenaryUnits = nil,
 
-    ---Army supplies cost of each unit type present in the army.
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
-    unitGroups = nil,
-
     ---Total army supplies cost
     ---@type integer
     totalCost = nil,
+
+    ---Army supplies cost of each unit type present in the army.
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    unitGroups = nil,
 }
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
@@ -86,6 +86,101 @@ function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): COMPLETED")
 end
 
+---Gets the unit army composition type based on the category of a unit.
+---@param unitKey string Unit key.
+---@return string
+function TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
+        function() return unitKey end)
+
+    local unitGroup = common.get_context_value("CcoMainUnitRecord", unitKey, "UiUnitGroupContext.ParentGroup.Key")
+    local armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+
+    if unitGroup:find('commander') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
+    elseif unitGroup:find('agent') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    elseif unitGroup:find('artillery') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+    elseif unitGroup:find('infantry') then
+        if unitGroup:find('missile') then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+        else
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+        end
+    end
+
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(%s): COMPLETED => %s",
+        function() return unitKey end,
+        function() return armyCompositionUnitType end)
+
+    return armyCompositionUnitType
+end
+
+---Gets the list of unit army supplies costs as a tooltip string.
+---@return { [string]: number }
+function TotoWarCbacArmySuppliesCost:getUnitCategoryProportions()
+    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryProportions(): STARTED")
+
+    local totalUnitCount = 0
+
+    ---@type { [string]: integer }
+    local unitCountPerCategory = {}
+
+    ---@type { [string]: number }
+    local unitCategoryProportions = {}
+
+    for key, armyCompositionUnitType in pairs(TotoWarCbac.enums.armyCompositionUnitTypes) do
+        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
+            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        then
+            -- The general and agents are not taken into consideration in the proportion
+            unitCountPerCategory[armyCompositionUnitType] = 0
+            unitCategoryProportions[armyCompositionUnitType] = 0
+        end
+    end
+
+    for index, unitGroup in ipairs(self.unitGroups) do
+        local armyCompositionUnitType = self:getUnitArmyCompositionUnitType(unitGroup.unitKey)
+
+        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
+            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        then
+            -- The general and agents are not taken into consideration in the proportion
+            unitCountPerCategory[armyCompositionUnitType] =
+                unitCountPerCategory[armyCompositionUnitType] + unitGroup.unitCount
+            totalUnitCount = totalUnitCount + unitGroup.unitCount
+        end
+    end
+
+    for index, mercenaryUnit in ipairs(self.inRecruitmentMercenaryUnits) do
+        ---@type string
+        local armyCompositionUnitType = self:getUnitArmyCompositionUnitType(mercenaryUnit.unitKey)
+        unitCountPerCategory[armyCompositionUnitType] = unitCountPerCategory[armyCompositionUnitType] + 1
+        totalUnitCount = totalUnitCount + 1
+    end
+
+    for key, value in pairs(unitCountPerCategory) do
+        unitCategoryProportions[key] = TotoWar.utils:roundToNearestInteger(value / totalUnitCount * 100)
+    end
+
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:getUnitCategoryProportions(): COMPLETED => %s",
+        function()
+            local unitCategoryProportionsString = ''
+
+            for key, value in pairs(unitCategoryProportions) do
+                unitCategoryProportionsString = string.format("%s| %s: %s%% ", unitCategoryProportionsString, key, value)
+            end
+
+            return unitCategoryProportionsString
+        end)
+
+    return unitCategoryProportions
+end
+
 ---Removes a unit from the army supplies cost.
 ---
 ---When removing a mercenary unit, returns the key of the removed unit.
@@ -108,7 +203,6 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
         -- Position starts at 0 in the recruitment queue, but LUA table indexes start at 1
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
-
         local unitGroup = self.inRecruitmentMercenaryUnits[index]
         self.totalCost = self.totalCost - unitGroup.unitArmySuppliesCost
         self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
