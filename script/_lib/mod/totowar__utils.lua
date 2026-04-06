@@ -151,7 +151,7 @@ function TotoWarUtils:getUnitCaption(unitKey)
         "getUnitCaption(%s): STARTED",
         function() return unitKey end)
 
-    local caption = common.get_context_value("CcoMainUnitRecord", unitKey, "Name")
+    local caption = common.get_context_value(TotoWar.enums.ccoContextTypeIds.mainUnitRecord, unitKey, "Name")
 
     self.logger:logDebug(
         "getUnitCaption(%s): COMPLETED => %s",
@@ -161,12 +161,12 @@ function TotoWarUtils:getUnitCaption(unitKey)
     return caption
 end
 
----Indicates whether a unit is a character.
+---Indicates whether a unit is an agent.
 ---@param unitKey string Unit key.
 ---@return boolean
-function TotoWarUtils:isCharacter(unitKey)
+function TotoWarUtils:isAgentUnit(unitKey)
     self.logger:logDebug(
-        "isCharacter(%s): STARTED",
+        "isAgent(%s): STARTED",
         function() return self:getUnitCaption(unitKey) end)
 
     ---@type string
@@ -174,7 +174,25 @@ function TotoWarUtils:isCharacter(unitKey)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UiUnitGroupContext.ParentGroup.Key")
-    local isCharacter = unitGroup:find("commander") ~= nil or unitGroup:find("agent") ~= nil
+    local isAgent = unitGroup:find("agent") ~= nil
+
+    self.logger:logDebug(
+        "isAgent(%s): COMPLETED => %s",
+        function() return self:getUnitCaption(unitKey) end,
+        function() return isAgent end)
+
+    return isAgent
+end
+
+---Indicates whether a unit is a character.
+---@param unitKey string Unit key.
+---@return boolean
+function TotoWarUtils:isCharacterUnit(unitKey)
+    self.logger:logDebug(
+        "isCharacter(%s): STARTED",
+        function() return self:getUnitCaption(unitKey) end)
+
+    local isCharacter = self:isGeneralUnit(unitKey) or self:isAgentUnit(unitKey)
 
     self.logger:logDebug(
         "isCharacter(%s): COMPLETED => %s",
@@ -184,10 +202,10 @@ function TotoWarUtils:isCharacter(unitKey)
     return isCharacter
 end
 
----Indicates whether a character is general.
+---Indicates whether a character is a general.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
-function TotoWarUtils:isGeneral(character)
+function TotoWarUtils:isGeneralCharacter(character)
     self.logger:logDebug(
         "isGeneral(%s): STARTED",
         function() return self:getCharacterCaption(character) end)
@@ -202,6 +220,29 @@ function TotoWarUtils:isGeneral(character)
         function() return isPlayerFactionGeneral end)
 
     return isPlayerFactionGeneral
+end
+
+---Indicates whether a unit is a general.
+---@param unitKey string Unit key.
+---@return boolean
+function TotoWarUtils:isGeneralUnit(unitKey)
+    self.logger:logDebug(
+        "isGeneral(%s): STARTED",
+        function() return self:getUnitCaption(unitKey) end)
+
+    ---@type string
+    local unitGroup = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UiUnitGroupContext.ParentGroup.Key")
+    local isGeneral = unitGroup:find("commander") ~= nil
+
+    self.logger:logDebug(
+        "isGeneral(%s): COMPLETED => %s",
+        function() return self:getUnitCaption(unitKey) end,
+        function() return isGeneral end)
+
+    return isGeneral
 end
 
 ---Indicates whether a faction is the faction of the player.
@@ -222,24 +263,146 @@ function TotoWarUtils:isPlayerFaction(factionName)
     return isPlayerFactionGeneral
 end
 
----Indicates whether a character is general that belongs to the faction of the player.
----@param character CHARACTER_SCRIPT_INTERFACE Character.
+---Indicates whether a list contains an element that matches a predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
-function TotoWarUtils:isPlayerFactionGeneral(character)
-    self.logger:logDebug(
-        "isPlayerFactionGeneral(%s): STARTED",
-        function() return character:character_subtype_key() end)
+function TotoWarUtils:linqAny(list, predicate)
+    self.logger:logDebug("linqAny(%s): STARTED", function() return #list end)
 
-    local isPlayerFactionGeneral =
-        self:isGeneral(character)
-        and self:isPlayerFaction(character:faction():name())
+    local exists = self:linqFirstOrDefault(list, predicate) ~= nil
 
     self.logger:logDebug(
-        "TotoWarUtils:isPlayerFactionGeneral(%s): COMPLETED => %s",
-        function() return character:character_subtype_key() end,
-        function() return isPlayerFactionGeneral end)
+        "linqAny(%s) => %s",
+        function() return #list end,
+        function() return exists end)
 
-    return isPlayerFactionGeneral
+    return exists
+end
+
+---Gets the first element of a list that matches a predicate, or nil if there are none.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return T
+function TotoWarUtils:linqFirstOrDefault(list, predicate)
+    self.logger:logDebug("linqFirstOrDefault(%s): STARTED", function() return #list end)
+
+    for index, item in ipairs(list) do
+        local predicateResult = predicate(item)
+
+        if predicateResult then
+            self.logger:logDebug("linqFirstOrDefault(%s): COMPLETED", function() return #list end)
+
+            return item
+        end
+    end
+
+    self.logger:logDebug("linqFirstOrDefault(%s): NOT FOUND", function() return #list end)
+
+    return nil
+end
+
+---Groups elements of a list based on a predicate used as a group key.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): string Predicate.
+---@return { [string]: T[] }
+function TotoWarUtils:linqGroupBy(list, predicate)
+    self.logger:logDebug("linqGroupBy(%s): STARTED", function() return #list end)
+
+    ---@type { [string]: `T`[] }
+    local groups = {}
+
+    for index, item in ipairs(list) do
+        local key = predicate(item)
+
+        if groups[key] == nil then
+            groups[key] = { item }
+        else
+            table.insert(groups[key], item)
+        end
+    end
+
+    self.logger:logDebug("linqGroupBy(%s): NOT FOUND", function() return #list end)
+
+    return groups
+end
+
+---Gets the last element of a list that matches a predicate, or nil if there are none.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return T
+function TotoWarUtils:linqLastOrDefault(list, predicate)
+    self.logger:logDebug("linqLastOrDefault(%s): STARTED", function() return #list end)
+
+    for i = #list, 1, -1 do
+        local item = list[i]
+        local predicateResult = predicate(item)
+
+        if predicateResult then
+            self.logger:logDebug("linqLastOrDefault(%s): COMPLETED", function() return #list end)
+
+            return item
+        end
+    end
+
+    self.logger:logDebug("linqLastOrDefault(%s): NOT FOUND", function() return #list end)
+
+    return nil
+end
+
+---Sums for each element of a list the value coresponding a predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): number Predicate.
+---@return number
+function TotoWarUtils:linqSum(list, predicate)
+    self.logger:logDebug("linqSum(%s): STARTED", function() return #list end)
+
+    ---@type number
+    local result = 0
+
+    for index, item in ipairs(list) do
+        result = result + predicate(item)
+    end
+
+    self.logger:logDebug(
+        "linqSum(%s): COMPLETED => %s",
+        function() return #list end,
+        function() return result end
+    )
+
+    return result
+end
+
+---Filters a list based on a predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return T[]
+function TotoWarUtils:linqWhere(list, predicate)
+    self.logger:logDebug("linqWhere(%s): STARTED", function() return #list end)
+
+    local filteredTable = {}
+
+    for index, item in ipairs(list) do
+        local predicateResult = predicate(item)
+
+        if predicateResult then
+            table.insert(filteredTable, item)
+        end
+    end
+
+    self.logger:logDebug(
+        "linqWhere(%s): COMPLETED => %s",
+        function() return #list end,
+        function() return #filteredTable end
+    )
+
+    return filteredTable
 end
 
 ---Rounds a number to the nearest integer.
@@ -262,73 +425,4 @@ function TotoWarUtils:roundToNearestInteger(number_)
     )
 
     return result
-end
-
----Indicates whether a list contains an element that matches a predicate.
----@generic T
----@param list T[] List.
----@param predicate fun(item: T): boolean Predicate.
----@return boolean
-function TotoWarUtils:tableAny(list, predicate)
-    self.logger:logDebug("tableAny(%s): STARTED", function() return #list end)
-
-    local exists = self:tableFirstOrDefault(list, predicate) ~= nil
-
-    self.logger:logDebug(
-        "tableAny(%s) => %s",
-        function() return #list end,
-        function() return exists end)
-
-    return exists
-end
-
----Gets the first element of a table that matches a predicate, or nil if there are none.
----@generic T
----@param list T[] List.
----@param predicate fun(item: T): boolean Predicate.
----@return T
-function TotoWarUtils:tableFirstOrDefault(list, predicate)
-    self.logger:logDebug("tableFirstOrDefault(%s): STARTED", function() return #list end)
-
-    for index, value in ipairs(list) do
-        local predicateResult = predicate(value)
-
-        if predicateResult then
-            self.logger:logDebug("tableFirstOrDefault(%s): COMPLETED", function() return #list end)
-
-            return value
-        end
-    end
-
-
-    self.logger:logDebug("tableFirstOrDefault(%s): NOT FOUND", function() return #list end)
-
-    return nil
-end
-
----Filters a list based on a predicate.
----@generic T
----@param list T[] List.
----@param predicate fun(item: T): boolean Predicate.
----@return T[]
-function TotoWarUtils:tableWhere(list, predicate)
-    self.logger:logDebug("tableWhere(%s): STARTED", function() return #list end)
-
-    local filteredTable = {}
-
-    for index, value in ipairs(list) do
-        local predicateResult = predicate(value)
-
-        if predicateResult then
-            table.insert(filteredTable)
-        end
-    end
-
-    self.logger:logDebug(
-        "tableFirstOrDefault(%s): COMPLETED => %s",
-        function() return #list end,
-        function() return #filteredTable end
-    )
-
-    return filteredTable
 end

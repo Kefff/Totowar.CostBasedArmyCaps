@@ -269,7 +269,8 @@ function TotoWarCbacPlayerManager:addListeners()
         end,
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
-            self:onMercenaryUnitsRecruited(context:unit():unit_key())
+            local unit = context:unit()
+            self:onMercenaryUnitsRecruited(unit:unit_key())
         end)
 
     self.logger:logDebug("addListeners(): COMPLETED")
@@ -296,15 +297,9 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
         "initializeArmySuppliesCost(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(general) end)
 
-    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.options.playerArmySuppliesAmount)
-
-    -- Adding units from the general army
-    local units = general:military_force():unit_list()
-
-    for i = 0, units:num_items() - 1, 1 do
-        local unit = units:item_at(i)
-        self.selectedGeneralArmySuppliesCost:addUnit(unit:unit_key(), false)
-    end
+    self.selectedGeneralArmySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(
+        TotoWarCbac.options.playerArmySuppliesAmount,
+        general:military_force())
 
     -- Adding units being recruited in the general army
     local unitsUIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitsPanelUnits)
@@ -329,7 +324,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
 
         ---@type string
         local unitKey = unitContext:Call("Key")
-        self.selectedGeneralArmySuppliesCost:addUnit(unitKey, false)
+        self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
     end
 
     self.isInitializingArmySuppliesCost = false
@@ -364,7 +359,7 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
         function() return TotoWar.utils:getCharacterCaption(character) end,
         function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
 
-    if TotoWar.utils:isGeneral(character)
+    if TotoWar.utils:isGeneralCharacter(character)
         and (TotoWar.utils:isPlayerFaction(character:faction():name())
             or TotoWar.options.debugEnabled) -- In debug mode, we see the army supplies cost or other faction generals
     then
@@ -452,7 +447,7 @@ function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey)
         "[EVENT] onMercenaryUnitRecruited(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
-    self.selectedGeneralArmySuppliesCost:addUnit(unitKey, false)
+    self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
 
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged)
@@ -664,9 +659,9 @@ function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCost(
         local unitKey = unitContext:Call("Key")
 
         if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar.enums.uiComponentStates.selected) then
-            otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey, false)
+            otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
         else
-            unitExchangePoolArmySuppliesCost:addUnit(unitKey, false)
+            unitExchangePoolArmySuppliesCost:addUnit(unitKey)
         end
     end
 end

@@ -30,7 +30,8 @@ totowar_cbac_mct_section_title_ai	Cost-Based Army Caps - AI factions	false
 totowar_cbac_mct_section_title_logs	Cost-Based Army Caps - Logs	false
 totowar_cbac_mct_section_title_player	Cost-Based Army Caps - Player	false
 totowar_cbac_tooltip_armySuppliesCost	Army supplies||Amount of supplies the army can provide to sustain additional recruited units.|| ||Total army supplies: [[img:icon_merc]][[/img]]%s||Consumed by units: [[img:icon_merc]]%s||Available for recruitment: [[img:icon_merc]]%s%s||%s	true
-totowar_cbac_tooltip_armySuppliesCostDetails	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
-totowar_cbac_tooltip_armySuppliesCostDetailsMultiple	[[col:yellow]]%s[[/col]]: [[img:icon_merc]][[/img]]%s ([[col:alliance_ally]]%s[[/col]] x [[img:icon_merc]][[/img]]%s)	true
 totowar_cbac_tooltip_unit_armySuppliesCost	Army supplies||This unit consumes this amount of [[img:icon_merc]][[/img]]Army supplies.	true
 totowar_cbac_tooltip_unit_armySuppliesCostDepleted	Insufficient [[img:icon_merc]][[/img]]Army supplies to sustain all recruited units.||The army cannot march until a unit is dismissed or transferred to another army.	false
+totowar_cbac_tooltip_unit_armySuppliesCostOfAgent	[[col:alliance_ally]]%s[[/col]] - [[col:white]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral	[[col:yellow]]%s[[/col]] - [[col:white]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfUnit	[[col:white]]%s[[/col]]: [[img:icon_merc]][[/img]]%s	true

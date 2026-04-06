@@ -11,6 +11,10 @@ TotoWarMod = {
         ---Component context object type IDs.
         ---@class TotoWar_Enums_CcoContextTypeIds
         ccoContextTypeIds = {
+            ---Character. ID: character CQI.
+            campaignCharacter = "CcoCampaignCharacter",
+
+            ---Main unit record. ID: unit key.
             mainUnitRecord = "CcoMainUnitRecord"
         },
 

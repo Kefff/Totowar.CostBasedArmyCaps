@@ -1,67 +1,86 @@
 ---@class TotoWarCbacUnitArmySuppliesCost
 TotoWarCbacUnitArmySuppliesCost = {
-    ---Army supplies cost of all the units of this type.
-    totalArmySuppliesCost = 0,
+    ---Army supplies cost of the unit.
+    ---If the unit derives from a base unit (like mounted characters),
+    ---the cost is the cost of the base unit because we only take into account the base price of units.
+    armySuppliesCost = 0,
 
-    ---Army supplies cost of one unit of this type.
-    unitArmySuppliesCost = 0,
+    ---Key of the base unit this unit derives from (like mounted characters).
+    ---Used to identify agents of the same type but with different mounts.
+    baseUnitKey = nil,
 
-    ---Caption of the unit.
-    ---@type string
-    unitCaption = nil,
-
-    ---Number of units of this type.
-    unitCount = 0,
+    ---Command queue index of the unit if it is a character.
+    ---@type integer | nil
+    cqi = nil,
 
     ---Key of the unit.
     ---@type string
-    unitKey = nil,
+    unitKey = nil
 }
 TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 
----Initializes a new instance.
----@param unitKey string Unit key.
----@param unitArmySuppliesCost number Unit army supplies cost.
+---Initializes a new instance from a character.
+---@param cqi integer Command queue index of the character.
 ---@return TotoWarCbacUnitArmySuppliesCost
-function TotoWarCbacUnitArmySuppliesCost.new(unitKey, unitArmySuppliesCost)
+function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
+    local character = cm:get_character_by_cqi(cqi)
+
     TotoWar.genericLogger:logDebug(
-        "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): STARTED",
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
-        function() return unitArmySuppliesCost end)
+        "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(character) end)
+
+    local unitKey = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.campaignCharacter,
+        tostring(cqi),
+        "UnitContext.UnitRecordContext.Key")
 
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
-
-    instance.unitCaption = TotoWar.utils:getUnitCaption(unitKey)
-    instance.unitArmySuppliesCost = unitArmySuppliesCost
+    instance.armySuppliesCost = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnmountedUnitRecordContext.BaseCost")
+    instance.baseUnitKey = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnmountedUnitRecordContext.Key")
+    instance.cqi = cqi
     instance.unitKey = unitKey
-    instance:addUnit()
 
     TotoWar.genericLogger:logDebug(
-        "TotoWarCbacUnitArmySuppliesCost.new(%s, %s): COMPLETED",
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
-        function() return unitArmySuppliesCost end)
+        "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
+        function() return TotoWar.utils:getCharacterCaption(character) end,
+        function() return instance.baseUnitKey end,
+        function() return instance.armySuppliesCost end)
 
     return instance
 end
 
----Adds one unit.
-function TotoWarCbacUnitArmySuppliesCost:addUnit()
-    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): STARTED")
+---Initializes a new instance from a unit.
+---@param unitKey string Unit key.
+---@return TotoWarCbacUnitArmySuppliesCost
+function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): STARTED",
+        function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
-    self.totalArmySuppliesCost = self.totalArmySuppliesCost + self.unitArmySuppliesCost
-    self.unitCount = self.unitCount + 1
+    local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
+    instance.armySuppliesCost = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnmountedUnitRecordContext.BaseCost")
+    instance.baseUnitKey = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnmountedUnitRecordContext.Key")
+    instance.unitKey = unitKey
 
-    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.addUnit(): COMPLETED")
-end
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): COMPLETED => %s, %s",
+        function() return TotoWar.utils:getUnitCaption(unitKey) end,
+        function() return instance.baseUnitKey end,
+        function() return instance.armySuppliesCost end)
 
----Removes one unit.
-function TotoWarCbacUnitArmySuppliesCost:removeUnit()
-    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): STARTED")
-
-    self.totalArmySuppliesCost = self.totalArmySuppliesCost - self.unitArmySuppliesCost
-    self.unitCount = self.unitCount - 1
-
-    TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost.removeUnit(): COMPLETED")
+    return instance
 end
 
 ---Gets a unit army supplies cost as a tooltip string.
@@ -69,20 +88,30 @@ end
 function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
     TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: STARTED")
 
-    local tooltipText = ""
+    ---@type string
+    local tooltipText
 
-    if self.unitCount > 1 then
-        tooltipText = tooltipText .. string.format(
-            common.get_localised_string("totowar_cbac_tooltip_armySuppliesCostDetailsMultiple"),
-            self.unitCaption,
-            self.totalArmySuppliesCost,
-            self.unitCount,
-            self.unitArmySuppliesCost)
+    if self.cqi then
+        local character = cm:get_character_by_cqi(self.cqi)
+
+        if character:has_military_force() then
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral"),
+                TotoWar.utils:getCharacterCaption(character),
+                TotoWar.utils:getUnitCaption(self.unitKey),
+                self.armySuppliesCost)
+        else
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfAgent"),
+                TotoWar.utils:getCharacterCaption(character),
+                TotoWar.utils:getUnitCaption(self.unitKey),
+                self.armySuppliesCost)
+        end
     else
-        tooltipText = tooltipText .. string.format(
-            common.get_localised_string("totowar_cbac_tooltip_armySuppliesCostDetails"),
-            self.unitCaption,
-            self.unitArmySuppliesCost)
+        tooltipText = string.format(
+            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
+            TotoWar.utils:getUnitCaption(self.unitKey),
+            self.armySuppliesCost)
     end
 
     TotoWar.genericLogger:logDebug("TotoWarCbacUnitArmySuppliesCost:toTooltipText: COMPLETED")

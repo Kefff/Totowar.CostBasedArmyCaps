@@ -84,7 +84,7 @@ end
 
 ---Logs a debug message.
 ---@param message string Message to log.
----@param ... (fun(): boolean | integer | number | string) Functions for getting parameter values.
+---@param ... (fun(): boolean | integer | nil | number | string) Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
     if not TotoWar.options.debugEnabled then
         return
@@ -93,6 +93,12 @@ function TotoWarLogger:logDebug(message, ...)
     local parameters = {}
 
     for i, valueFunction in ipairs({ ... }) do
+        local value = valueFunction()
+
+        if value == nil then
+            value = "nil"
+        end
+
         parameters[i] = tostring(valueFunction())
     end
 

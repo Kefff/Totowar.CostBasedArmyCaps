@@ -429,7 +429,7 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     local recruitmentPoolsToUpdate = {}
 
     for i, recruitmentPool in ipairs(recruitmentPools) do
-        local wasOpen = TotoWar.utils:tableAny(
+        local wasOpen = TotoWar.utils:linqAny(
             self.lastOpenedRecruitmentPools,
             function(lorp) return lorp == recruitmentPool.name end)
 
@@ -613,11 +613,8 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord)
 
     local unitName = unitContext:Call("Name")
-    local unitBaseCost = tonumber(unitContext:Call("BaseCost"))
-
-    if unitBaseCost == nil then
-        unitBaseCost = 0
-    end
+    ---@type number
+    local unitBaseCost = unitContext:Call("UnmountedUnitRecordContext.BaseCost")
 
     self.logger:logDebug(
         "updateRecruitableUnitCard(%s): STARTED => (%s, %s)",
