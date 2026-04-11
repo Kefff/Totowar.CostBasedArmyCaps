@@ -53,7 +53,7 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(availableArmySupplies, army)
         local armyUnit = units:item_at(i)
 
         if not TotoWar.utils:isCharacterUnit(armyUnit:unit_key()) then
-            instance:addUnit(armyUnit:unit_key())
+            instance:addUnit(armyUnit:unit_key(), armyUnit:command_queue_index())
         end
     end
 
@@ -82,8 +82,9 @@ end
 
 ---Adds a unit to the army supplies cost.
 ---@param unitKey string Unit key.
+---@param cqi integer | nil Unit command queue index if we are able to get one.
 ---@param isInRecruitmentMercenary boolean | nil Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
-function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
+function TotoWarCbacArmySuppliesCost:addUnit(unitKey, cqi, isInRecruitmentMercenary)
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
     end
@@ -97,10 +98,10 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, isInRecruitmentMercenary)
     local unitArmySuppliesCost
 
     if isInRecruitmentMercenary then
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
+        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
         table.insert(self.inRecruitmentMercenaryUnits, unitArmySuppliesCost)
     else
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
+        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
         table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
     end
 
@@ -125,101 +126,68 @@ function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): COMPLETED")
 end
 
----Gets the unit army composition type based on the category of a unit.
----@param unitKey string Unit key.
----@return string
-function TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
-    TotoWar.genericLogger:logDebug(
-        "TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
-        function() return unitKey end)
-
-    local unitGroup = common.get_context_value(
-        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UiUnitGroupContext.ParentGroup.Key")
-    local armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
-
-    if unitGroup:find('commander') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
-    elseif unitGroup:find('agent') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
-    elseif unitGroup:find('artillery') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-    elseif unitGroup:find('infantry') then
-        if unitGroup:find('missile') then
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
-        else
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-        end
-    end
-
-    TotoWar.genericLogger:logDebug(
-        "TotoWarCbacArmySuppliesCost:getUnitArmyCompositionUnitType(%s): COMPLETED => %s",
-        function() return unitKey end,
-        function() return armyCompositionUnitType end)
-
-    return armyCompositionUnitType
-end
-
----Gets the list of unit army supplies costs as a tooltip string.
+---Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
+---
+---General and agents are not taken into account.
 ---@return { [string]: number }
-function TotoWarCbacArmySuppliesCost:getUnitCategoryProportions()
-    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryProportions(): STARTED")
+function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
+    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): STARTED")
 
     local totalUnitCount = 0
 
     ---@type { [string]: integer }
-    local unitCountPerCategory = {}
+    local categoryUnitCounts = {}
 
-    ---@type { [string]: number }
-    local unitCategoryProportions = {}
+    ---@type { [string]: integer }
+    local categoryUnitExcessCounts = {}
 
     for key, armyCompositionUnitType in pairs(TotoWarCbac.enums.armyCompositionUnitTypes) do
         if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
             and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
         then
             -- The general and agents are not taken into consideration in the proportion
-            unitCountPerCategory[armyCompositionUnitType] = 0
-            unitCategoryProportions[armyCompositionUnitType] = 0
+            categoryUnitCounts[armyCompositionUnitType] = 0
         end
     end
 
-    for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
-        local armyCompositionUnitType = self:getUnitArmyCompositionUnitType(unitArmySuppliesCost.unitKey)
-
-        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
-            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    for index, unit in ipairs(self.unitArmySuppliesCosts) do
+        if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
+            and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
         then
-            -- The general and agents are not taken into consideration in the proportion
-            unitCountPerCategory[armyCompositionUnitType] = unitCountPerCategory[armyCompositionUnitType] + 1
+            -- The general and agents are not taken into consideration in the proportion.
+            -- In recruitment mercenary units are ignored since they can only exist when the
+            -- player is in a mercenary recruitment panel
+            categoryUnitCounts[unit.unitCategory] = categoryUnitCounts[unit.unitCategory] + 1
             totalUnitCount = totalUnitCount + 1
         end
     end
 
-    for index, mercenaryUnit in ipairs(self.inRecruitmentMercenaryUnits) do
-        ---@type string
-        local armyCompositionUnitType = self:getUnitArmyCompositionUnitType(mercenaryUnit.unitKey)
-        unitCountPerCategory[armyCompositionUnitType] = unitCountPerCategory[armyCompositionUnitType] + 1
-        totalUnitCount = totalUnitCount + 1
-    end
+    for key, value in pairs(categoryUnitCounts) do
+        local proportion = value / totalUnitCount
 
-    for key, value in pairs(unitCountPerCategory) do
-        unitCategoryProportions[key] = TotoWar.utils:roundToNearestInteger(value / totalUnitCount * 100)
+        if proportion > TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key] then
+            categoryUnitExcessCounts[key] = TotoWar.utils:roundToNearestInteger(
+                totalUnitCount * (proportion - TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key]))
+        end
     end
 
     TotoWar.genericLogger:logDebug(
-        "TotoWarCbacArmySuppliesCost:getUnitCategoryProportions(): COMPLETED => %s",
+        "TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): COMPLETED => %s",
         function()
-            local unitCategoryProportionsString = ''
+            local message = ''
 
-            for key, value in pairs(unitCategoryProportions) do
-                unitCategoryProportionsString = string.format("%s| %s: %s%% ", unitCategoryProportionsString, key, value)
+            for key, value in pairs(categoryUnitExcessCounts) do
+                message = string.format("%s| %s: %s ", message, key, value)
             end
 
-            return unitCategoryProportionsString
+            if message == '' then
+                message = 'No excess'
+            end
+
+            return message
         end)
 
-    return unitCategoryProportions
+    return categoryUnitExcessCounts
 end
 
 ---Removes the character corresponding to a command queue index.

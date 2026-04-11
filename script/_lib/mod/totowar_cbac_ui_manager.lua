@@ -260,14 +260,9 @@ function TotoWarCbacUIManager:findOpenRecruitmentPools()
     local recruitmentPools = {}
 
     for key, recruitmentPool in pairs(self.recruitmentPools) do
-        ---@cast recruitmentPool TotoWarCbacRecruitmentPoolUI
-
         local uiComponent = TotoWar.ui:findUIComponent(recruitmentPool.uiComponentQuery)
 
-        if
-            uiComponent
-            and uiComponent:Visible(true)
-        then
+        if uiComponent and uiComponent:Visible(true) then
             table.insert(recruitmentPools, recruitmentPool)
         end
     end
@@ -365,8 +360,6 @@ function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
     local result = false
 
     for key, recruitmentPool in pairs(self.recruitmentPools) do
-        ---@cast recruitmentPool TotoWarCbacRecruitmentPoolUI
-
         if recruitmentPool.panelName == panelName then
             result = true
 

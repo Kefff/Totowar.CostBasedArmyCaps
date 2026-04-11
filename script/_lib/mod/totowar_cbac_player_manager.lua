@@ -270,7 +270,7 @@ function TotoWarCbacPlayerManager:addListeners()
         ---@param context TotoWarEventContext_UnitTrained
         function(context)
             local unit = context:unit()
-            self:onMercenaryUnitsRecruited(unit:unit_key())
+            self:onMercenaryUnitsRecruited(unit:unit_key(), unit:command_queue_index())
         end)
 
     self.logger:logDebug("addListeners(): COMPLETED")
@@ -442,12 +442,13 @@ end
 
 ---Reacts to a mercenary unit being recruited in the selected general army.
 ---@param unitKey string Unit key.
-function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey)
+---@param cqi integer Unit command queue index.
+function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey, cqi)
     self.logger:logDebug(
         "[EVENT] onMercenaryUnitRecruited(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
-    self.selectedGeneralArmySuppliesCost:addUnit(unitKey)
+    self.selectedGeneralArmySuppliesCost:addUnit(unitKey, cqi)
 
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged)
@@ -542,7 +543,7 @@ function TotoWarCbacPlayerManager:onUnitAddedToRecruitment(unitKey, isMercenary)
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return isMercenary end)
 
-    self.selectedGeneralArmySuppliesCost:addUnit(unitKey, isMercenary)
+    self.selectedGeneralArmySuppliesCost:addUnit(unitKey, nil, isMercenary)
 
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged)

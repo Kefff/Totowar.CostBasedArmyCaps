@@ -9,9 +9,13 @@ TotoWarCbacUnitArmySuppliesCost = {
     ---Used to identify agents of the same type but with different mounts.
     baseUnitKey = nil,
 
-    ---Command queue index of the unit if it is a character.
+    ---Command queue index of the unit or character if we are able to get one.
     ---@type integer | nil
     cqi = nil,
+
+    ---Category of the unit.
+    ---@type TotoWarCbac_Enums_ArmyCompositionUnitCategories
+    unitCategory = nil,
 
     ---Key of the unit.
     ---@type string
@@ -44,6 +48,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
         unitKey,
         "UnmountedUnitRecordContext.Key")
     instance.cqi = cqi
+    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
     instance.unitKey = unitKey
 
     TotoWar.genericLogger:logDebug(
@@ -57,8 +62,9 @@ end
 
 ---Initializes a new instance from a unit.
 ---@param unitKey string Unit key.
+---@param cqi integer | nil Command queue index of the unit (if we are able to get one).
 ---@return TotoWarCbacUnitArmySuppliesCost
-function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
+function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
     TotoWar.genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
@@ -72,6 +78,8 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
+    instance.cqi = cqi
+    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
     instance.unitKey = unitKey
 
     TotoWar.genericLogger:logDebug(
@@ -83,6 +91,43 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey)
     return instance
 end
 
+---Gets the unit army composition type based on the category of a unit.
+---@param unitKey string Unit key.
+---@return TotoWarCbac_Enums_ArmyCompositionUnitCategories
+function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
+        function() return unitKey end)
+
+    local unitGroup = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UiUnitGroupContext.ParentGroup.Key")
+    local armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+
+    if unitGroup:find('commander') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
+    elseif unitGroup:find('agent') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    elseif unitGroup:find('artillery') then
+        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+    elseif unitGroup:find('infantry') then
+        if unitGroup:find('missile') then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+        else
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+        end
+    end
+
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): COMPLETED => %s",
+        function() return unitKey end,
+        function() return armyCompositionUnitType end)
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return armyCompositionUnitType
+end
+
 ---Gets a unit army supplies cost as a tooltip string.
 ---@return string
 function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
@@ -91,7 +136,9 @@ function TotoWarCbacUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
     ---@type string
     local tooltipText
 
-    if self.cqi then
+    if self.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
+        or self.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    then
         local character = cm:get_character_by_cqi(self.cqi)
 
         if character:has_military_force() then
