@@ -39,29 +39,6 @@ function TotoWarCbacAiManager:addListeners()
             self:onAiUnitRecruited(context:unit():military_force(), context:unit())
         end)
 
-    -- TEST
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.uiEvents.unitDisbanded,
-        function()
-            return not cm:is_local_players_turn()
-        end,
-        ---@param context TotoWarEventContext_UnitDisbanded
-        function(context)
-            self.logger:logDebug(
-                "[TEST] AI UNIT DISBANDED => %s from %s | %s",
-                function()
-                    if context:unit():has_force_commander() then
-                        return TotoWar.utils:getCharacterCaption(context:unit():force_commander())
-                    end
-
-                    return "???"
-                end,
-                function() return TotoWar.utils:getFactionCaption(context:unit():faction():name()) end,
-                function() return TotoWar.utils:getUnitCaption(context:unit():unit_key()) end)
-        end)
-    -- /TEST
-
     self.logger:logDebug("addListeners(): COMPLETED")
 end
 
@@ -307,7 +284,12 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
 
     local disposableUnits = TotoWar.utils:linqWhere(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.armySuppliesCost < lastRecruitedUnitArmySuppliesCost.armySuppliesCost end)
+        function(uasc)
+            return
+                uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
+                and uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+                and uasc.armySuppliesCost < lastRecruitedUnitArmySuppliesCost.armySuppliesCost
+        end)
 
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     local finalSelectedUnits = {}
@@ -316,7 +298,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
     for i = 1, TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount, 1 do
         -- Iterating to find up to TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount units that can be discarded to cover armySuppliesCostToDiscard
         local startIndex = 0
-        local endIndex = startIndex + TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount
+        local endIndex = startIndex + TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount - 1
 
         if endIndex > #disposableUnits - 1 then
             endIndex = #disposableUnits - 1
@@ -357,6 +339,14 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         -- Further iterations are used to optimise the cost of the other units that must also be discarded to the reach remaining armySuppliesCostToDiscard.
         table.insert(finalSelectedUnits, selectedUnits[#selectedUnits])
         armySuppliesCostToDiscard = armySuppliesCostToDiscard - selectedUnits[#selectedUnits].armySuppliesCost
+
+        self.logger:logDebug(
+            "adjustAiArmyUnits(%s from %s, %s): UNIT TO DISCARD: %s (%s)",
+            function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+            function() return TotoWar.utils:getUnitCaption(selectedUnits[#selectedUnits].unitKey) end,
+            function() return selectedUnits[#selectedUnits].armySuppliesCost end)
 
         if armySuppliesCostToDiscard <= 0 then
             -- If armySuppliesCostToDiscard is less than or equal to 0 after adding the priciest unit of the combination to the list of units
