@@ -67,7 +67,7 @@ end
 
 ---Adjusts an AI army by removing excess agents and units when its cost exceeds army supplies.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@param lastRecruitedUnit UNIT_SCRIPT_INTERFACE Last unit recruited. We prioritize getting rid of units cheaper than this unit. Otherwise, we remove this unit.
+---@param lastRecruitedUnit UNIT_SCRIPT_INTERFACE Last unit recruited.
 function TotoWarCbacAiManager:adjustAiArmy(army, lastRecruitedUnit)
     local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(TotoWarCbac.options.aiArmySuppliesAmount, army)
 
@@ -93,25 +93,23 @@ function TotoWarCbacAiManager:adjustAiArmy(army, lastRecruitedUnit)
     -- Removing excess of agents
     self:adjustAiArmyAgents(army, armySuppliesCost)
 
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    local unitsToDiscard = {}
+
+    -- Adding to the list of units to remove the cheapest units of categories that have too many units
+    self:adjustAiArmyComposition(army, armySuppliesCost, unitsToDiscard)
+
+    -- Adding to the list of units to remove the cheapest units to pass under the maximum army supplies cost
+    self:adjustAiArmyUnits(army, armySuppliesCost, unitsToDiscard, lastRecruitedUnit)
+
     if armySuppliesCost.availableSupplies < 0 then
-        ---@type TotoWarCbacUnitArmySuppliesCost[]
-        local unitsToDiscard = {}
-
-        -- Adding to the list of units to remove the cheapest units of categories that have too many units
-        self:adjustAiArmyComposition(army, armySuppliesCost, unitsToDiscard)
-
-        if armySuppliesCost.availableSupplies < 0 then
-            -- Adding to the list of units to remove the cheapest units to pass under the maximum army supplies cost
-            self:adjustAiArmyUnits(army, armySuppliesCost, unitsToDiscard)
-        end
-
-        if armySuppliesCost.availableSupplies < 0 then
-            armySuppliesCost:removeUnit(lastRecruitedUnit:unit_key())
-            self:removeUnitFromAiArmy(army, lastRecruitedUnit:unit_key(), lastRecruitedUnit:command_queue_index())
-        else
-            for index, unitToDiscard in ipairs(unitsToDiscard) do
-                self:removeUnitFromAiArmy(army, unitToDiscard.unitKey, unitToDiscard.cqi)
-            end
+        -- Removing only the last recruited unit if we could not find other units to remove to stay within the army supplies limit
+        armySuppliesCost:removeUnit(lastRecruitedUnit:unit_key())
+        self:removeUnitFromAiArmy(army, lastRecruitedUnit:unit_key(), lastRecruitedUnit:command_queue_index())
+    else
+        -- Removing units flagged as discardable to stay within the army supplies limit
+        for index, unitToDiscard in ipairs(unitsToDiscard) do
+            self:removeUnitFromAiArmy(army, unitToDiscard.unitKey, unitToDiscard.cqi)
         end
     end
 
@@ -217,6 +215,10 @@ end
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
 ---@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List of units to discard. Updated if units are flagged as to be removed.
 function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, unitsToDiscard)
+    if armySuppliesCost.availableSupplies >= 0 then
+        return
+    end
+
     self.logger:logDebug(
         "adjustAiArmyComposition(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
@@ -273,15 +275,111 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
         function() return armySuppliesCost.availableSupplies end)
 end
 
+---Adjusts the units in an army to stay below the army supplies cost limit by removing units cheaper than the last recruited unit.
+---
+---Cheapest units are removed first.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if agents are removed.
+---@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List of units to discard. Updated if units are flagged as to be removed.
+---@param lastRecruitedUnit UNIT_SCRIPT_INTERFACE Last unit recruited.
+function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToDiscard, lastRecruitedUnit)
+    if armySuppliesCost.availableSupplies >= 0 then
+        return
+    end
+
+    self.logger:logDebug(
+        "adjustAiArmyUnits(%s from %s, %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+        function() return armySuppliesCost.totalCost end,
+        function() return armySuppliesCost.availableSupplies end)
+
+    local lastRecruitedUnitCost = TotoWar.utils:linqFirstOrDefault(
+            armySuppliesCost.unitArmySuppliesCosts,
+            function(uasc) return uasc.unitKey == lastRecruitedUnit:unit_key() end)
+        .armySuppliesCost
+    local disposableUnits = TotoWar.utils:linqWhere(
+        armySuppliesCost.unitArmySuppliesCosts,
+        function(uasc) return uasc.armySuppliesCost < lastRecruitedUnitCost end)
+
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    local finalSelectedUnits = {}
+    local armySuppliesCostToDiscard = -armySuppliesCost.availableSupplies
+
+    for i = 1, TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount, 1 do
+        -- Iterating to find up to TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount units that can be discarded to cover armySuppliesCostToDiscard
+        local startIndex = 0
+        local endIndex = startIndex + TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount
+
+        if endIndex > #disposableUnits - 1 then
+            endIndex = #disposableUnits - 1
+        end
+
+        ---@type TotoWarCbacUnitArmySuppliesCost[]
+        local selectedUnits = {}
+        local selectedUnitsArmySuppliesCost = 0
+
+        while endIndex < #disposableUnits and selectedUnitsArmySuppliesCost < armySuppliesCostToDiscard do
+            -- Iterating throught each combination of TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount units until we find the first
+            -- combination that covers the armySuppliesCostToDiscard (or we reach the last unit)
+            selectedUnits = {}
+            selectedUnitsArmySuppliesCost = 0
+
+            startIndex = startIndex + 1
+            endIndex = endIndex + 1
+
+            for j = startIndex, endIndex, 1 do
+                table.insert(selectedUnits, disposableUnits[j])
+                selectedUnitsArmySuppliesCost = selectedUnitsArmySuppliesCost + disposableUnits[j].armySuppliesCost
+
+                if selectedUnitsArmySuppliesCost >= armySuppliesCostToDiscard then
+                    break
+                end
+            end
+        end
+
+        if selectedUnitsArmySuppliesCost < armySuppliesCostToDiscard then
+            -- If we get here, it means that the combination of the TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount priciest
+            -- disposable units cannot cover the army supplies cost excess.
+            -- Therefore we can stop immediatly.
+            break
+        end
+
+        -- Adding the priciest unit of the combination to the list of units that will be discarded.
+        -- Since it is this unit that made it possible to reach the armySuppliesCostToDiscard, we know for sure that it must be discarded.
+        -- Further iterations are used to optimise the cost of the other units that must also be discarded to the reach remaining armySuppliesCostToDiscard.
+        table.insert(finalSelectedUnits, selectedUnits[#selectedUnits])
+        armySuppliesCostToDiscard = armySuppliesCostToDiscard - selectedUnits[#selectedUnits].armySuppliesCost
+
+        if armySuppliesCostToDiscard <= 0 then
+            -- If armySuppliesCostToDiscard is less than or equal to 0 after adding the priciest unit of the combination to the list of units
+            -- that will be discarded, there is no need to find further units to discard as the cost is covered by the last priciest unit.
+            break
+        end
+    end
+
+    for index, selectedUnit in ipairs(finalSelectedUnits) do
+        table.insert(unitsToDiscard, selectedUnit)
+        armySuppliesCost:removeUnit(selectedUnit.unitKey)
+    end
+
+    self.logger:logDebug(
+        "adjustAiArmyUnits(%s from %s, %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
+        function() return armySuppliesCost.totalCost end,
+        function() return armySuppliesCost.availableSupplies end)
+end
+
 ---Reacts to a unit being recruited by an AI army.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
-    local general = army:general_character()
-
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(general) end,
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
@@ -289,7 +387,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
 
     self.logger:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(general) end,
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 end
@@ -299,11 +397,9 @@ end
 ---@param unitKey string Key of the unit to remove.
 ---@param unitCqi integer Command queue index of the unit to remove.
 function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
-    local general = army:general_character()
-
     self.logger:logDebug(
         "[EVENT] removeUnitFromAiArmy(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(general) end,
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return unitCqi end)
@@ -314,11 +410,11 @@ function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
         cm:treasury_mod(army:faction():name(), army:faction():treasury() + unitRealCost)
     end
 
-    cm:remove_unit_from_character(cm:char_lookup_str(general), unitKey)
+    cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
 
     self.logger:logDebug(
         "[EVENT] removeUnitFromAiArmy(%s from %s, %s, %s): COMPLETED => Reimbursed: %s",
-        function() return TotoWar.utils:getCharacterCaption(general) end,
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return unitCqi end,

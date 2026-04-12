@@ -285,7 +285,7 @@ end
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
----@return T
+---@return T | nil
 function TotoWarUtils:linqFirstOrDefault(list, predicate)
     self.logger:logDebug("linqFirstOrDefault(%s): STARTED", function() return #list end)
 
