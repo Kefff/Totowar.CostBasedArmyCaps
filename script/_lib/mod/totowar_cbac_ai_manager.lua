@@ -287,6 +287,16 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         return
     end
 
+    local lastRecruitedUnitArmySuppliesCost = TotoWar.utils:linqFirstOrDefault(
+        armySuppliesCost.unitArmySuppliesCosts,
+        function(uasc) return uasc.unitKey == lastRecruitedUnit:unit_key() end)
+
+    if lastRecruitedUnitArmySuppliesCost == nil then
+        -- If we do not find the last recruited unit in armySuppliesCost.unitArmySuppliesCosts, it means that it has already
+        -- been added to the units to discard in adjustAiArmyComposition because it made a unit category exceed its limit
+        return
+    end
+
     self.logger:logDebug(
         "adjustAiArmyUnits(%s from %s, %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
@@ -295,13 +305,9 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
 
-    local lastRecruitedUnitCost = TotoWar.utils:linqFirstOrDefault(
-            armySuppliesCost.unitArmySuppliesCosts,
-            function(uasc) return uasc.unitKey == lastRecruitedUnit:unit_key() end)
-        .armySuppliesCost
     local disposableUnits = TotoWar.utils:linqWhere(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.armySuppliesCost < lastRecruitedUnitCost end)
+        function(uasc) return uasc.armySuppliesCost < lastRecruitedUnitArmySuppliesCost.armySuppliesCost end)
 
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     local finalSelectedUnits = {}
