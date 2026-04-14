@@ -21,16 +21,6 @@ if mct then
     playerArmySuppliesEnabledOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled)
     playerArmySuppliesEnabledOption:set_text("totowar_cbac_mct_option_caption_playerArmySuppliesEnabled")
     playerArmySuppliesEnabledOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_playerArmySuppliesEnabled")
-    playerArmySuppliesEnabledOption:add_option_set_callback(
-        function(context)
-            ---@type boolean
-            local isEnabled = context:setting()
-            local mod = context:option():get_mod()
-
-            local paso = mod:get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
-            paso:set_uic_visibility(isEnabled)
-        end,
-        true)
     cbacPlayerSection:assign_option(playerArmySuppliesEnabledOption)
 
     local playerArmySuppliesOption = totoWarMod:add_new_option(
@@ -55,19 +45,6 @@ if mct then
     aiArmySuppliesEnabledOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled)
     aiArmySuppliesEnabledOption:set_text("totowar_cbac_mct_option_caption_aiArmySuppliesEnabled")
     aiArmySuppliesEnabledOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_aiArmySuppliesEnabled")
-    aiArmySuppliesEnabledOption:add_option_set_callback(
-        function(context)
-            ---@type boolean
-            local isEnabled = context:setting()
-            local mod = context:option():get_mod()
-
-            local aiasao = mod:get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
-            aiasao:set_uic_visibility(isEnabled)
-
-            local aidumao = mod:get_option_by_key(TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount)
-            aidumao:set_uic_visibility(isEnabled)
-        end,
-        true)
     cbacAiSection:assign_option(aiArmySuppliesEnabledOption)
 
     local aiArmySuppliesAmountOption = totoWarMod:add_new_option(
