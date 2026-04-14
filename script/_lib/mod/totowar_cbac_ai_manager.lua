@@ -107,9 +107,7 @@ end
 function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
     local agents = TotoWar.utils:linqWhere(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(unit)
-            return TotoWar.utils:isAgentUnit(unit.unitKey)
-        end)
+        function(unit) return TotoWar.utils:isAgentUnit(unit.cqi) end)
     local agentsToRemoveAmount = #agents - TotoWarCbac.options.aiArmyAgentMaximumAmount
 
     if agentsToRemoveAmount <= 0 then
@@ -163,18 +161,17 @@ function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
             ---@diagnostic disable-next-line: param-type-mismatch
             agentTargetPositionY)
 
-        self.logger:logDebug(
-            "adjustAiArmyAgents(%s from %s): REMOVED => %s (%s) | Total army supplies cost: %s | Available army supplies: %s",
-            function() return TotoWar.utils:getCharacterCaption(general) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(agentToRemove.cqi)) end,
-            function() return TotoWar.utils:getUnitCaption(agentToRemove.unitKey) end,
-            function() return armySuppliesCost.totalCost end,
-            function() return armySuppliesCost.availableSupplies end)
-
-
         armySuppliesCost:removeCharacter(agentToRemove.cqi)
         agentsToRemoveAmount = agentsToRemoveAmount - 1
+
+        -- self.logger:logDebug(
+        --     "adjustAiArmyAgents(%s from %s): REMOVED => %s (%s) | Total army supplies cost: %s | Available army supplies: %s",
+        --     function() return TotoWar.utils:getCharacterCaption(general) end,
+        --     function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        --     function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(agentToRemove.cqi)) end,
+        --     function() return TotoWar.utils:getUnitCaption(agentToRemove.unitKey) end,
+        --     function() return armySuppliesCost.totalCost end,
+        --     function() return armySuppliesCost.availableSupplies end)
     end
 
     self.logger:logDebug(
@@ -208,6 +205,10 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
 
     -- While the army supplies cost exceeds the maximum allowed, we add the exceeding units to the list of units to remove
     for unitCategory, unitCategoryExcessCount in pairs(unitCategoryExcessCounts) do
+        if armySuppliesCost.availableSupplies > 0 or unitCategoryExcessCount == 0 then
+            break
+        end
+
         self.logger:logDebug(
             "adjustAiArmyComposition(%s from %s): Category: %s | Excess: %s | Total army supplies cost: %s | Available army supplies: %s",
             function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
@@ -216,10 +217,6 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
             function() return unitCategoryExcessCount end,
             function() return armySuppliesCost.totalCost end,
             function() return armySuppliesCost.availableSupplies end)
-
-        if armySuppliesCost.availableSupplies > 0 or unitCategoryExcessCount == 0 then
-            break
-        end
 
         for index, unitArmySuppliesCost in ipairs(armySuppliesCost.unitArmySuppliesCosts) do
             if armySuppliesCost.availableSupplies > 0 or unitCategoryExcessCount == 0 then

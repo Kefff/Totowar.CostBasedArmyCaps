@@ -48,7 +48,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
         unitKey,
         "UnmountedUnitRecordContext.Key")
     instance.cqi = cqi
-    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
+    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
     instance.unitKey = unitKey
 
     TotoWar.genericLogger:logDebug(
@@ -79,7 +79,7 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
         unitKey,
         "UnmountedUnitRecordContext.Key")
     instance.cqi = cqi
-    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
+    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
     instance.unitKey = unitKey
 
     TotoWar.genericLogger:logDebug(
@@ -93,29 +93,40 @@ end
 
 ---Gets the unit army composition type based on the category of a unit.
 ---@param unitKey string Unit key.
+---@param cqi integer | nil Unit command queue index (if it has one).
 ---@return TotoWarCbac_Enums_ArmyCompositionUnitCategories
-function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
+function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey, cqi)
     TotoWar.genericLogger:logDebug(
         "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
         function() return unitKey end)
 
-    local unitGroup = common.get_context_value(
-        TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UiUnitGroupContext.ParentGroup.Key")
-    local armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+    ---@type string | nil
+    local armyCompositionUnitType = nil
 
-    if unitGroup:find('commander') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
-    elseif unitGroup:find('agent') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
-    elseif unitGroup:find('artillery') then
-        armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-    elseif unitGroup:find('infantry') then
-        if unitGroup:find('missile') then
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+    if cqi ~= nil then
+        if TotoWar.utils:isGeneralUnit(cqi) then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
+        elseif TotoWar.utils:isAgentUnit(cqi) then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        end
+    end
+
+    if armyCompositionUnitType == nil then
+        local unitGroup = common.get_context_value(
+            TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
+            unitKey,
+            "UiUnitGroupContext.ParentGroup.Key")
+
+        if unitGroup:find('artillery') then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+        elseif unitGroup:find('infantry') then
+            if unitGroup:find('missile') then
+                armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+            else
+                armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+            end
         else
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
         end
     end
 

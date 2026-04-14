@@ -41,6 +41,12 @@ end
 ---@return TotoWarCbacArmySuppliesCost
 function TotoWarCbacArmySuppliesCost.newFromArmy(availableArmySupplies, army)
     local instance = TotoWarCbacArmySuppliesCost.new(availableArmySupplies)
+
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): STARTED",
+        function() return availableArmySupplies end,
+        function() return army:unit_list():num_items() end)
+
     local characters = army:character_list()
     local units = army:unit_list()
 
@@ -50,12 +56,19 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(availableArmySupplies, army)
     end
 
     for i = 0, units:num_items() - 1, 1 do
-        local armyUnit = units:item_at(i)
+        local unit = units:item_at(i)
 
-        if not TotoWar.utils:isCharacterUnit(armyUnit:unit_key()) then
-            instance:addUnit(armyUnit:unit_key(), armyUnit:command_queue_index())
+        if not TotoWar.utils:isCharacterUnit(unit:command_queue_index()) then
+            instance:addUnit(unit:unit_key(), unit:command_queue_index())
         end
     end
+
+    TotoWar.genericLogger:logDebug(
+        "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): COMPLETED => %s | %s",
+        function() return availableArmySupplies end,
+        function() return army:unit_list():num_items() end,
+        function() return instance.totalCost end,
+        function() return instance.availableSupplies end)
 
     return instance
 end

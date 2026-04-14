@@ -14,6 +14,9 @@ TotoWarMod = {
             ---Character. ID: character CQI.
             campaignCharacter = "CcoCampaignCharacter",
 
+            ---Unit. ID: unit CQI.
+            campaignUnit = "CcoCampaignUnit",
+
             ---Main unit record. ID: unit key.
             mainUnitRecord = "CcoMainUnitRecord"
         },
