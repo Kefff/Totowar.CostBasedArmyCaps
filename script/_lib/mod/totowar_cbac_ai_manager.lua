@@ -390,26 +390,39 @@ end
 ---@param unitKey string Key of the unit to remove.
 ---@param unitCqi integer Command queue index of the unit to remove.
 function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
-    self.logger:logDebug(
-        "[EVENT] removeUnitFromAiArmy(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
-        function() return unitCqi end)
+    -- For some reason, removing the unit without very small delay may cause the game to crash
+    cm:callback(
+        function()
+            self.logger:logDebug(
+                "removeUnitFromAiArmy(%s from %s, %s, %s): STARTED",
+                function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+                function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+                function() return TotoWar.utils:getUnitCaption(unitKey) end,
+                function() return unitCqi end)
 
-    local unitRealCost = cco("CcoCampaignUnit", unitCqi):Call("Cost")
+            local unitRealCost = cco("CcoCampaignUnit", unitCqi):Call("Cost")
 
-    if unitRealCost ~= nil then
-        cm:treasury_mod(army:faction():name(), army:faction():treasury() + unitRealCost)
-    end
+            if unitRealCost ~= nil then
+                cm:treasury_mod(army:faction():name(), unitRealCost)
 
-    cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
+                self.logger:logDebug(
+                    "removeUnitFromAiArmy(%s from %s, %s, %s): REIMBURSE => %s | New treasury: %s",
+                    function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+                    function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+                    function() return TotoWar.utils:getUnitCaption(unitKey) end,
+                    function() return unitCqi end,
+                    function() return unitRealCost end,
+                    function() return army:faction():treasury() end)
+            end
 
-    self.logger:logDebug(
-        "[EVENT] removeUnitFromAiArmy(%s from %s, %s, %s): COMPLETED => Reimbursed: %s",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
-        function() return unitCqi end,
-        function() if unitRealCost ~= nil then return unitRealCost else return 0 end end)
+            cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
+
+            self.logger:logDebug(
+                "removeUnitFromAiArmy(%s from %s, %s, %s): COMPLETED",
+                function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+                function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+                function() return TotoWar.utils:getUnitCaption(unitKey) end,
+                function() return unitCqi end)
+        end,
+        0.001)
 end
