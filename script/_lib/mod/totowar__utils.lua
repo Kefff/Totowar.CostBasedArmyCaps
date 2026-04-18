@@ -359,7 +359,17 @@ function TotoWarUtils:linqGroupBy(list, predicate)
         end
     end
 
-    self.logger:logDebug("linqGroupBy(%s): NOT FOUND", function() return #list end)
+    self.logger:logDebug("linqGroupBy(%s): COMPLETED => %s",
+        function() return #list end,
+        function()
+            local n = 0
+
+            for _ in pairs(groups) do
+                n = n + 1
+            end
+
+            return n
+        end)
 
     return groups
 end

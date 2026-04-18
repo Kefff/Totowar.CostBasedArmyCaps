@@ -292,17 +292,39 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local unitsArmySuppliesCostTooltipText = ""
 
-    for i, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
+    local unitArmySuppliesCostGroups = TotoWar.utils:linqGroupBy(
+        self.unitArmySuppliesCosts,
+        function(item)
+            -- Grouping by unit key except for the general and agents
+            if item.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
+                or item.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            then
+                TotoWar.genericLogger:logDebug("[TEST1]: %s", function() return tostring(item.cqi) end)
+                return tostring(item.cqi)
+            end
+
+            TotoWar.genericLogger:logDebug("[TEST2]: %s", function() return item.unitKey end)
+            return item.unitKey
+        end)
+
+    for key, unitArmySuppliesCosts in pairs(unitArmySuppliesCostGroups) do
+        TotoWar.genericLogger:logDebug("[TEST3]: %s | %s | %s",
+            function() return key end,
+            function() return #unitArmySuppliesCosts end,
+            function() return unitArmySuppliesCosts[0] == nil end)
+
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText .. "\n" .. unitArmySuppliesCost:toArmySuppliesCostTooltipText()
+            unitsArmySuppliesCostTooltipText ..
+            "\n" .. self:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCosts[1], #unitArmySuppliesCosts)
     end
 
     for i, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText .. "\n" .. mercenaryUnitArmySuppliesCost:toArmySuppliesCostTooltipText()
+            unitsArmySuppliesCostTooltipText ..
+            "\n" .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost, 1)
     end
 
-    local availableArmySuppliesString = tostring(self.availableSupplies)
+    local availableArmySuppliesString = string.format("[[col:white]]%s[[/col]]", self.availableSupplies)
     local depletedArmySuppliesWarning = ""
 
     if self.availableSupplies < 0 then
@@ -325,6 +347,53 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
         unitsArmySuppliesCostTooltipText)
 
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toTooltipText(): COMPLETED")
+
+    return tooltipText
+end
+
+---Gets the unit army supplies cost for a unit as a tooltip string.
+---@param unitArmySuppliesCost TotoWarCbacUnitArmySuppliesCost Army supplies cost of the unit.
+---@param quantity integer Number of units.
+---@return string
+function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost, quantity)
+    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
+
+    ---@type string
+    local tooltipText
+
+    if unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
+        or unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    then
+        local character = cm:get_character_by_cqi(unitArmySuppliesCost.cqi)
+
+        if character:has_military_force() then
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral"),
+                TotoWar.utils:getCharacterCaption(character),
+                TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+                unitArmySuppliesCost.armySuppliesCost)
+        else
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfAgent"),
+                TotoWar.utils:getCharacterCaption(character),
+                TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+                unitArmySuppliesCost.armySuppliesCost)
+        end
+    elseif quantity > 1 then
+        tooltipText = string.format(
+            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit_multiple"),
+            TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+            unitArmySuppliesCost.armySuppliesCost * quantity,
+            unitArmySuppliesCost.armySuppliesCost,
+            quantity)
+    else
+        tooltipText = string.format(
+            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
+            TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+            unitArmySuppliesCost.armySuppliesCost)
+    end
+
+    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: COMPLETED")
 
     return tooltipText
 end
