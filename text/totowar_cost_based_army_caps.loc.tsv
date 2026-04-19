@@ -35,4 +35,3 @@ totowar_cbac_tooltip_unit_armySuppliesCostDepleted	Insufficient [[col:white]][[i
 totowar_cbac_tooltip_unit_armySuppliesCostOfAgent	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_agent]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
 totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_general]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
 totowar_cbac_tooltip_unit_armySuppliesCostOfUnit	[[col:%s]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
-totowar_cbac_tooltip_unit_armySuppliesCostOfUnit_multiple	[[col:%s]]%s[[/col]] x [[col:white]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]] x [[col:white]]%s[[/col]] = [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
