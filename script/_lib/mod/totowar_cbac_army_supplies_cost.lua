@@ -292,46 +292,111 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local unitsArmySuppliesCostTooltipText = ""
 
-    local unitArmySuppliesCostGroups = TotoWar.utils:linqGroupBy(
+    -- Sorting groups by category, price and and caption
+    table.sort(
         self.unitArmySuppliesCosts,
-        function(item)
-            -- Grouping by unit key except for the general and agents
-            if item.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
-                or item.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
-            then
-                TotoWar.genericLogger:logDebug("[TEST1]: %s", function() return tostring(item.cqi) end)
-                return tostring(item.cqi)
+        function(item1, item2)
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general then
+                return true
             end
 
-            TotoWar.genericLogger:logDebug("[TEST2]: %s", function() return item.unitKey end)
-            return item.unitKey
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general then
+                return false
+            end
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            then
+                return true
+            end
+
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            then
+                return false
+            end
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+            then
+                return true
+            end
+
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+            then
+                return false
+            end
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+            then
+                return true
+            end
+
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
+            then
+                return false
+            end
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+            then
+                return true
+            end
+
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
+            then
+                return false
+            end
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+            then
+                return true
+            end
+
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+            then
+                return false
+            end
+
+            if item1.armySuppliesCost < item2.armySuppliesCost then
+                return true
+            end
+
+            if item2.armySuppliesCost < item1.armySuppliesCost then
+                return false
+            end
+
+            local item1Caption = TotoWar.utils:getUnitCaption(item1.unitKey)
+            local item2Caption = TotoWar.utils:getUnitCaption(item2.unitKey)
+
+            return item1Caption < item2Caption
         end)
 
-    for key, unitArmySuppliesCosts in pairs(unitArmySuppliesCostGroups) do
-        TotoWar.genericLogger:logDebug("[TEST3]: %s | %s | %s",
-            function() return key end,
-            function() return #unitArmySuppliesCosts end,
-            function() return unitArmySuppliesCosts[0] == nil end)
-
+    for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText ..
-            "\n" .. self:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCosts[1], #unitArmySuppliesCosts)
+            unitsArmySuppliesCostTooltipText
+            .. "\n"
+            .. self:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
     end
 
-    for i, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
+    for index, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
         unitsArmySuppliesCostTooltipText =
-            unitsArmySuppliesCostTooltipText ..
-            "\n" .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost, 1)
+            unitsArmySuppliesCostTooltipText
+            .. "\n"
+            .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost, 1)
     end
 
     local availableArmySuppliesString = string.format("[[col:white]]%s[[/col]]", self.availableSupplies)
     local depletedArmySuppliesWarning = ""
 
     if self.availableSupplies < 0 then
-        availableArmySuppliesString = string.format(
-            "[[col:%s]]%s[[/col]]",
-            TotoWar.enums.colors.red,
-            availableArmySuppliesString)
+        availableArmySuppliesString = string.format("[[col:red]]%s[[/col]]", self.availableSupplies)
         depletedArmySuppliesWarning = string.format(
             "\n\n[[col:%s]]%s[[/col]]",
             TotoWar.enums.colors.red,
@@ -353,9 +418,8 @@ end
 
 ---Gets the unit army supplies cost for a unit as a tooltip string.
 ---@param unitArmySuppliesCost TotoWarCbacUnitArmySuppliesCost Army supplies cost of the unit.
----@param quantity integer Number of units.
 ---@return string
-function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost, quantity)
+function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
     TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
 
     ---@type string
@@ -379,16 +443,10 @@ function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmyS
                 TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
                 unitArmySuppliesCost.armySuppliesCost)
         end
-    elseif quantity > 1 then
-        tooltipText = string.format(
-            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit_multiple"),
-            TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
-            unitArmySuppliesCost.armySuppliesCost * quantity,
-            unitArmySuppliesCost.armySuppliesCost,
-            quantity)
     else
         tooltipText = string.format(
             common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
+            'totowar_cbac_unit_category_' .. unitArmySuppliesCost.unitCategory,
             TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
             unitArmySuppliesCost.armySuppliesCost)
     end

@@ -144,13 +144,41 @@ function TotoWarUtils:getMct()
     return mct
 end
 
+---Gets the keys of dictionary sorted in an order based on a predicate.
+---
+---This is because a dictionary cannot directly be sorted because when using pair() to iterate on a table,
+---keys are in a random order in LUA.
+---@generic T
+---@param dictionary { [string]: T[] } Dictionary to sort.
+---@param predicate fun(item1: T, item2: T): boolean Predicate.
+---@return string[]
+function TotoWarUtils:getSortedDictionaryKeys(dictionary, predicate)
+    self.logger:logDebug("getSorterDictionaryKeys(): STARTED")
+
+    local keys = {}
+
+    for key in pairs(dictionary) do
+        table.insert(keys, key)
+    end
+
+    table.sort(keys, function(key1, key2)
+        return predicate(dictionary[key1], dictionary[key2])
+    end)
+
+    self.logger:logDebug("getSorterDictionaryKeys(): COMPLETED")
+
+    return keys
+end
+
 ---Gets the caption of a unit.
 ---@param unitKey string Unit key.
+---@return string
 function TotoWarUtils:getUnitCaption(unitKey)
     self.logger:logDebug(
         "getUnitCaption(%s): STARTED",
         function() return unitKey end)
 
+    ---@type string
     local caption = common.get_context_value(TotoWar.enums.ccoContextTypeIds.mainUnitRecord, unitKey, "Name")
 
     self.logger:logDebug(
@@ -398,7 +426,7 @@ function TotoWarUtils:linqLastOrDefault(list, predicate)
     return nil
 end
 
----Sums for each element of a list the value coresponding a predicate.
+---Sums for each element of a list the value corresponding a predicate.
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): number Predicate.

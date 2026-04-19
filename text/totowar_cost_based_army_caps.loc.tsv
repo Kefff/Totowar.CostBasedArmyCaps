@@ -1,11 +1,11 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
-totowar_cbac_mct_option_caption_aiArmyAgentMaximumAmount	Maximum agents amount	false
-totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage	Maximum artillery units percentage	false
-totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Maximum cavalry & monster units percentage	false
+totowar_cbac_mct_option_caption_aiArmyAgentMaximumAmount	Maximum [[col:totowar_cbac_unit_category_agent]]agents[[/col]] amount	false
+totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage	Maximum [[col:totowar_cbac_unit_category_artillery]]artillery[[/col]] units percentage	false
+totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Maximum [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units percentage	false
 totowar_cbac_mct_option_caption_aiArmyDisposableUnitsAmount	Number of units the AI can disband	false
-totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Maximum melee infantry units percentage	false
-totowar_cbac_mct_option_caption_aiArmyRangedInfantryMaximumPercentage	Maximum ranged infantry units percentage	false
+totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Maximum [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units percentage	false
+totowar_cbac_mct_option_caption_aiArmyRangedInfantryMaximumPercentage	Maximum [[col:totowar_cbac_unit_category_rangedInfantry]]ranged infantry[[/col]] units percentage	false
 totowar_cbac_mct_option_caption_aiArmySupplies	Army supplies for AI faction armies	false
 totowar_cbac_mct_option_caption_aiArmySuppliesEnabled	Army supplies restrictions for AI faction armies	false
 totowar_cbac_mct_option_caption_aiManagerLoggerEnabled	Log AI restrictions code	false
@@ -32,7 +32,7 @@ totowar_cbac_mct_section_title_player	Cost-Based Army Caps - Player	false
 totowar_cbac_tooltip_armySuppliesCost	Army supplies||Amount of supplies the army can provide to sustain additional recruited units.|| ||Total army supplies: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]||Consumed by units: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]||Available for recruitment: [[img:icon_merc]][[/img]]%s%s||%s	true
 totowar_cbac_tooltip_unit_armySuppliesCost	Army supplies||This unit consumes this amount of [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]].	true
 totowar_cbac_tooltip_unit_armySuppliesCostDepleted	Insufficient [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] to sustain all recruited units.||The army cannot march until a unit is dismissed or transferred to another army.	false
-totowar_cbac_tooltip_unit_armySuppliesCostOfAgent	[[col:rare]]%s[[/col]] | %s: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
-totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral	[[col:epic]]%s[[/col]] | %s: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
-totowar_cbac_tooltip_unit_armySuppliesCostOfUnit	%s: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
-totowar_cbac_tooltip_unit_armySuppliesCostOfUnit_multiple	%s: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]] | [[col:white]][[img:icon_merc]][[/img]]%s[[/col]] x [[col:white]]%s[[/col]]	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfAgent	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_agent]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_general]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfUnit	[[col:%s]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
+totowar_cbac_tooltip_unit_armySuppliesCostOfUnit_multiple	[[col:%s]]%s[[/col]] x [[col:white]]%s[[/col]]: [[col:white]][[img:icon_merc]][[/img]]%s[[/col]] x [[col:white]]%s[[/col]] = [[col:white]][[img:icon_merc]][[/img]]%s[[/col]]	true
