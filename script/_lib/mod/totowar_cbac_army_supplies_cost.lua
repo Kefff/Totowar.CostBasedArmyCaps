@@ -285,14 +285,10 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         TotoWar.utils:getUnitCaption(unitKey))
 end
 
----Gets the list of unit army supplies costs as a tooltip string.
----@return string
-function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
-    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toTooltipText(): STARTED")
-
-    local unitsArmySuppliesCostTooltipText = ""
-
-    -- Sorting groups by category, price and and caption
+---Sorts army supplies costs by unit category, army supplies cost and name.
+---
+---Unit category order : General, Agent, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
+function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
     table.sort(
         self.unitArmySuppliesCosts,
         function(item1, item2)
@@ -377,6 +373,17 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
             return item1Caption < item2Caption
         end)
+end
+
+---Gets the list of unit army supplies costs as a tooltip string.
+---@return string
+function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
+    TotoWar.genericLogger:logDebug("TotoWarCbacArmySuppliesCost:toTooltipText(): STARTED")
+
+    local unitsArmySuppliesCostTooltipText = ""
+
+    -- Sorting groups by category, price and and caption
+    self:sortUnitArmySuppliesCost()
 
     for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
         unitsArmySuppliesCostTooltipText =
@@ -389,7 +396,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
         unitsArmySuppliesCostTooltipText =
             unitsArmySuppliesCostTooltipText
             .. "\n"
-            .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost, 1)
+            .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost)
     end
 
     local availableArmySuppliesString = string.format("[[col:white]]%s[[/col]]", self.availableSupplies)
