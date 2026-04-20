@@ -27,17 +27,47 @@ TotoWarMod = {
             general = "general"
         },
 
-        ---Colors.
-        ---@class TotoWar_Enums_Colors
-        colors = {
-            blue = "alliance_ally",
-            red = "alliance_enemy",
-            yellow = "yellow"
+        ---Events triggered by the game.
+        ---@class TotoWar_Enums_GameEvents
+        gameEvents = {
+            ---Event triggered when a character is deselected.
+            ---Is not triggered when a character is already selected and the player selects another character.
+            characterDeselected = "CharacterDeselected",
+
+            ---Event triggered when a character is selected.
+            characterSelected = "CharacterSelected",
+
+            ---Event triggered when the left click on a UI component is released.
+            componentLeftClick = "ComponentLClickUp",
+
+            --Event triggered when the turn of a faction starts.
+            factionTurnStart = "FactionTurnStart",
+
+            ---Event triggered when a panel is opened.
+            panelOpened = "PanelOpenedCampaign",
+
+            ---Event triggered when a panel is closed.
+            panelClosed = "PanelClosedCampaign",
+
+            ---Event triggered when a unit is removed from the recruitment queue.
+            unitRemovedFromRecruitment = "RecruitmentItemCancelledByPlayer",
+
+            ---Event triggered when a unit is added to the recruitment queue.
+            unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",
+
+            ---Event triggered when (a) unit(s) have been disbanded.
+            unitDisbanded = "UnitDisbanded",
+
+            ---Event triggered when units are merged unit and some of them have been destroyed.
+            unitMergedAndDestroyed = "UnitMergedAndDestroyed",
+
+            ---Event triggered when a unit is added to an army.
+            unitTrained = "UnitTrained"
         },
 
-        ---Events.
-        ---@class TotoWar_Enums_Events
-        events = {
+        ---Events triggered by the mod.
+        ---@class TotoWar_Enums_ModEvents
+        modEvents = {
             ---Event triggered when options are updated in the Mod Configuration Tool if it is installed.
             mctOptionsUpdated = "MctFinalized",
 
@@ -72,41 +102,6 @@ TotoWarMod = {
             bottomLeft = 7,
             bottomMiddle = 8,
             bottomRight = 9
-        },
-
-        ---UI events.
-        ---@class TotoWar_Enums_Events
-        uiEvents = {
-            ---Event triggered when a character is deselected.
-            ---Is not triggered when a character is already selected and the player selects another character.
-            characterDeselected = "CharacterDeselected",
-
-            ---Event triggered when a character is selected.
-            characterSelected = "CharacterSelected",
-
-            ---Event triggered when the left click on a UI component is released.
-            componentLeftClick = "ComponentLClickUp",
-
-            ---Event triggered when a panel is opened.
-            panelOpened = "PanelOpenedCampaign",
-
-            ---Event triggered when a panel is closed.
-            panelClosed = "PanelClosedCampaign",
-
-            ---Event triggered when a unit is removed from the recruitment queue.
-            unitRemovedFromRecruitment = "RecruitmentItemCancelledByPlayer",
-
-            ---Event triggered when a unit is added to the recruitment queue.
-            unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",
-
-            ---Event triggered when (a) unit(s) have been disbanded.
-            unitDisbanded = "UnitDisbanded",
-
-            ---Event triggered when units are merged unit and some of them have been destroyed.
-            unitMergedAndDestroyed = "UnitMergedAndDestroyed",
-
-            ---Event triggered when a unit is added to an army.
-            unitTrained = "UnitTrained"
         },
 
         ---Panels.
@@ -198,10 +193,18 @@ end
 
 ---Adds event listeners.
 function TotoWarMod:addListeners()
-    -- Listener for option updates
     TotoWar.utils:addListener(
-        "TotoWarCbac",
-        TotoWar.enums.events.mctOptionsUpdated,
+        "TotoWar",
+        TotoWar.enums.gameEvents.factionTurnStart,
+        true,
+        ---@param context TotoWarGameEventContext_FactionTurnStart
+        function(context)
+            self:onFactionTurnStart(context:faction())
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWar",
+        TotoWar.enums.modEvents.mctOptionsUpdated,
         true,
         function()
             self:onOptionsUpdated()
@@ -235,6 +238,14 @@ function TotoWarMod:loadMctOptions()
     self.genericLogger:logDebug("loadMctOptions(): COMPLETED")
 end
 
+---Reacts to the start of the turn of a faction.
+---@param faction FACTION_SCRIPT_INTERFACE Faction.
+function TotoWarMod:onFactionTurnStart(faction)
+    self.genericLogger:logInfo(
+        "\n\n==================== NEW TURN | %s ====================\n\n",
+        TotoWar.utils:getFactionCaption(faction:name()))
+end
+
 ---Reacts to options being updated.
 function TotoWarMod:onOptionsUpdated()
     self.genericLogger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
@@ -242,7 +253,7 @@ function TotoWarMod:onOptionsUpdated()
     self:loadMctOptions()
 
     -- Signaling option changes
-    core:trigger_event(self.enums.events.optionsUpdated)
+    core:trigger_event(self.enums.modEvents.optionsUpdated)
 
     self.genericLogger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
 end

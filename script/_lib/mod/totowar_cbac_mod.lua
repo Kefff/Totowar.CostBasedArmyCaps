@@ -19,9 +19,9 @@ TotoWarCbacMod = {
             rangedInfantry = "rangedInfantry",
         },
 
-        ---Events.
-        ---@class TotoWarCbac_Enums_Events
-        events = {
+        ---Events triggered by the mod.
+        ---@class TotoWarCbac_Enums_ModEvents
+        modEvents = {
             ---Event triggered when options are updated.
             ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
             ---have been updated by reading values from the Mod Configuration Tool.
@@ -117,10 +117,9 @@ end
 function TotoWarCbacMod:addListeners()
     self.logger:logDebug("addListeners(): STARTED")
 
-    -- Listener for option updates
     TotoWar.utils:addListener(
         "TotoWarCbac",
-        TotoWar.enums.events.mctOptionsUpdated,
+        TotoWar.enums.modEvents.mctOptionsUpdated,
         true,
         function()
             self:onOptionsUpdated()
@@ -198,7 +197,7 @@ function TotoWarCbacMod:onOptionsUpdated()
     self:loadMctOptions()
 
     -- Signaling option changes
-    core:trigger_event(self.enums.events.optionsUpdated)
+    core:trigger_event(self.enums.modEvents.optionsUpdated)
 
     self.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
 end

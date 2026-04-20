@@ -25,8 +25,21 @@ function TotoWarCbacAiManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacAiManager",
-        TotoWar.enums.uiEvents.unitTrained,
-        ---@param context TotoWarEventContext_UnitTrained
+        TotoWar.enums.gameEvents.unitDisbanded,
+        function()
+            return
+                TotoWarCbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+        end,
+        ---@param context TotoWarGameEventContext_UnitDisbanded
+        function(context)
+            self:onAiUnitDisbanded(context:unit():military_force(), context:unit())
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWarCbacAiManager",
+        TotoWar.enums.gameEvents.unitTrained,
+        ---@param context TotoWarGameEventContext_UnitTrained
         function(context)
             return
                 TotoWarCbac.options.aiArmySuppliesEnabled
@@ -34,7 +47,7 @@ function TotoWarCbacAiManager:addListeners()
                 and context:unit():military_force()
                 and TotoWar.utils:canRecruitUnits(context:unit():military_force())
         end,
-        ---@param context TotoWarEventContext_UnitTrained
+        ---@param context TotoWarGameEventContext_UnitTrained
         function(context)
             self:onAiUnitRecruited(context:unit():military_force(), context:unit())
         end)
@@ -362,6 +375,25 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         function() return TotoWar.utils:getUnitCaption(lastRecruitedUnit:unit_key()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
+end
+
+---Reacts to a unit being disbanded by an AI army.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@param unit UNIT_SCRIPT_INTERFACE Unit.
+function TotoWarCbacAiManager:onAiUnitDisbanded(army, unit)
+    self.logger:logDebug(
+        "[EVENT] onAiUnitDisbanded(%s from %s, %s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+
+    -- This is just to log how AI disbands units and how it impacts the mod
+
+    self.logger:logDebug(
+        "[EVENT] onAiUnitDisbanded(%s from %s, %s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Reacts to a unit being recruited by an AI army.

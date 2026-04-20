@@ -104,7 +104,7 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.enums.uiEvents.characterDeselected,
+        TotoWar.enums.gameEvents.characterDeselected,
         function()
             -- We do not check the TotoWarCbac.playerArmySuppliesEnabled option because when this option
             -- is disabled, we deselect everything and we want onCharacterDeselected to be executed
@@ -117,7 +117,7 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.enums.uiEvents.characterSelected,
+        TotoWar.enums.gameEvents.characterSelected,
         ---@param context CharacterSelected
         function(context)
             return
@@ -131,7 +131,7 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWarCbac.enums.events.optionsUpdated,
+        TotoWarCbac.enums.modEvents.optionsUpdated,
         true,
         function()
             self:onOptionsUpdated()
@@ -139,8 +139,8 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.enums.uiEvents.panelClosed,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        TotoWar.enums.gameEvents.panelClosed,
+        ---@param context TotoWarGameEventContext_PanelOpenedOrClosed
         function(context)
             return
                 TotoWarCbac.options.playerArmySuppliesEnabled
@@ -153,8 +153,8 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWar.enums.uiEvents.panelOpened,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        TotoWar.enums.gameEvents.panelOpened,
+        ---@param context TotoWarGameEventContext_PanelOpenedOrClosed
         function(context)
             return
                 TotoWarCbac.options.playerArmySuppliesEnabled
@@ -162,14 +162,14 @@ function TotoWarCbacUIManager:addListeners()
                 and not TotoWarCbac.playerManager.isInitializingArmySuppliesCost
                 and self:isRecruitmentPanel(context.string)
         end,
-        ---@param context TotoWarEventContext_PanelOpenedOrClosed
+        ---@param context TotoWarGameEventContext_PanelOpenedOrClosed
         function(context)
             self:onRecruitmentPanelOpened(context.string)
         end)
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWarCbac.enums.events.selectedGeneralArmySuppliesCostChanged,
+        TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged,
         function()
             return
                 TotoWarCbac.options.playerArmySuppliesEnabled
@@ -181,7 +181,7 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacPlayerManager",
-        TotoWarCbac.enums.events.unitExchangeArmySuppliesCostChanged,
+        TotoWarCbac.enums.modEvents.unitExchangeArmySuppliesCostChanged,
         function()
             return
                 TotoWarCbac.options.playerArmySuppliesEnabled
@@ -315,7 +315,7 @@ function TotoWarCbacUIManager:getArmySuppliesCostText(armySuppliesCost)
     if armySuppliesCost.availableSupplies < 0 then
         armySuppliesCostText = string.format(
             "[[col:%s]]%s[[/col]][[img:%s]][[/img]]",
-            TotoWar.enums.colors.red,
+            "red",
             armySuppliesCost.availableSupplies,
             _armySuppliesDepletedWarningIconId)
     else
@@ -652,7 +652,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
         unitCardUIComponent:SetDisabled(true)
         unitCardUIComponent:SetState(TotoWar.enums.uiComponentStates.inactive)
-        unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", TotoWar.enums.colors.red, unitBaseCostText)
+        unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", "red", unitBaseCostText)
     elseif unitCardUIComponent:IsDisabled() then
         -- Reenabling the unit card if it was disabled
         unitCardUIComponent:SetDisabled(false)
