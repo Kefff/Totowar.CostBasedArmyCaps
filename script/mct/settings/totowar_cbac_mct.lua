@@ -134,34 +134,4 @@ if mct then
     aiArmyDisposableUnitsAmount:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyDisposableUnitsAmount")
     cbacAiSection:assign_option(aiArmyDisposableUnitsAmount)
-
-    -- Logs section
-    local cbacLogsSection = totoWarMod:add_new_section(
-        "totowar_cbac_section_logs",
-        "totowar_cbac_mct_section_title_logs")
-    totoWarCbacModPage:assign_section_to_page(cbacLogsSection)
-
-    local aiManagerLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_Cbac_OptionName_AiManagerLoggerEnabled,
-        "checkbox")
-    aiManagerLoggerEnabledOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_AiManagerLoggerEnabled)
-    aiManagerLoggerEnabledOption:set_text("totowar_cbac_mct_option_caption_aiManagerLoggerEnabled")
-    aiManagerLoggerEnabledOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_aiManagerLoggerEnabled")
-    cbacLogsSection:assign_option(aiManagerLoggerEnabledOption)
-
-    local playerManagerLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_Cbac_OptionName_PlayerManagerLoggerEnabled,
-        "checkbox")
-    playerManagerLoggerEnabledOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_PlayerManagerLoggerEnabled)
-    playerManagerLoggerEnabledOption:set_text("totowar_cbac_mct_option_caption_playerManagerLoggerEnabled")
-    playerManagerLoggerEnabledOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_playerManagerLoggerEnabled")
-    cbacLogsSection:assign_option(playerManagerLoggerEnabledOption)
-
-    local uiManagerLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_Cbac_OptionName_UiManagerLoggerEnabled,
-        "checkbox")
-    uiManagerLoggerEnabledOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_UiManagerLoggerEnabled)
-    uiManagerLoggerEnabledOption:set_text("totowar_cbac_mct_option_caption_uiManagerLoggerEnabled")
-    uiManagerLoggerEnabledOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_uiManagerLoggerEnabled")
-    cbacLogsSection:assign_option(uiManagerLoggerEnabledOption)
 end

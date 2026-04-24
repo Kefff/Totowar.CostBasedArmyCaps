@@ -26,21 +26,12 @@ TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount = 12400
 ---Default value for the option that enabled AI army supplies restrictions.
 TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled = true
 
----Default value for the option that enables the AI manager logger.
-TotoWar_Cbac_OptionDefaultValue_AiManagerLoggerEnabled = true
-
 ---Default value for the amount of available army supplies in player armies.
 ---Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.
 TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount = 12400
 
 ---Default value for the option that enabled AI army supplies restrictions.
 TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled = true
-
----Default value for the option that enables the player manager logger.
-TotoWar_Cbac_OptionDefaultValue_PlayerManagerLoggerEnabled = true
-
----Default value for the option that enables the UI manager logger.
-TotoWar_Cbac_OptionDefaultValue_UiManagerLoggerEnabled = true
 
 ---Name of the option for the maximum amount of agents in AI armies.
 TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount = "totowar_cbac_aiArmyAgentMaximumAmount"
@@ -69,17 +60,8 @@ TotoWar_Cbac_OptionName_AiArmySuppliesAmount = "totowar_cbac_aiArmySuppliesAmoun
 ---Name of option that enables army supplies restriction for AI armies.
 TotoWar_Cbac_OptionName_AiArmySuppliesEnabled = "totowar_cbac_aiArmySuppliesEnabled"
 
----Name of the option that enables the AI manager logger.
-TotoWar_Cbac_OptionName_AiManagerLoggerEnabled = "totowar_cbac_aiManagerLoggerEnabled"
-
 ---Name of the option for the amount of army supplies in player armies.
 TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount = "totowar_cbac_playerArmySuppliesAmount"
 
 ---Name of the option that enables army supplies restriction for player armies.
 TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled = "totowar_cbac_playerArmySuppliesEnabled"
-
----Name of the option that enables the player manager logger.
-TotoWar_Cbac_OptionName_PlayerManagerLoggerEnabled = "totowar_cbac_playerManagerLoggerEnabled"
-
----Name of the option that enables the UI manager logger.
-TotoWar_Cbac_OptionName_UiManagerLoggerEnabled = "totowar_cbac_uiManagerLoggerEnabled"

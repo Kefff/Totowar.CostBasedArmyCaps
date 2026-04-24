@@ -1,10 +1,9 @@
-local _defaultLogFileName = "totowar_logs.txt"
-
 ---Log severities.
-local TotoWarLoggerSeverity = {
+---@class TotoWarLoggerSeverity
+TotoWarLoggerSeverity = {
     debug = "DEBUG",
-    info = "INFO ",
-    warning = "WARN ",
+    info = "INFO",
+    warning = "WARN",
     error = "ERROR"
 }
 
@@ -12,11 +11,9 @@ local TotoWarLoggerSeverity = {
 ---@class TotoWarLogger
 TotoWarLogger = {
     ---Indicates whether the logger is enabled.
-    isEnabled = true,
-
-    ---Log file name.
-    ---@type string
-    logFileName = nil,
+    ---@type TotoWarLoggerSeverity
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    logLevel = TotoWarLoggerSeverity.info,
 
     ---Mod name.
     ---@type string
@@ -26,29 +23,11 @@ TotoWarLogger.__index = TotoWarLogger
 
 ---Initializes a new instance.
 ---@param loggerName string Logger name.
----@param logFileName string? Log file name. If `nil`, the default log file name is used.
----@param resetLogFile boolean? Indicates whether the log file should be reset. If `nil`, `false`.
 ---@return TotoWarLogger
-function TotoWarLogger.new(loggerName, logFileName, resetLogFile)
+function TotoWarLogger.new(loggerName)
     local instance = setmetatable({}, TotoWarLogger)
 
     instance.loggerName = loggerName
-
-    if logFileName then
-        instance.logFileName = logFileName
-    else
-        instance.logFileName = _defaultLogFileName
-    end
-
-    if resetLogFile then
-        local file = io.open(instance.logFileName, "w")
-
-        if file then
-            file:write("")
-            file:close()
-        end
-    end
-
     instance:logInfo("Logger instance created")
 
     return instance
@@ -60,10 +39,6 @@ end
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 local function log(instance, severity, message, ...)
-    if not instance.isEnabled then
-        return
-    end
-
     local parameters = {}
 
     for i, value in ipairs({ ... }) do
@@ -74,7 +49,7 @@ local function log(instance, severity, message, ...)
     fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.loggerName, message)
     ModLog(fullLog)
 
-    local file = io.open(instance.logFileName, "a")
+    local file = io.open(TotoWar.logFileName, "a")
 
     if file then
         file:write(fullLog .. "\n")
@@ -86,23 +61,21 @@ end
 ---@param message string Message to log.
 ---@param ... (fun(): boolean | integer | nil | number | string) Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
-    if not TotoWar.options.debugEnabled then
-        return
-    end
+    if TotoWar.options.debugEnabled then
+        local parameters = {}
 
-    local parameters = {}
+        for i, valueFunction in ipairs({ ... }) do
+            local value = valueFunction()
 
-    for i, valueFunction in ipairs({ ... }) do
-        local value = valueFunction()
+            if value == nil then
+                value = "nil"
+            end
 
-        if value == nil then
-            value = "nil"
+            parameters[i] = tostring(valueFunction())
         end
 
-        parameters[i] = tostring(valueFunction())
+        log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
     end
-
-    log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
 end
 
 ---Logs an error message.
@@ -116,12 +89,21 @@ end
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logInfo(message, ...)
-    log(self, TotoWarLoggerSeverity.info, message, ...)
+    if TotoWar.options.debugEnabled
+        or self.logLevel == TotoWarLoggerSeverity.info
+    then
+        log(self, TotoWarLoggerSeverity.info, message, ...)
+    end
 end
 
 ---Logs an warning message.
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logWarning(message, ...)
-    log(self, TotoWarLoggerSeverity.warning, message, ...)
+    if TotoWar.options.debugEnabled
+        or self.logLevel == TotoWarLoggerSeverity.info
+        or self.logLevel == TotoWarLoggerSeverity.warning
+    then
+        log(self, TotoWarLoggerSeverity.warning, message, ...)
+    end
 end

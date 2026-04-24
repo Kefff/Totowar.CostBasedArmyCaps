@@ -108,6 +108,7 @@ function TotoWarCbacMod.new()
     TotoWarCbac:loadMctOptions()
     TotoWarCbac:addListeners()
 
+    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Mod initialized")
     TotoWarCbac.logger:logDebug("new(): COMPLETED")
 
     return TotoWarCbac
@@ -115,14 +116,14 @@ end
 
 ---Adds event listeners.
 function TotoWarCbacMod:addListeners()
-    self.logger:logDebug("addListeners(): STARTED")
+    TotoWarCbac.logger:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
         "TotoWarCbac",
         TotoWar.enums.modEvents.mctOptionsUpdated,
         true,
         function()
-            self:onOptionsUpdated()
+            TotoWarCbac:onOptionsUpdated()
         end)
 
     -- Manager listeners
@@ -130,7 +131,7 @@ function TotoWarCbacMod:addListeners()
     TotoWarCbac.playerManager:addListeners()
     TotoWarCbac.uiManager:addListeners()
 
-    self.logger:logDebug("addListeners(): COMPLETED")
+    TotoWarCbac.logger:logDebug("addListeners(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
@@ -141,63 +142,68 @@ function TotoWarCbacMod:loadMctOptions()
         return
     end
 
-    self.logger:logDebug("loadMctOptions(): STARTED")
+    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Loading options")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
 
-    self.options.aiArmyAgentMaximumAmount = options
+    TotoWarCbac.options.aiArmyAgentMaximumAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount)
         :get_finalized_setting()
-    self.options.aiArmyDisposableUnitsMaximumAmount = options
+    TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount)
         :get_finalized_setting()
-    self.options.aiArmySuppliesAmount = options
+    TotoWarCbac.options.aiArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
         :get_finalized_setting()
-    self.options.aiArmySuppliesEnabled = options
+    TotoWarCbac.options.aiArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesEnabled)
         :get_finalized_setting()
-    self.options.aiArmyUnitCategoryMaximumPercentages[self.enums.armyCompositionUnitTypes.artillery] = options
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.artillery] =
+        options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage)
         :get_finalized_setting() / 100
-    self.options.aiArmyUnitCategoryMaximumPercentages[self.enums.armyCompositionUnitTypes.cavalryAndMonsters] = options
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters] =
+        options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage)
         :get_finalized_setting() / 100
-    self.options.aiArmyUnitCategoryMaximumPercentages[self.enums.armyCompositionUnitTypes.meleeInfantry] = options
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry] =
+        options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage)
         :get_finalized_setting() / 100
-    self.options.aiArmyUnitCategoryMaximumPercentages[self.enums.armyCompositionUnitTypes.rangedInfantry] = options
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry] =
+        options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyRangedInfantryMaximumPercentage)
         :get_finalized_setting() / 100
 
-    self.options.playerArmySuppliesAmount = options
+    TotoWarCbac.options.playerArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
         :get_finalized_setting()
-    self.options.playerArmySuppliesEnabled = options
+    TotoWarCbac.options.playerArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
         :get_finalized_setting()
 
-    self.aiManager.logger.isEnabled = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_AiManagerLoggerEnabled)
-        :get_finalized_setting()
-    self.playerManager.logger.isEnabled = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_PlayerManagerLoggerEnabled)
-        :get_finalized_setting()
-    self.uiManager.logger.isEnabled = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_UiManagerLoggerEnabled)
-        :get_finalized_setting()
+    TotoWarCbac:overwriteOptionsForDebug()
 
-    self.logger:logDebug("loadMctOptions(): COMPLETED")
+    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Options loaded")
 end
 
 ---Reacts to options being updated.
 function TotoWarCbacMod:onOptionsUpdated()
-    self.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+    TotoWarCbac.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
 
-    self:loadMctOptions()
+    TotoWarCbac:loadMctOptions()
 
     -- Signaling option changes
-    core:trigger_event(self.enums.modEvents.optionsUpdated)
+    core:trigger_event(TotoWarCbac.enums.modEvents.optionsUpdated)
 
-    self.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+    TotoWarCbac.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+end
+
+---Allows to programatically overwrite option values for local debug purpose.
+---
+---This method is called after options are updated.
+function TotoWarCbacMod:overwriteOptionsForDebug()
+    TotoWarCbac.logger:logDebug("overwriteOptionsForDebug(): STARTED => TotoWarCbac")
+
+    TotoWarCbac.logger:logDebug("overwriteOptionsForDebug(): COMPLETED => TotoWarCbac")
 end

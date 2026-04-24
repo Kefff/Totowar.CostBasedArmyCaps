@@ -31,34 +31,4 @@ if mct then
     debugEnabledOption:set_text("totowar_mct_option_caption_debugEnabled")
     debugEnabledOption:set_tooltip_text("totowar_mct_option_tooltip_debugEnabled")
     debugAndLogsSection:assign_option(debugEnabledOption)
-
-    -- Logs section
-    local logsSection = totoWarMod:add_new_section(
-        "totowar_section_logs",
-        "totowar_mct_section_title_logs")
-    totoWarModPage:assign_section_to_page(logsSection)
-
-    local genericLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_OptionName_GenericLoggerEnabled,
-        "checkbox")
-    genericLoggerEnabledOption:set_default_value(TotoWar_OptionDefaultValue_GenericLoggerEnabled)
-    genericLoggerEnabledOption:set_text("totowar_mct_option_caption_genericLoggerEnabled")
-    genericLoggerEnabledOption:set_tooltip_text("totowar_mct_option_tooltip_genericLoggerEnabled")
-    logsSection:assign_option(genericLoggerEnabledOption)
-
-    local uiUtilsLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_OptionName_UiUtilsLoggerEnabled,
-        "checkbox")
-    uiUtilsLoggerEnabledOption:set_default_value(TotoWar_OptionDefaultValue_UiUtilsLoggerEnabled)
-    uiUtilsLoggerEnabledOption:set_text("totowar_mct_option_caption_uiUtilsLoggerEnabled")
-    uiUtilsLoggerEnabledOption:set_tooltip_text("totowar_mct_option_tooltip_ui_utilsLoggerEnabled")
-    logsSection:assign_option(uiUtilsLoggerEnabledOption)
-
-    local utilsLoggerEnabledOption = totoWarMod:add_new_option(
-        TotoWar_OptionName_UtilsLoggerEnabled,
-        "checkbox")
-    utilsLoggerEnabledOption:set_default_value(TotoWar_OptionDefaultValue_UtilsLoggerEnabled)
-    utilsLoggerEnabledOption:set_text("totowar_mct_option_caption_utilsLoggerEnabled")
-    utilsLoggerEnabledOption:set_tooltip_text("totowar_mct_option_tooltip_utilsLoggerEnabled")
-    logsSection:assign_option(utilsLoggerEnabledOption)
 end

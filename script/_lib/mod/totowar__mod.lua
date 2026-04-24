@@ -147,6 +147,10 @@ TotoWarMod = {
         }
     },
 
+    ---Log file name.
+    ---@type string
+    logFileName = "totowar_logs.txt",
+
     ---Mods manager.
     ---@type TotoWarModsManager
     modsManager = nil,
@@ -177,7 +181,7 @@ TotoWar = nil
 function TotoWarMod.new()
     TotoWar = setmetatable({}, TotoWarMod)
 
-    TotoWar.genericLogger = TotoWarLogger.new("TotoWar_Generic", nil, true)
+    TotoWar:initializeLogs()
 
     TotoWar.modsManager = TotoWarModsManager.new()
     TotoWar.utils = TotoWarUtils.new()
@@ -186,7 +190,8 @@ function TotoWarMod.new()
     TotoWar:loadMctOptions()
     TotoWar:addListeners()
 
-    TotoWar.genericLogger:logDebug("TotoWarCore.new(): COMPLETED")
+    TotoWar.genericLogger:logInfo("TotoWar | Mod initialized")
+    TotoWar.genericLogger:logDebug("TotoWarMod.new(): COMPLETED")
 
     return TotoWar
 end
@@ -199,7 +204,7 @@ function TotoWarMod:addListeners()
         true,
         ---@param context TotoWarGameEventContext_FactionTurnStart
         function(context)
-            self:onFactionTurnStart(context:faction())
+            TotoWar:onFactionTurnStart(context:faction())
         end)
 
     TotoWar.utils:addListener(
@@ -207,53 +212,68 @@ function TotoWarMod:addListeners()
         TotoWar.enums.modEvents.mctOptionsUpdated,
         true,
         function()
-            self:onOptionsUpdated()
+            TotoWar:onOptionsUpdated()
         end)
+end
+
+---Initializes the log file and the generic logger.
+function TotoWarMod:initializeLogs()
+    local file = io.open(TotoWar.logFileName, "w")
+
+    if file then
+        file:write("")
+        file:close()
+    end
+
+    TotoWar.genericLogger = TotoWarLogger.new("TotoWar_Generic")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
 function TotoWarMod:loadMctOptions()
-    local mct = self.utils:getMct()
+    local mct = TotoWar.utils:getMct()
 
     if not mct then
         return
     end
 
-    self.genericLogger:logDebug("loadMctOptions(): STARTED")
+    TotoWar.genericLogger:logInfo("TotoWar | Loading options")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
-    self.genericLogger.isEnabled = options
-        :get_option_by_key(TotoWar_OptionName_GenericLoggerEnabled)
-        :get_finalized_setting()
-    self.ui.logger.isEnabled = options
-        :get_option_by_key(TotoWar_OptionName_UiUtilsLoggerEnabled)
-        :get_finalized_setting()
-    self.utils.logger.isEnabled = options
-        :get_option_by_key(TotoWar_OptionName_UtilsLoggerEnabled)
-        :get_finalized_setting()
-    self.options.debugEnabled = options
+
+    TotoWar.options.debugEnabled = options
         :get_option_by_key(TotoWar_OptionName_DebugEnabled)
         :get_finalized_setting()
 
-    self.genericLogger:logDebug("loadMctOptions(): COMPLETED")
+    TotoWar:overwriteOptionsForDebug()
+
+    TotoWar.genericLogger:logInfo("TotoWar | Options loaded")
 end
 
 ---Reacts to the start of the turn of a faction.
 ---@param faction FACTION_SCRIPT_INTERFACE Faction.
 function TotoWarMod:onFactionTurnStart(faction)
-    self.genericLogger:logInfo(
+    TotoWar.genericLogger:logInfo(
         "\n\n==================== NEW TURN | %s ====================\n\n",
         TotoWar.utils:getFactionCaption(faction:name()))
 end
 
 ---Reacts to options being updated.
 function TotoWarMod:onOptionsUpdated()
-    self.genericLogger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+    TotoWar.genericLogger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
 
-    self:loadMctOptions()
+    TotoWar:loadMctOptions()
 
     -- Signaling option changes
-    core:trigger_event(self.enums.modEvents.optionsUpdated)
+    core:trigger_event(TotoWar.enums.modEvents.optionsUpdated)
 
-    self.genericLogger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+    TotoWar.genericLogger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+end
+
+---Allows to programatically overwrite option values for local debug purpose.
+---
+---This method is called after options are updated.
+function TotoWarMod:overwriteOptionsForDebug()
+    TotoWar.genericLogger:logDebug("overwriteOptionsForDebug(): STARTED => TotoWar")
+
+    TotoWar.genericLogger:logDebug("overwriteOptionsForDebug(): COMPLETED => TotoWar")
 end

@@ -21,7 +21,7 @@ TotoWarModDefinition.__index = TotoWarModDefinition
 ---@return TotoWarModDefinition
 function TotoWarModDefinition.new(name, initializationFunction)
     TotoWar.genericLogger:logDebug(
-        "TotoWarMod.new(%s): STARTED",
+        "TotoWarModDefinition.new(%s): STARTED",
         function() return name end)
 
     local instance = setmetatable({}, TotoWarModDefinition)
@@ -30,7 +30,7 @@ function TotoWarModDefinition.new(name, initializationFunction)
     instance.name = name
 
     TotoWar.genericLogger:logDebug(
-        "TotoWarMod.new(%s): COMPLETED",
+        "TotoWarModDefinition.new(%s): COMPLETED",
         function() return name end)
 
     return instance
