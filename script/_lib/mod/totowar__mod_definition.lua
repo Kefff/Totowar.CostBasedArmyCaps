@@ -20,7 +20,7 @@ TotoWarModDefinition.__index = TotoWarModDefinition
 ---@param initializationFunction fun(modsManager: TotoWarModsManager) Function for initializing the mod.
 ---@return TotoWarModDefinition
 function TotoWarModDefinition.new(name, initializationFunction)
-    TotoWar.genericLogger:logDebug(
+    TotoWar.loggers.generic:logDebug(
         "TotoWarModDefinition.new(%s): STARTED",
         function() return name end)
 
@@ -29,7 +29,7 @@ function TotoWarModDefinition.new(name, initializationFunction)
     instance.initializeFunction = initializationFunction
     instance.name = name
 
-    TotoWar.genericLogger:logDebug(
+    TotoWar.loggers.generic:logDebug(
         "TotoWarModDefinition.new(%s): COMPLETED",
         function() return name end)
 

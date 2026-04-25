@@ -33,6 +33,8 @@ TotoWarCbacRecruitmentPoolUI.__index = TotoWarCbacRecruitmentPoolUI
 ---@param updateUIFunction fun() Function to call to updated the recruitment pool UI.
 ---@return TotoWarCbacRecruitmentPoolUI
 function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, updateUIFunction)
+    TotoWarCbac.loggers.generic:logDebug("TotoWarCbacRecruitmentPoolUI.new(): STARTED")
+
     local instance = setmetatable({}, TotoWarCbacRecruitmentPoolUI)
 
     instance.isResized = false
@@ -41,7 +43,7 @@ function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, upd
     instance.uiComponentQuery = uiComponentQuery
     instance.updateUIFunction = updateUIFunction
 
-    TotoWar.genericLogger:logDebug("TotoWarCbacRecruitmentPoolUI.new(): COMPLETED")
+    TotoWarCbac.loggers.generic:logDebug("TotoWarCbacRecruitmentPoolUI.new(): COMPLETED")
 
     return instance
 end

@@ -1,10 +1,6 @@
 ---Utility tools for TotoWar mods.
 ---@class TotoWarUtils
 TotoWarUtils = {
-    ---Logger.
-    ---@type TotoWarLogger
-    logger = nil,
-
     ---Player faction name.
     ---@type string
     playerFactionName = nil
@@ -14,12 +10,13 @@ TotoWarUtils.__index = TotoWarUtils
 ---Initializes a new instance.
 ---@return TotoWarUtils
 function TotoWarUtils.new()
+    TotoWar.loggers.utils:logDebug("new(): STARTED")
+
     local instance = setmetatable({}, TotoWarUtils)
 
-    instance.logger = TotoWarLogger.new("TotoWar_Utils")
     instance.playerFactionName = cm:get_local_faction_name()
 
-    instance.logger:logDebug("new(): COMPLETED")
+    TotoWar.loggers.utils:logDebug("new(): COMPLETED")
 
     return instance
 end
@@ -40,13 +37,13 @@ function TotoWarUtils:addListener(listenerNamePrefix, event, conditionFunction, 
 
     if not isPermanent then
         listenerName = string.format("%s_SingleUse_%s", listenerNamePrefix, event)
-        self.logger:logDebug(
+        TotoWar.loggers.utils:logDebug(
             "addListener() => Add single-use listener \"%s\" to event \"%s\"",
             function() return listenerName end,
             function() return event end)
     else
         listenerName = string.format("%s_%s", listenerNamePrefix, event)
-        self.logger:logDebug(
+        TotoWar.loggers.utils:logDebug(
             "addListener() => Add listener \"%s\" to event \"%s\"",
             function() return listenerName end,
             function() return event end)
@@ -59,7 +56,7 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
 ---@return boolean
 function TotoWarUtils:canRecruitUnits(army)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "canRecruitUnits(%s): STARTED",
         function()
             if army:has_general() then
@@ -75,7 +72,7 @@ function TotoWarUtils:canRecruitUnits(army)
         and not army:is_set_piece_battle_army()
         and not army:force_type():has_feature("unable_to_recruit_units")
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "canRecruitUnits(%s): COMPLETED => %s",
         function()
             if army:has_general() then
@@ -92,7 +89,7 @@ end
 ---Gets the caption of a character.
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
 function TotoWarUtils:getCharacterCaption(character)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getCharacterCaption(%s): STARTED",
         function() return character:cqi() end)
 
@@ -103,7 +100,7 @@ function TotoWarUtils:getCharacterCaption(character)
         caption = caption .. " " .. surname
     end
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getCharacterCaption(%s): COMPLETED => %s",
         function() return character:cqi() end,
         function() return caption end)
@@ -114,13 +111,13 @@ end
 ---Gets the caption of a faction.
 ---@param factionName string Faction name.
 function TotoWarUtils:getFactionCaption(factionName)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getFactionCaption(%s): STARTED",
         function() return factionName end)
 
     local caption = common.get_localised_string("factions_screen_name_" .. factionName)
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getFactionCaption(%s): COMPLETED => %s",
         function() return factionName end,
         function() return caption end)
@@ -131,15 +128,15 @@ end
 ---Get the Mod Configuration Tool if it is installed.
 ---@return any
 function TotoWarUtils:getMct()
-    self.logger:logDebug("getMct(): STARTED")
+    TotoWar.loggers.utils:logDebug("getMct(): STARTED")
 
     local mct = core:get_static_object("mod_configuration_tool")
 
     if not mct then
-        self.logger:logDebug("getMct(): NOT FOUND")
+        TotoWar.loggers.utils:logDebug("getMct(): NOT FOUND")
     end
 
-    self.logger:logDebug("getMct(): COMPLETED")
+    TotoWar.loggers.utils:logDebug("getMct(): COMPLETED")
 
     return mct
 end
@@ -153,7 +150,7 @@ end
 ---@param predicate fun(item1: T, item2: T): boolean Predicate.
 ---@return string[]
 function TotoWarUtils:getSortedDictionaryKeys(dictionary, predicate)
-    self.logger:logDebug("getSorterDictionaryKeys(): STARTED")
+    TotoWar.loggers.utils:logDebug("getSorterDictionaryKeys(): STARTED")
 
     local keys = {}
 
@@ -165,7 +162,7 @@ function TotoWarUtils:getSortedDictionaryKeys(dictionary, predicate)
         return predicate(dictionary[key1], dictionary[key2])
     end)
 
-    self.logger:logDebug("getSorterDictionaryKeys(): COMPLETED")
+    TotoWar.loggers.utils:logDebug("getSorterDictionaryKeys(): COMPLETED")
 
     return keys
 end
@@ -174,14 +171,14 @@ end
 ---@param unitKey string Unit key.
 ---@return string
 function TotoWarUtils:getUnitCaption(unitKey)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getUnitCaption(%s): STARTED",
         function() return unitKey end)
 
     ---@type string
     local caption = common.get_context_value(TotoWar.enums.ccoContextTypeIds.mainUnitRecord, unitKey, "Name")
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "getUnitCaption(%s): COMPLETED => %s",
         function() return unitKey end,
         function() return caption end)
@@ -193,7 +190,7 @@ end
 ---@param cqi integer | nil Unit command queue index.
 ---@return boolean
 function TotoWarUtils:isAgentUnit(cqi)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isAgent(%s): STARTED",
         function() return cqi end)
 
@@ -221,7 +218,7 @@ function TotoWarUtils:isAgentUnit(cqi)
         end
     end
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isAgent(%s): COMPLETED => %s",
         function() return cqi end,
         function() return isAgent end)
@@ -233,13 +230,13 @@ end
 ---@param cqi integer Unit command queue index.
 ---@return boolean
 function TotoWarUtils:isCharacterUnit(cqi)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isCharacterUnit(%s): STARTED",
         function() return cqi end)
 
     local isCharacter = self:isGeneralUnit(cqi) or self:isAgentUnit(cqi)
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isCharacterUnit(%s): COMPLETED => %s",
         function() return cqi end,
         function() return isCharacter end)
@@ -251,7 +248,7 @@ end
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
 function TotoWarUtils:isGeneralCharacter(character)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isGeneralCharacter(%s): STARTED",
         function() return self:getCharacterCaption(character) end)
 
@@ -259,7 +256,7 @@ function TotoWarUtils:isGeneralCharacter(character)
         character:has_military_force()
         and self:canRecruitUnits(character:military_force())
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isGeneralCharacter(%s): COMPLETED => %s",
         function() return self:getCharacterCaption(character) end,
         function() return isPlayerFactionGeneral end)
@@ -271,7 +268,7 @@ end
 ---@param cqi integer | nil Unit command queue index.
 ---@return boolean
 function TotoWarUtils:isGeneralUnit(cqi)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isGeneralUnit(%s): STARTED",
         function() return cqi end)
 
@@ -299,7 +296,7 @@ function TotoWarUtils:isGeneralUnit(cqi)
         end
     end
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isGeneralUnit(%s): COMPLETED => %s",
         function() return cqi end,
         function() return isGeneral end)
@@ -311,13 +308,13 @@ end
 ---@param factionName string Faction name.
 ---@return boolean
 function TotoWarUtils:isPlayerFaction(factionName)
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isPlayerFaction(%s): STARTED",
         function() return self:getFactionCaption(factionName) end)
 
     local isPlayerFactionGeneral = factionName == self.playerFactionName
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "isPlayerFaction(%s): COMPLETED => %s",
         function() return self:getFactionCaption(factionName) end,
         function() return isPlayerFactionGeneral end)
@@ -331,11 +328,11 @@ end
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
 function TotoWarUtils:linqAny(list, predicate)
-    self.logger:logDebug("linqAny(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqAny(%s): STARTED", function() return #list end)
 
     local exists = self:linqFirstOrDefault(list, predicate) ~= nil
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "linqAny(%s) => %s",
         function() return #list end,
         function() return exists end)
@@ -349,19 +346,19 @@ end
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T | nil
 function TotoWarUtils:linqFirstOrDefault(list, predicate)
-    self.logger:logDebug("linqFirstOrDefault(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqFirstOrDefault(%s): STARTED", function() return #list end)
 
     for index, item in ipairs(list) do
         local predicateResult = predicate(item)
 
         if predicateResult then
-            self.logger:logDebug("linqFirstOrDefault(%s): COMPLETED", function() return #list end)
+            TotoWar.loggers.utils:logDebug("linqFirstOrDefault(%s): COMPLETED", function() return #list end)
 
             return item
         end
     end
 
-    self.logger:logDebug("linqFirstOrDefault(%s): NOT FOUND", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqFirstOrDefault(%s): NOT FOUND", function() return #list end)
 
     return nil
 end
@@ -372,7 +369,7 @@ end
 ---@param predicate fun(item: T): string Predicate.
 ---@return { [string]: T[] }
 function TotoWarUtils:linqGroupBy(list, predicate)
-    self.logger:logDebug("linqGroupBy(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqGroupBy(%s): STARTED", function() return #list end)
 
     ---@type { [string]: `T`[] }
     local groups = {}
@@ -387,7 +384,7 @@ function TotoWarUtils:linqGroupBy(list, predicate)
         end
     end
 
-    self.logger:logDebug("linqGroupBy(%s): COMPLETED => %s",
+    TotoWar.loggers.utils:logDebug("linqGroupBy(%s): COMPLETED => %s",
         function() return #list end,
         function()
             local n = 0
@@ -408,20 +405,20 @@ end
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T
 function TotoWarUtils:linqLastOrDefault(list, predicate)
-    self.logger:logDebug("linqLastOrDefault(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqLastOrDefault(%s): STARTED", function() return #list end)
 
     for i = #list, 1, -1 do
         local item = list[i]
         local predicateResult = predicate(item)
 
         if predicateResult then
-            self.logger:logDebug("linqLastOrDefault(%s): COMPLETED", function() return #list end)
+            TotoWar.loggers.utils:logDebug("linqLastOrDefault(%s): COMPLETED", function() return #list end)
 
             return item
         end
     end
 
-    self.logger:logDebug("linqLastOrDefault(%s): NOT FOUND", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqLastOrDefault(%s): NOT FOUND", function() return #list end)
 
     return nil
 end
@@ -432,7 +429,7 @@ end
 ---@param predicate fun(item: T): number Predicate.
 ---@return number
 function TotoWarUtils:linqSum(list, predicate)
-    self.logger:logDebug("linqSum(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqSum(%s): STARTED", function() return #list end)
 
     ---@type number
     local result = 0
@@ -441,7 +438,7 @@ function TotoWarUtils:linqSum(list, predicate)
         result = result + predicate(item)
     end
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "linqSum(%s): COMPLETED => %s",
         function() return #list end,
         function() return result end
@@ -456,7 +453,7 @@ end
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T[]
 function TotoWarUtils:linqWhere(list, predicate)
-    self.logger:logDebug("linqWhere(%s): STARTED", function() return #list end)
+    TotoWar.loggers.utils:logDebug("linqWhere(%s): STARTED", function() return #list end)
 
     local filteredTable = {}
 
@@ -468,7 +465,7 @@ function TotoWarUtils:linqWhere(list, predicate)
         end
     end
 
-    self.logger:logDebug(
+    TotoWar.loggers.utils:logDebug(
         "linqWhere(%s): COMPLETED => %s",
         function() return #list end,
         function() return #filteredTable end
@@ -481,7 +478,7 @@ end
 ---@param number_ number Number.
 ---@return integer
 function TotoWarUtils:roundToNearestInteger(number_)
-    self.logger:logDebug("roundToNearestInteger(%s): STARTED", function() return number_ end)
+    TotoWar.loggers.utils:logDebug("roundToNearestInteger(%s): STARTED", function() return number_ end)
 
     local result = 0
 
@@ -491,7 +488,7 @@ function TotoWarUtils:roundToNearestInteger(number_)
         result = math.ceil(number_ - 0.5)
     end
 
-    self.logger:logDebug("roundToNearestInteger(%s): COMPLETED => %s",
+    TotoWar.loggers.utils:logDebug("roundToNearestInteger(%s): COMPLETED => %s",
         function() return number_ end,
         function() return result end
     )

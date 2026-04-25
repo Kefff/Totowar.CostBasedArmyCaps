@@ -29,7 +29,7 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
     local character = cm:get_character_by_cqi(cqi)
 
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(character) end)
 
@@ -51,7 +51,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
     instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
     instance.unitKey = unitKey
 
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
         function() return TotoWar.utils:getCharacterCaption(character) end,
         function() return instance.baseUnitKey end,
@@ -65,7 +65,7 @@ end
 ---@param cqi integer | nil Command queue index of the unit (if we are able to get one).
 ---@return TotoWarCbacUnitArmySuppliesCost
 function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
@@ -82,7 +82,7 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
     instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
     instance.unitKey = unitKey
 
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): COMPLETED => %s, %s",
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return instance.baseUnitKey end,
@@ -96,7 +96,7 @@ end
 ---@param cqi integer | nil Unit command queue index (if it has one).
 ---@return TotoWarCbac_Enums_ArmyCompositionUnitCategories
 function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey, cqi)
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
         function() return unitKey end)
 
@@ -130,7 +130,7 @@ function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey,
         end
     end
 
-    TotoWar.genericLogger:logDebug(
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): COMPLETED => %s",
         function() return unitKey end,
         function() return armyCompositionUnitType end)

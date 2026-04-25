@@ -49,7 +49,7 @@ local function log(instance, severity, message, ...)
     fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.loggerName, message)
     ModLog(fullLog)
 
-    local file = io.open(TotoWar.logFileName, "a")
+    local file = io.open(TotoWar.options.logFileName, "a")
 
     if file then
         file:write(fullLog .. "\n")

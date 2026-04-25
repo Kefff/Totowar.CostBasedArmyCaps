@@ -34,10 +34,6 @@ local _unitArmySuppliesCostUIComponentOffsetY = -18
 ---Manager in charge of displaying army supplies cost in the UI.
 ---@class TotoWarCbacUIManager
 TotoWarCbacUIManager = {
-    ---Logger.
-    ---@type TotoWarLogger
-    logger = nil,
-
     ---Last opened panel.
     ---@type string | nil
     lastOpenedPanel = nil,
@@ -55,9 +51,9 @@ TotoWarCbacUIManager.__index = TotoWarCbacUIManager
 ---Initializes a new instance.
 ---@return TotoWarCbacUIManager
 function TotoWarCbacUIManager.new()
-    local instance = setmetatable({}, TotoWarCbacUIManager)
+    TotoWarCbac.loggers.uiManager:logDebug("new(): STARTED")
 
-    instance.logger = TotoWarLogger.new("TotoWar_Cbac_UIManager")
+    local instance = setmetatable({}, TotoWarCbacUIManager)
 
     instance.recruitmentPools = {}
     instance.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.allied] = {
@@ -93,14 +89,14 @@ function TotoWarCbacUIManager.new()
         end
     }
 
-    instance.logger:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("new(): COMPLETED")
 
     return instance
 end
 
 ---Adds listeners for events.
 function TotoWarCbacUIManager:addListeners()
-    self.logger:logDebug("addListeners(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
@@ -191,13 +187,13 @@ function TotoWarCbacUIManager:addListeners()
             self:onUnitExchangeSuppliesCostChanged()
         end)
 
-    self.logger:logDebug("addListeners(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("addListeners(): COMPLETED")
 end
 
 ---Creates the army supplies UI component and registers it as a child of a parent component.
 ---@param parentUIComponent UIC Parent UI component.
 function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "createArmySuppliesUIComponent(%s): STARTED",
         function() return parentUIComponent:Id() end)
 
@@ -208,7 +204,7 @@ function TotoWarCbacUIManager:createArmySuppliesUIComponent(parentUIComponent)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
     parentUIComponent:Adopt(uiComponentAddress)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "createArmySuppliesUIComponent(%s): COMPLETED",
         function() return parentUIComponent:Id() end)
 
@@ -224,7 +220,7 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
     text,
     tooltip
 )
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): STARTED",
         function() return parentUIComponent:Id() end,
         function() return text end,
@@ -243,7 +239,7 @@ function TotoWarCbacUIManager:createOrUpdateArmySuppliesUIComponent(
     armySuppliesUIComponent:SetTooltipText(tooltip, true)
     armySuppliesUIComponent:SetVisible(true)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "createOrUpdateArmySuppliesUIComponent(%s, %s, %s): COMPLETED",
         function() return parentUIComponent:Id() end,
         function() return text end,
@@ -255,7 +251,7 @@ end
 ---Finds the open recruitment pools.
 ---@return TotoWarCbacRecruitmentPoolUI[]
 function TotoWarCbacUIManager:findOpenRecruitmentPools()
-    self.logger:logDebug("findOpenRecruitmentPool(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("findOpenRecruitmentPool(): STARTED")
 
     local recruitmentPools = {}
 
@@ -267,7 +263,7 @@ function TotoWarCbacUIManager:findOpenRecruitmentPools()
         end
     end
 
-    self.logger:logDebug("findOpenRecruitmentPool(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("findOpenRecruitmentPool(): COMPLETED")
 
     return recruitmentPools
 end
@@ -276,7 +272,7 @@ end
 ---@param panelName string Panel name.
 ---@return TotoWarCbacRecruitmentPoolUI[]
 function TotoWarCbacUIManager:findRecruitmentPoolsInPanel(panelName)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "findRecruitmentPoolInPanel(%s): STARTED",
         function() return panelName end)
 
@@ -297,7 +293,7 @@ function TotoWarCbacUIManager:findRecruitmentPoolsInPanel(panelName)
         end
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "findRecruitmentPoolInPanel(%s): COMPLETED",
         function() return panelName end)
 
@@ -307,7 +303,7 @@ end
 ---Gets the text representing an army supplies cost.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost.
 function TotoWarCbacUIManager:getArmySuppliesCostText(armySuppliesCost)
-    self.logger:logDebug("getArmySuppliesCostText(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("getArmySuppliesCostText(): STARTED")
 
     ---@type string
     local armySuppliesCostText
@@ -322,7 +318,7 @@ function TotoWarCbacUIManager:getArmySuppliesCostText(armySuppliesCost)
         armySuppliesCostText = tostring(armySuppliesCost.availableSupplies)
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "getArmySuppliesCostText(): COMPLETED => %s",
         function() return armySuppliesCostText end)
 
@@ -331,7 +327,7 @@ end
 
 ---Hides the army supplies cost UI component.
 function TotoWarCbacUIManager:hideArmySuppliesCostUIComponent()
-    self.logger:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
 
     local unitsPanelIconListUIComponent = TotoWar.ui:findUIComponent(
         TotoWar.ui.uiComponentQueries.unitsPanelIconList)
@@ -346,14 +342,14 @@ function TotoWarCbacUIManager:hideArmySuppliesCostUIComponent()
         end
     end
 
-    self.logger:logDebug("hideArmySuppliesCostUIComponent(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("hideArmySuppliesCostUIComponent(): COMPLETED")
 end
 
 ---Indicates whether a panel is a recruitment panel.
 ---@param panelName string Panel name.
 ---@return boolean
 function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "isRecruitmentPanel(%s): STARTED",
         function() return panelName end)
 
@@ -367,7 +363,7 @@ function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
         end
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "isRecruitmentPanel(%s): COMPLETED => %s",
         function() return panelName end,
         function() return result end)
@@ -377,33 +373,33 @@ end
 
 ---Reacts to a character being deselected.
 function TotoWarCbacUIManager:onCharacterDeselected()
-    self.logger:logDebug("[EVENT] onCharacterDeselected(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onCharacterDeselected(): STARTED")
 
     self:hideArmySuppliesCostUIComponent()
     self:resetUIChangeFlags()
 
-    self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
 end
 
 ---Reacts to options being updated.
 function TotoWarCbacUIManager:onOptionsUpdated()
-    self.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onOptionsUpdated(): STARTED")
 
     -- Clearing the selection for two reasons :
     -- - it resets its movement if the selected character was not able to move, otherwise the character could not be move anymore if the player army supplies option has been disabled
     -- - it closes the unit list and recruitment UI which will hide army supplies if the player army supplies option has been disabled
     CampaignUI.ClearSelection()
 
-    self.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETE")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onOptionsUpdated(): COMPLETE")
 end
 
 ---Reacts to the recruitment panel being closed.
 function TotoWarCbacUIManager:onRecruitmentPanelClosed()
-    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onRecruitmentPanelClosed(): STARTED")
 
     self:resetUIChangeFlags()
 
-    self.logger:logDebug("[EVENT] onRecruitmentPanelClosed(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onRecruitmentPanelClosed(): COMPLETED")
 end
 
 ---Reacts to a panel being opened.
@@ -414,7 +410,7 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     --- So when it is opened, the army supplies cost is not up to date.
     --- It is later updated when the SelectedGeneralArmySuppliesCostChanged event is triggered.
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "[EVENT] onPanelOpened(%s): STARTED",
         function() return panelName end)
 
@@ -436,45 +432,45 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     self.lastOpenedPanel = panelName
     self.lastOpenedRecruitmentPools = recruitmentPools
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "[EVENT] onPanelOpened(%s): COMPLETED",
         function() return panelName end)
 end
 
 ---Reacts to the army supplies cost of the selected general changing.
 function TotoWarCbacUIManager:onSelectedGeneralArmySuppliesCostChanged()
-    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
 
     self:updateUnitsPanel()
 
     local recruitmentPools = self:findOpenRecruitmentPools()
     self:updateRecruitmentPools(recruitmentPools)
 
-    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Resets flags that indicate UI changes have been made to display army supply costs.
 function TotoWarCbacUIManager:resetUIChangeFlags()
-    self.logger:logDebug("resetUIChangeFlags(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("resetUIChangeFlags(): STARTED")
 
     self.lastOpenedPanel = nil
     self.lastOpenedRecruitmentPools = {}
 
-    self.logger:logDebug("resetUIChangeFlags(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("resetUIChangeFlags(): COMPLETED")
 end
 
 ---Reacts to the another faction character being selected.
 function TotoWarCbacUIManager:onOtherFactionCharacterSelected()
-    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
 
     self:hideArmySuppliesCostUIComponent()
 
-    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to the army supplies cost of armies exchanging units changing.
 function TotoWarCbacUIManager:onUnitExchangeSuppliesCostChanged()
-    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
 
     local unitExchangePool1UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool1)
     self:updateUnitExchangePool(unitExchangePool1UIComponent, TotoWarCbac.playerManager.unitExchangeArmySuppliesCost1)
@@ -482,12 +478,12 @@ function TotoWarCbacUIManager:onUnitExchangeSuppliesCostChanged()
     local unitExchangePool2UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool2)
     self:updateUnitExchangePool(unitExchangePool2UIComponent, TotoWarCbac.playerManager.unitExchangeArmySuppliesCost2)
 
-    self.logger:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Updates the allied recruitment pool.
 function TotoWarCbacUIManager:updateAlliedRecruitmentPool()
-    self.logger:logDebug("updateAlliedRecruitmentPanel(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateAlliedRecruitmentPanel(): STARTED")
 
     local alliedRecruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
         TotoWar.ui.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool)
@@ -510,12 +506,12 @@ function TotoWarCbacUIManager:updateAlliedRecruitmentPool()
         end
     end
 
-    self.logger:logDebug("updateAlliedRecruitmentPanel(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateAlliedRecruitmentPanel(): COMPLETED")
 end
 
 ---Updates the global recruitment pool.
 function TotoWarCbacUIManager:updateGlobalRecruitmentPool()
-    self.logger:logDebug("updateGlobalRecruitmentPool(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateGlobalRecruitmentPool(): STARTED")
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local globalRecruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
@@ -536,12 +532,12 @@ function TotoWarCbacUIManager:updateGlobalRecruitmentPool()
         end
     end
 
-    self.logger:logDebug("updateGlobalRecruitmentPool(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateGlobalRecruitmentPool(): COMPLETED")
 end
 
 ---Updates the local recruitment pool.
 function TotoWarCbacUIManager:updateLocalRecruitmentPool()
-    self.logger:logDebug("updateLocalRecruitmentPool(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateLocalRecruitmentPool(): STARTED")
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local localRecruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
@@ -562,12 +558,12 @@ function TotoWarCbacUIManager:updateLocalRecruitmentPool()
         end
     end
 
-    self.logger:logDebug("updateLocalRecruitmentPool(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateLocalRecruitmentPool(): COMPLETED")
 end
 
 ---Updates the mercenary recruitment pool.
 function TotoWarCbacUIManager:updateMercenaryRecruitmentPool()
-    self.logger:logDebug("updateMercenaryRecruitmentPanel(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateMercenaryRecruitmentPanel(): STARTED")
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local recruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
@@ -595,7 +591,7 @@ function TotoWarCbacUIManager:updateMercenaryRecruitmentPool()
         end
     end
 
-    self.logger:logDebug("updateMercenaryRecruitmentPanel(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateMercenaryRecruitmentPanel(): COMPLETED")
 end
 
 ---Updates the army supplies cost of a recruitable unit card.
@@ -609,7 +605,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
     ---@type number
     local unitBaseCost = unitContext:Call("UnmountedUnitRecordContext.BaseCost")
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateRecruitableUnitCard(%s): STARTED => (%s, %s)",
         function() return unitCardUIComponent:Id() end,
         function() return unitName end,
@@ -644,7 +640,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     if unitBaseCost > TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost.availableSupplies then
         -- Disabling the unit card when its the army supplies exceeds the available army supplies of the selected general
-        self.logger:logDebug(
+        TotoWarCbac.loggers.uiManager:logDebug(
             "updateRecruitableUnitCard(%s): UNIT RECRUITMENT DISABLED => (%s, %s)",
             function() return unitCardUIComponent:Id() end,
             function() return unitName end,
@@ -660,7 +656,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     armySuppliesCostUIComponent:SetText(unitBaseCostText, "")
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateRecruitableUnitCard(%s): COMPLETED => (%s, %s)",
         function() return unitCardUIComponent:Id() end,
         function() return unitName end,
@@ -671,7 +667,7 @@ end
 ---@param unitCardListUIComponent UIC UI component that contains the list of recruitable units cards.
 function TotoWarCbacUIManager:updateRecruitableUnitCardList(
     unitCardListUIComponent)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateRecruitableUnitCardList(%s): STARTED",
         function() return unitCardListUIComponent:Id() end)
 
@@ -680,7 +676,7 @@ function TotoWarCbacUIManager:updateRecruitableUnitCardList(
         self:updateRecruitableUnitCard(unitCardUIComponent)
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateRecruitableUnitCardList(%s): COMPLETED",
         function() return unitCardListUIComponent:Id() end)
 end
@@ -688,26 +684,26 @@ end
 ---Updates army supplies costs on recruitment pools.
 ---@param recruitmentPools TotoWarCbacRecruitmentPoolUI Recruitment pools.
 function TotoWarCbacUIManager:updateRecruitmentPools(recruitmentPools)
-    self.logger:logDebug("updateRecruitmentPools(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateRecruitmentPools(): STARTED")
 
     for key, recruitmentPool in pairs(recruitmentPools) do
         ---@cast recruitmentPool TotoWarCbacRecruitmentPoolUI
 
-        self.logger:logDebug(
+        TotoWarCbac.loggers.uiManager:logDebug(
             "updateRecruitmentPools() => %s",
             function() return recruitmentPool.name end)
 
         recruitmentPool.updateUIFunction()
     end
 
-    self.logger:logDebug("updateRecruitmentPools(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateRecruitmentPools(): COMPLETED")
 end
 
 ---Updates the army supplies cost of a unit exchange pool.
 ---@param unitExchangePoolUIComponent UIC Unit exchange pool UI component.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost.
 function TotoWarCbacUIManager:updateUnitExchangePool(unitExchangePoolUIComponent, armySuppliesCost)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateUnitExchangePool(%s): STARTED",
         function() return unitExchangePoolUIComponent:Id() end)
 
@@ -718,14 +714,14 @@ function TotoWarCbacUIManager:updateUnitExchangePool(unitExchangePoolUIComponent
         armySuppliesCostText,
         armySuppliesCost:toArmySuppliesCostTooltipText())
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.uiManager:logDebug(
         "updateUnitExchangePool(%s): COMPLETED",
         function() return unitExchangePoolUIComponent:Id() end)
 end
 
 ---Updates the army supplies cost of the panel that lists all the units in the selected army.
 function TotoWarCbacUIManager:updateUnitsPanel()
-    self.logger:logDebug("updateUnitsPanel(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateUnitsPanel(): STARTED")
 
     local unitsPanelIconListUIComponent = TotoWar.ui:getUIComponent(
         TotoWar.ui.uiComponentQueries.unitsPanelIconList)
@@ -736,5 +732,5 @@ function TotoWarCbacUIManager:updateUnitsPanel()
         armySuppliesCostText,
         TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText())
 
-    self.logger:logDebug("updateUnitsPanel(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("updateUnitsPanel(): COMPLETED")
 end

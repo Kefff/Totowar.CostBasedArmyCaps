@@ -44,6 +44,25 @@ TotoWarCbacMod = {
         }
     },
 
+    ---Loggers.
+    ---@class TotoWarCbac_Loggers
+    loggers = {
+        ---@type TotoWarLogger
+        aiManager = nil,
+
+        ---@type TotoWarLogger
+        armySuppliesCost = nil,
+
+        ---@type TotoWarLogger
+        generic = nil,
+
+        ---@type TotoWarLogger
+        playerManager = nil,
+
+        ---@type TotoWarLogger
+        uiManager = nil,
+    },
+
     ---Options
     ---@class TotoWarCbac_Options
     options = {
@@ -75,10 +94,6 @@ TotoWarCbacMod = {
         playerArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled,
     },
 
-    ---Logger.
-    ---@type TotoWarLogger
-    logger = nil,
-
     ---Manager for player army supplies.
     ---@type TotoWarCbacPlayerManager
     playerManager = nil,
@@ -99,7 +114,7 @@ TotoWarCbac = nil
 function TotoWarCbacMod.new()
     TotoWarCbac = setmetatable({}, TotoWarCbacMod)
 
-    TotoWarCbac.logger = TotoWarLogger.new("TotoWar_Cbac")
+    TotoWarCbac:initializeLoggers()
 
     TotoWarCbac.aiManager = TotoWarCbacAiManager:new()
     TotoWarCbac.playerManager = TotoWarCbacPlayerManager:new()
@@ -108,15 +123,15 @@ function TotoWarCbacMod.new()
     TotoWarCbac:loadMctOptions()
     TotoWarCbac:addListeners()
 
-    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Mod initialized")
-    TotoWarCbac.logger:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Mod initialized")
+    TotoWarCbac.loggers.generic:logDebug("new(): COMPLETED")
 
     return TotoWarCbac
 end
 
 ---Adds event listeners.
 function TotoWarCbacMod:addListeners()
-    TotoWarCbac.logger:logDebug("addListeners(): STARTED")
+    TotoWarCbac.loggers.generic:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
         "TotoWarCbac",
@@ -131,7 +146,18 @@ function TotoWarCbacMod:addListeners()
     TotoWarCbac.playerManager:addListeners()
     TotoWarCbac.uiManager:addListeners()
 
-    TotoWarCbac.logger:logDebug("addListeners(): COMPLETED")
+    TotoWarCbac.loggers.generic:logDebug("addListeners(): COMPLETED")
+end
+
+---Initializes loggers.
+function TotoWarCbacMod:initializeLoggers()
+    TotoWarCbac.loggers.aiManager = TotoWarLogger.new("TotoWarCbac_AiManager")
+    TotoWarCbac.loggers.armySuppliesCost = TotoWarLogger.new("TotoWarCbac_ArmySuppliesCost")
+    TotoWarCbac.loggers.generic = TotoWarLogger.new("TotoWarCbac_Generic")
+    TotoWarCbac.loggers.playerManager = TotoWarLogger.new("TotoWarCbac_PlayerManager")
+    TotoWarCbac.loggers.uiManager = TotoWarLogger.new("TotoWarCbac_UIManager")
+
+    TotoWarCbac.loggers.generic:logDebug("initializeLoggers(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
@@ -142,7 +168,7 @@ function TotoWarCbacMod:loadMctOptions()
         return
     end
 
-    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Loading options")
+    TotoWarCbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Loading options")
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
 
@@ -184,26 +210,28 @@ function TotoWarCbacMod:loadMctOptions()
 
     TotoWarCbac:overwriteOptionsForDebug()
 
-    TotoWarCbac.logger:logInfo("TotoWar - Cost-Based Army Caps | Options loaded")
+    TotoWarCbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Options loaded")
 end
 
 ---Reacts to options being updated.
 function TotoWarCbacMod:onOptionsUpdated()
-    TotoWarCbac.logger:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+    TotoWarCbac.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): STARTED")
 
     TotoWarCbac:loadMctOptions()
 
     -- Signaling option changes
     core:trigger_event(TotoWarCbac.enums.modEvents.optionsUpdated)
 
-    TotoWarCbac.logger:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+    TotoWarCbac.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
 end
 
 ---Allows to programatically overwrite option values for local debug purpose.
 ---
 ---This method is called after options are updated.
 function TotoWarCbacMod:overwriteOptionsForDebug()
-    TotoWarCbac.logger:logDebug("overwriteOptionsForDebug(): STARTED => TotoWarCbac")
+    TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
-    TotoWarCbac.logger:logDebug("overwriteOptionsForDebug(): COMPLETED => TotoWarCbac")
+    -- Set override values here
+
+    TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

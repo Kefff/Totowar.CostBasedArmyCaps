@@ -8,10 +8,6 @@ TotoWarCbacPlayerManager = {
     ---supplies cost initialization.
     isInitializingArmySuppliesCost = false,
 
-    ---Logger.
-    ---@type TotoWarLogger
-    logger = nil,
-
     ---Unique identifier of the selected general.
     ---@type CHARACTER_SCRIPT_INTERFACE  | nil
     selectedGeneral = nil,
@@ -33,20 +29,21 @@ TotoWarCbacPlayerManager.__index = TotoWarCbacPlayerManager
 ---Initializes a new instance.
 ---@return TotoWarCbacPlayerManager
 function TotoWarCbacPlayerManager.new()
+    TotoWarCbac.loggers.playerManager:logDebug("new(): STARTED")
+
     local instance = setmetatable({}, TotoWarCbacPlayerManager)
 
-    instance.logger = TotoWarLogger.new("TotoWar_Cbac_PlayerManager")
     instance.selectedGeneral = nil
     instance.selectedGeneralArmySuppliesCost = nil
 
-    instance.logger:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("new(): COMPLETED")
 
     return instance
 end
 
 ---Adds listeners for events.
 function TotoWarCbacPlayerManager:addListeners()
-    self.logger:logDebug("addListeners(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
         "TotoWarCbacPlayerManager",
@@ -273,12 +270,12 @@ function TotoWarCbacPlayerManager:addListeners()
             self:onMercenaryUnitsRecruited(unit:unit_key(), unit:command_queue_index())
         end)
 
-    self.logger:logDebug("addListeners(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("addListeners(): COMPLETED")
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacPlayerManager:clearMercenaryRecruitment()
-    self.logger:logDebug("clearMercenaryRecruitment(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("clearMercenaryRecruitment(): STARTED")
 
     if #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
         self.selectedGeneralArmySuppliesCost:clearMercenaryRecruitment()
@@ -287,13 +284,13 @@ function TotoWarCbacPlayerManager:clearMercenaryRecruitment()
         core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
     end
 
-    self.logger:logDebug("clearMercenaryRecruitment(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Initializes the army supplies cost of the army of the selected general.
 ---@param general CHARACTER_SCRIPT_INTERFACE Selected general.
 function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "initializeArmySuppliesCost(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(general) end)
 
@@ -332,7 +329,7 @@ function TotoWarCbacPlayerManager:initializeArmySuppliesCost(general)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "initializeArmySuppliesCost(%s): COMPLETED => %s",
         function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return self.selectedGeneralArmySuppliesCost.totalCost end)
@@ -340,7 +337,7 @@ end
 
 ---Reacts to a character being deselected.
 function TotoWarCbacPlayerManager:onCharacterDeselected()
-    self.logger:logDebug("[EVENT] onCharacterDeselected(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onCharacterDeselected(): STARTED")
 
     if self.selectedGeneral then
         cm:enable_movement_for_character("character_cqi:" .. self.selectedGeneral:cqi())
@@ -348,13 +345,13 @@ function TotoWarCbacPlayerManager:onCharacterDeselected()
         self.selectedGeneralArmySuppliesCost = nil
     end
 
-    self.logger:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
 end
 
 ---Reacts to a character being selected.
 ---@param character CHARACTER_SCRIPT_INTERFACE Selected character.
 function TotoWarCbacPlayerManager:onCharacterSelected(character)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onCharacterSelected(%s from %s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(character) end,
         function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
@@ -394,7 +391,7 @@ function TotoWarCbacPlayerManager:onCharacterSelected(character)
         self.selectedGeneralArmySuppliesCost = nil
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onCharacterSelected(%s from %s): COMPLETED",
         function() return TotoWar.utils:getCharacterCaption(character) end,
         function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
@@ -403,7 +400,7 @@ end
 ---Reacts to the click on the unit card of a mercenary unit in the selected army recruitment queue.
 ---@param uiComponentName string Name of the clicked UI component.
 function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiComponentName)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onInRecruitmentMercenaryUniCardClick(%s): STARTED",
         function() return uiComponentName end)
 
@@ -412,14 +409,14 @@ function TotoWarCbacPlayerManager:onInRecruitmentMercenaryUniCardClick(uiCompone
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onInRecruitmentMercenaryUniCardClick(%s): COMPLETED",
         function() return uiComponentName end)
 end
 
 ---Reacts to the mercenary recruitment panel being closed.
 function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelClosed()
-    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): STARTED")
 
     if #self.selectedGeneralArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
         self.selectedGeneralArmySuppliesCost:clearMercenaryRecruitment()
@@ -428,23 +425,23 @@ function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelClosed()
         core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
     end
 
-    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onMercenaryRecruitmentPanelClosed(): COMPLETED")
 end
 
 ---Reacts to the mercenary recruitment panel being opened or closed.
 function TotoWarCbacPlayerManager:onMercenaryRecruitmentPanelOpened()
-    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): STARTED")
 
     self:clearMercenaryRecruitment()
 
-    self.logger:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onMercenaryRecruitmentPanelOpened(): COMPLETED")
 end
 
 ---Reacts to a mercenary unit being recruited in the selected general army.
 ---@param unitKey string Unit key.
 ---@param cqi integer Unit command queue index.
 function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey, cqi)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onMercenaryUnitRecruited(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
@@ -453,7 +450,7 @@ function TotoWarCbacPlayerManager:onMercenaryUnitsRecruited(unitKey, cqi)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onMercenaryUnitRecruited(%s): COMPLETED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 end
@@ -462,7 +459,7 @@ end
 ---@param uiComponentName string Name of the clicked UI component.
 ---@param unitUIComponent UIC Clicked UI component.
 function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponentName, unitUIComponent)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onRecruitableMercenaryUniCardClick(%s): STARTED",
         function() return uiComponentName end)
 
@@ -490,7 +487,7 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
         inRecruitmentMercenaryUnitCount = inRecruitmentMercenaryUnitCount + 1
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onRecruitableMercenaryUniCardClick(%s): %s mercenary units in the recruitment pool | %s mercenary units tracked in the army supplies cost",
         function() return uiComponentName end,
         function() return inRecruitmentMercenaryUnitCount end,
@@ -506,7 +503,7 @@ function TotoWarCbacPlayerManager:onRecruitableMercenaryUniCardClick(uiComponent
         self:onUnitAddedToRecruitment(unitKey, true)
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onRecruitableMercenaryUniCardClick(%s): COMPLETED",
         function() return uiComponentName end)
 end
@@ -517,7 +514,7 @@ function TotoWarCbacPlayerManager:onSelectedGeneralArmySuppliesCostChanged()
         return
     end
 
-    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
 
     local needsSelectedGeneralMovementUpdate = true
 
@@ -531,14 +528,14 @@ function TotoWarCbacPlayerManager:onSelectedGeneralArmySuppliesCostChanged()
         self:updatedSelectedGeneralMovement()
     end
 
-    self.logger:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to a unit being added to the recruitment queue of the selected general army.
 ---@param unitKey string Unit key.
 ---@param isMercenary boolean Indicates whether the unit added to recruitment is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...).
 function TotoWarCbacPlayerManager:onUnitAddedToRecruitment(unitKey, isMercenary)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitAddedToRecruitment(%s, %s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return isMercenary end)
@@ -548,7 +545,7 @@ function TotoWarCbacPlayerManager:onUnitAddedToRecruitment(unitKey, isMercenary)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitAddedToRecruitment(%s, %s): COMPLETED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end,
         function() return isMercenary end)
@@ -557,7 +554,7 @@ end
 ---Reacts to a unit being disbanded.
 ---@param unitKey string Unit key
 function TotoWarCbacPlayerManager:onUnitDisbanded(unitKey)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitDisbanded(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
@@ -566,33 +563,33 @@ function TotoWarCbacPlayerManager:onUnitDisbanded(unitKey)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitDisbanded(%s): COMPLETED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 end
 
 ---Reacts to the unit exchange panel being closed.
 function TotoWarCbacPlayerManager:onUnitExchangePanelClosed()
-    self.logger:logDebug("[EVENT] onUnitExchangePanelClosed(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePanelClosed(): STARTED")
 
     self.unitExchangeArmySuppliesCost1 = nil
     self.unitExchangeArmySuppliesCost2 = nil
 
-    self.logger:logDebug("[EVENT] onUnitExchangePanelClosed(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePanelClosed(): COMPLETED")
 end
 
 ---Reacts to the unit exchange panel being opened.
 function TotoWarCbacPlayerManager:onUnitExchangePanelOpened()
-    self.logger:logDebug("[EVENT] onUnitExchangePanelOpened(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePanelOpened(): STARTED")
 
     self:updateUnitExchangeArmySuppliesCosts()
 
-    self.logger:logDebug("[EVENT] onUnitExchangePanelOpened(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePanelOpened(): COMPLETED")
 end
 
 ---Reacts to a unit card in the first army unit exchange pool being clicked.
 function TotoWarCbacPlayerManager:onUnitExchangePoolUnitCardClick()
-    self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): STARTED")
 
     -- Each time a unit exchange unit card is clicked, we need to go through each unit exchange pool
     -- to see which units are selected and which are not.
@@ -600,13 +597,13 @@ function TotoWarCbacPlayerManager:onUnitExchangePoolUnitCardClick()
     -- we have no other way to know which cards have been added to the selection.
     self:updateUnitExchangeArmySuppliesCosts()
 
-    self.logger:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("[EVENT] onUnitExchangePoolUnitCardClick(): COMPLETED")
 end
 
 ---Reacts to a unit being destroyed after having been merged with another unit.
 ---@param unitKey string Unit key.
 function TotoWarCbacPlayerManager:onUnitMergedAndDestroyed(unitKey)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitMergedAndDestroyed(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
@@ -615,14 +612,14 @@ function TotoWarCbacPlayerManager:onUnitMergedAndDestroyed(unitKey)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitMergedAndDestroyed(%s): COMPLETED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 end
 
 ---Reacts to a unit being removed from the recruitment queue of the selected general army.
 function TotoWarCbacPlayerManager:onUnitRemovedFromRecruitment(unitKey)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitRemovedFromRecruitment(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 
@@ -631,7 +628,7 @@ function TotoWarCbacPlayerManager:onUnitRemovedFromRecruitment(unitKey)
     -- Signaling army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.playerManager:logDebug(
         "[EVENT] onUnitRemovedFromRecruitment(%s): COMPLETED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
 end
@@ -669,7 +666,7 @@ end
 
 ---Updates unit exchange army supplies costs.
 function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
-    self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
     self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.options.playerArmySuppliesAmount)
     self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(TotoWarCbac.options.playerArmySuppliesAmount)
@@ -689,15 +686,15 @@ function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
     -- Signaling unit exchange army supplies cost change
     core:trigger_event(TotoWarCbac.enums.modEvents.unitExchangeArmySuppliesCostChanged)
 
-    self.logger:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
 end
 
 ---Updates the ability to move of the selected general depending on the army supplies cost of its army.
 function TotoWarCbacPlayerManager:updatedSelectedGeneralMovement()
-    self.logger:logDebug("updatedSelectedGeneralMovement(): STARTED")
+    TotoWarCbac.loggers.playerManager:logDebug("updatedSelectedGeneralMovement(): STARTED")
 
     if self.selectedGeneralArmySuppliesCost.availableSupplies < 0 then
-        self.logger:logDebug(
+        TotoWarCbac.loggers.playerManager:logDebug(
             "updatedSelectedGeneralMovement(): BLOCKED => %s",
             function() return TotoWar.utils:getCharacterCaption(self.selectedGeneral) end)
 
@@ -714,12 +711,12 @@ function TotoWarCbacPlayerManager:updatedSelectedGeneralMovement()
             end
         end
     else
-        self.logger:logDebug(
+        TotoWarCbac.loggers.playerManager:logDebug(
             "updatedSelectedGeneralMovement(): FREE TO MOVE => %s",
             function() return TotoWar.utils:getCharacterCaption(self.selectedGeneral) end)
 
         cm:enable_movement_for_character("character_cqi:" .. self.selectedGeneral:cqi())
     end
 
-    self.logger:logDebug("updatedSelectedGeneralMovement(): COMPLETED")
+    TotoWarCbac.loggers.playerManager:logDebug("updatedSelectedGeneralMovement(): COMPLETED")
 end

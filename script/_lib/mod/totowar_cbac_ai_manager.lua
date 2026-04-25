@@ -1,27 +1,23 @@
 ---Manager in charge of managing the army supplies for the AI armies.
 ---@class TotoWarCbacAiManager
-TotoWarCbacAiManager = {
-    ---Logger.
-    ---@type TotoWarLogger
-    logger = nil
-}
+TotoWarCbacAiManager = {}
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
 ---Initializes a new instance.
 ---@return TotoWarCbacAiManager
 function TotoWarCbacAiManager.new()
+    TotoWarCbac.loggers.aiManager:logDebug("new(): STARTED")
+
     local instance = setmetatable({}, TotoWarCbacAiManager)
 
-    instance.logger = TotoWarLogger.new("TotoWar_Cbac_AiManager")
-
-    instance.logger:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.aiManager:logDebug("new(): COMPLETED")
 
     return instance
 end
 
 ---Adds listeners for events.
 function TotoWarCbacAiManager:addListeners()
-    self.logger:logDebug("addListeners(): STARTED")
+    TotoWarCbac.loggers.aiManager:logDebug("addListeners(): STARTED")
 
     TotoWar.utils:addListener(
         "TotoWarCbacAiManager",
@@ -52,7 +48,7 @@ function TotoWarCbacAiManager:addListeners()
             self:onAiUnitRecruited(context:unit():military_force(), context:unit())
         end)
 
-    self.logger:logDebug("addListeners(): COMPLETED")
+    TotoWarCbac.loggers.aiManager:logDebug("addListeners(): COMPLETED")
 end
 
 ---Adjusts an AI army by removing excess agents and units when its cost exceeds army supplies.
@@ -65,7 +61,7 @@ function TotoWarCbacAiManager:adjustAiArmy(army, lastRecruitedUnit)
         return
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmy(%s from %s, %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -103,7 +99,7 @@ function TotoWarCbacAiManager:adjustAiArmy(army, lastRecruitedUnit)
         end
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmy(%s from %s, %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -129,7 +125,7 @@ function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
 
     local general = army:general_character()
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyAgents(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -177,7 +173,7 @@ function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
         armySuppliesCost:removeCharacter(agentToRemove.cqi)
         agentsToRemoveAmount = agentsToRemoveAmount - 1
 
-        self.logger:logDebug(
+        TotoWarCbac.loggers.aiManager:logDebug(
             "adjustAiArmyAgents(%s from %s): REMOVED => %s (%s)",
             function() return TotoWar.utils:getCharacterCaption(general) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -185,7 +181,7 @@ function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
             function() return TotoWar.utils:getUnitCaption(agentToRemove.unitKey) end)
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyAgents(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -204,7 +200,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
         return
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyComposition(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -220,7 +216,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
             break
         end
 
-        self.logger:logDebug(
+        TotoWarCbac.loggers.aiManager:logDebug(
             "adjustAiArmyComposition(%s from %s): Category: %s | Excess: %s | Total army supplies cost: %s | Available army supplies: %s",
             function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -239,7 +235,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
                 armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey)
                 unitCategoryExcessCount = unitCategoryExcessCount - 1
 
-                self.logger:logDebug(
+                TotoWarCbac.loggers.aiManager:logDebug(
                     "adjustAiArmyComposition(%s from %s): EXCEEDING => %s | Category: %s | Remaining excess: %s | Total army supplies cost: %s | Available army supplies: %s",
                     function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
                     function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -252,7 +248,7 @@ function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, un
         end
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyComposition(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -282,7 +278,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         return
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyUnits(%s from %s, %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -348,7 +344,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         table.insert(finalSelectedUnits, selectedUnits[#selectedUnits])
         armySuppliesCostToDiscard = armySuppliesCostToDiscard - selectedUnits[#selectedUnits].armySuppliesCost
 
-        self.logger:logDebug(
+        TotoWarCbac.loggers.aiManager:logDebug(
             "adjustAiArmyUnits(%s from %s, %s): UNIT TO DISCARD: %s (%s)",
             function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -368,7 +364,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         armySuppliesCost:removeUnit(selectedUnit.unitKey)
     end
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyUnits(%s from %s, %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -381,7 +377,7 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitDisbanded(army, unit)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "[EVENT] onAiUnitDisbanded(%s from %s, %s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -389,7 +385,7 @@ function TotoWarCbacAiManager:onAiUnitDisbanded(army, unit)
 
     -- This is just to log how AI disbands units and how it impacts the mod
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "[EVENT] onAiUnitDisbanded(%s from %s, %s): COMPLETED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -400,7 +396,7 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -408,7 +404,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(army, unit)
 
     self:adjustAiArmy(army, unit)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "[EVENT] onAiUnitRecruited(%s from %s, %s): COMPLETED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -420,7 +416,7 @@ end
 ---@param unitKey string Key of the unit to remove.
 ---@param unitCqi integer Command queue index of the unit to remove.
 function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "removeUnitFromAiArmy(%s from %s, %s, %s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -432,7 +428,7 @@ function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
     if unitRealCost ~= nil and unitRealCost > 0 then
         cm:treasury_mod(army:faction():name(), unitRealCost)
 
-        self.logger:logDebug(
+        TotoWarCbac.loggers.aiManager:logDebug(
             "removeUnitFromAiArmy(%s from %s, %s, %s): REIMBURSE => %s | New treasury: %s",
             function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
@@ -444,7 +440,7 @@ function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
 
     cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
 
-    self.logger:logDebug(
+    TotoWarCbac.loggers.aiManager:logDebug(
         "removeUnitFromAiArmy(%s from %s, %s, %s): COMPLETED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
