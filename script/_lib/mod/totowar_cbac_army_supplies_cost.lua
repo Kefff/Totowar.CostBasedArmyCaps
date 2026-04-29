@@ -181,7 +181,7 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
         local proportion = value / totalUnitCount
 
         if proportion > TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key] then
-            categoryUnitExcessCounts[key] = TotoWar.utils:roundToNearestInteger(
+            categoryUnitExcessCounts[key] = totoWar_numberRoundToNearestInteger(
                 totalUnitCount * (proportion - TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key]))
         end
     end
@@ -430,7 +430,7 @@ end
 ---@return string
 function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
-    "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
+        "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
 
     ---@type string
     local tooltipText
@@ -462,7 +462,7 @@ function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmyS
     end
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
-    "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: COMPLETED")
+        "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: COMPLETED")
 
     return tooltipText
 end

@@ -51,7 +51,7 @@ TotoWarCbacUIManager.__index = TotoWarCbacUIManager
 ---Initializes a new instance.
 ---@return TotoWarCbacUIManager
 function TotoWarCbacUIManager.new()
-    TotoWarCbac.loggers.uiManager:logDebug("new(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("TotoWarCbacUIManager.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarCbacUIManager)
 
@@ -89,7 +89,7 @@ function TotoWarCbacUIManager.new()
         end
     }
 
-    TotoWarCbac.loggers.uiManager:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("TotoWarCbacUIManager.new(): COMPLETED")
 
     return instance
 end
@@ -373,33 +373,33 @@ end
 
 ---Reacts to a character being deselected.
 function TotoWarCbacUIManager:onCharacterDeselected()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onCharacterDeselected(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onCharacterDeselected(): STARTED")
 
     self:hideArmySuppliesCostUIComponent()
     self:resetUIChangeFlags()
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onCharacterDeselected(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onCharacterDeselected(): COMPLETED")
 end
 
 ---Reacts to options being updated.
 function TotoWarCbacUIManager:onOptionsUpdated()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onOptionsUpdated(): STARTED")
 
     -- Clearing the selection for two reasons :
     -- - it resets its movement if the selected character was not able to move, otherwise the character could not be move anymore if the player army supplies option has been disabled
     -- - it closes the unit list and recruitment UI which will hide army supplies if the player army supplies option has been disabled
     CampaignUI.ClearSelection()
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onOptionsUpdated(): COMPLETE")
+    TotoWarCbac.loggers.uiManager:logDebug("onOptionsUpdated(): COMPLETED")
 end
 
 ---Reacts to the recruitment panel being closed.
 function TotoWarCbacUIManager:onRecruitmentPanelClosed()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onRecruitmentPanelClosed(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onRecruitmentPanelClosed(): STARTED")
 
     self:resetUIChangeFlags()
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onRecruitmentPanelClosed(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onRecruitmentPanelClosed(): COMPLETED")
 end
 
 ---Reacts to a panel being opened.
@@ -411,14 +411,14 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     --- It is later updated when the SelectedGeneralArmySuppliesCostChanged event is triggered.
 
     TotoWarCbac.loggers.uiManager:logDebug(
-        "[EVENT] onPanelOpened(%s): STARTED",
+        "onPanelOpened(%s): STARTED",
         function() return panelName end)
 
     local recruitmentPools = self:findRecruitmentPoolsInPanel(panelName)
     local recruitmentPoolsToUpdate = {}
 
     for i, recruitmentPool in ipairs(recruitmentPools) do
-        local wasOpen = TotoWar.utils:linqAny(
+        local wasOpen = totoWar_linqAny(
             self.lastOpenedRecruitmentPools,
             function(lorp) return lorp == recruitmentPool.name end)
 
@@ -433,20 +433,20 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     self.lastOpenedRecruitmentPools = recruitmentPools
 
     TotoWarCbac.loggers.uiManager:logDebug(
-        "[EVENT] onPanelOpened(%s): COMPLETED",
+        "onPanelOpened(%s): COMPLETED",
         function() return panelName end)
 end
 
 ---Reacts to the army supplies cost of the selected general changing.
 function TotoWarCbacUIManager:onSelectedGeneralArmySuppliesCostChanged()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onSelectedGeneralArmySuppliesCostChanged(): STARTED")
 
     self:updateUnitsPanel()
 
     local recruitmentPools = self:findOpenRecruitmentPools()
     self:updateRecruitmentPools(recruitmentPools)
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Resets flags that indicate UI changes have been made to display army supply costs.
@@ -461,16 +461,16 @@ end
 
 ---Reacts to the another faction character being selected.
 function TotoWarCbacUIManager:onOtherFactionCharacterSelected()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
 
     self:hideArmySuppliesCostUIComponent()
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to the army supplies cost of armies exchanging units changing.
 function TotoWarCbacUIManager:onUnitExchangeSuppliesCostChanged()
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): STARTED")
+    TotoWarCbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
 
     local unitExchangePool1UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool1)
     self:updateUnitExchangePool(unitExchangePool1UIComponent, TotoWarCbac.playerManager.unitExchangeArmySuppliesCost1)
@@ -478,7 +478,7 @@ function TotoWarCbacUIManager:onUnitExchangeSuppliesCostChanged()
     local unitExchangePool2UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool2)
     self:updateUnitExchangePool(unitExchangePool2UIComponent, TotoWarCbac.playerManager.unitExchangeArmySuppliesCost2)
 
-    TotoWarCbac.loggers.uiManager:logDebug("[EVENT] onUnitExchangeSuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Updates the allied recruitment pool.

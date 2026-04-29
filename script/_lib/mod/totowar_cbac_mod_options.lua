@@ -10,9 +10,6 @@ TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage = 20
 ---Default value for the maximum percentage of cavalry and monsters to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage = 50
 
----Default value for the maximum amount of units that can be discarded in AI armies in order to make the recruitment of a new unit AI possible.
-TotoWar_Cbac_OptionDefaultValue_AiArmyDisposableUnitsMaximumAmount = 2
-
 ---Default value for the maximum percentage of melee infantry to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage = 60
 
@@ -42,9 +39,6 @@ TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage = "totowar_cbac_aiArmyA
 ---Name of the option for the maximum percentage of cavalry and monsters to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage =
 "totowar_cbac_aiArmyCavalryAndMonstersMaximumPercentage"
-
----Name of the AI units to discard maximum number supplies option.
-TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount = "totowar_cbac_aiDisposableUnitsMaximumAmount"
 
 ---Name of the option for the maximum percentage of melee infantry to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage =

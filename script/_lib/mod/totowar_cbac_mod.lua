@@ -70,9 +70,6 @@ TotoWarCbacMod = {
         aiArmyAgentMaximumAmount =
             TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount,
 
-        ---Maximum number of units that can be discarded in order to make the recruitment of a new unit AI possible AI armies.
-        aiArmyDisposableUnitsMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiArmyDisposableUnitsMaximumAmount,
-
         ---Total army supplies available in an army for the AI.
         aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
 
@@ -83,7 +80,7 @@ TotoWarCbacMod = {
         aiArmyUnitCategoryMaximumPercentages = {
             ["artillery"] = TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage,
             ["cavalryAndMonsters"] = TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage,
-            ["meleeInfantry"] = TotoWar_Cbac_OptionDefaultValue_AiArmyDisposableUnitsMaximumAmount,
+            ["meleeInfantry"] = TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage,
             ["rangedInfantry"] = TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage,
         },
 
@@ -120,11 +117,11 @@ function TotoWarCbacMod.new()
     TotoWarCbac.playerManager = TotoWarCbacPlayerManager:new()
     TotoWarCbac.uiManager = TotoWarCbacUIManager:new()
 
-    TotoWarCbac:loadMctOptions()
     TotoWarCbac:addListeners()
+    TotoWarCbac:loadMctOptions()
 
     TotoWarCbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Mod initialized")
-    TotoWarCbac.loggers.generic:logDebug("new(): COMPLETED")
+    TotoWarCbac.loggers.generic:logDebug("TotoWarCbacMod.new(): COMPLETED")
 
     return TotoWarCbac
 end
@@ -136,6 +133,14 @@ function TotoWarCbacMod:addListeners()
     TotoWar.utils:addListener(
         "TotoWarCbac",
         TotoWar.enums.modEvents.mctOptionsUpdated,
+        true,
+        function()
+            TotoWarCbac:onMctOptionsUpdated()
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWar",
+        TotoWarCbac.enums.modEvents.optionsUpdated,
         true,
         function()
             TotoWarCbac:onOptionsUpdated()
@@ -175,9 +180,6 @@ function TotoWarCbacMod:loadMctOptions()
     TotoWarCbac.options.aiArmyAgentMaximumAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount)
         :get_finalized_setting()
-    TotoWarCbac.options.aiArmyDisposableUnitsMaximumAmount = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount)
-        :get_finalized_setting()
     TotoWarCbac.options.aiArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
         :get_finalized_setting()
@@ -208,30 +210,41 @@ function TotoWarCbacMod:loadMctOptions()
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
         :get_finalized_setting()
 
-    TotoWarCbac:overwriteOptionsForDebug()
+    -- Signaling option changes
+    core:trigger_event(TotoWarCbac.enums.modEvents.optionsUpdated)
 
     TotoWarCbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Options loaded")
 end
 
----Reacts to options being updated.
-function TotoWarCbacMod:onOptionsUpdated()
-    TotoWarCbac.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+---Reacts to MCT options being updated.
+function TotoWarCbacMod:onMctOptionsUpdated()
+    TotoWarCbac.loggers.generic:logDebug("onMctOptionsUpdated(): STARTED")
 
     TotoWarCbac:loadMctOptions()
 
-    -- Signaling option changes
-    core:trigger_event(TotoWarCbac.enums.modEvents.optionsUpdated)
+    TotoWarCbac.loggers.generic:logDebug("onMctOptionsUpdated(): COMPLETED")
+end
 
-    TotoWarCbac.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+---Reacts to TotoWar options being updated.
+function TotoWarCbacMod:onOptionsUpdated()
+    TotoWarCbac.loggers.generic:logDebug("onOptionsUpdated(): STARTED")
+
+    -- Overriding options after they are loaded
+    -- Must be executed first in this function
+    TotoWarCbac:overwriteOptionsForDebug()
+
+    TotoWarCbac.loggers.generic:logDebug("onOptionsUpdated(): COMPLETED")
 end
 
 ---Allows to programatically overwrite option values for local debug purpose.
----
----This method is called after options are updated.
 function TotoWarCbacMod:overwriteOptionsForDebug()
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
+    TotoWarCbac.loggers.armySuppliesCost.logLevel = TotoWar.enums.logSeverity.error
+    TotoWarCbac.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
+    TotoWarCbac.loggers.playerManager.logLevel = TotoWar.enums.logSeverity.error
+    TotoWarCbac.loggers.uiManager.logLevel = TotoWar.enums.logSeverity.error
 
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

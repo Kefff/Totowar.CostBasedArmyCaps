@@ -21,11 +21,11 @@ TotoWarUIUtils.__index = TotoWarUIUtils
 ---Initializes a new instance.
 ---@return TotoWarUIUtils
 function TotoWarUIUtils.new()
-    TotoWar.loggers.modsManager:logDebug("new(): STARTED")
+    TotoWar.loggers.modsManager:logDebug("TotoWarUIUtils.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarUIUtils)
 
-    TotoWar.loggers.modsManager:logDebug("new(): COMPLETED")
+    TotoWar.loggers.modsManager:logDebug("TotoWarUIUtils.new(): COMPLETED")
 
     return instance
 end
@@ -140,7 +140,7 @@ function TotoWarUIUtils:isUIComponentChildOf(uiComponent, parentNames)
         function() return uiComponent:Id() end,
         function() return parentNamesText end)
 
-    local hasParent = TotoWar.utils:linqAny(
+    local hasParent = totoWar_linqAny(
         parentNames,
         function(pn)
             return (uicomponent_has_parent_filter(

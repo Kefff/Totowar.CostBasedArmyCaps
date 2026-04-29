@@ -39,6 +39,9 @@ TotoWarMod = {
             --Event triggered when the turn of a faction starts.
             factionTurnStart = "FactionTurnStart",
 
+            --Event triggered when an army is created.
+            militaryForceCreated = "MilitaryForceCreated",
+
             ---Event triggered when a panel is opened.
             panelOpened = "PanelOpenedCampaign",
 
@@ -51,14 +54,32 @@ TotoWarMod = {
             ---Event triggered when a unit is added to the recruitment queue.
             unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",
 
-            ---Event triggered when (a) unit(s) have been disbanded.
+            ---Event triggered when a unit have been converted.
+            unitConverted = "UnitConverted",
+
+            ---Event triggered when a unit have been created.
+            unitCreated = "UnitCreated",
+
+            ---Event triggered when a unit have been disbanded.
             unitDisbanded = "UnitDisbanded",
 
             ---Event triggered when units are merged unit and some of them have been destroyed.
             unitMergedAndDestroyed = "UnitMergedAndDestroyed",
 
             ---Event triggered when a unit is added to an army.
-            unitTrained = "UnitTrained"
+            unitTrained = "UnitTrained",
+
+            ---Event triggered when a unit have been upgraded.
+            unitUpgraded = "UnitUpgraded"
+        },
+
+        ---Log severities.
+        ---@class TotoWar_Enums_LogSeverity
+        logSeverity = {
+            debug = "DEBUG",
+            info = "INFO",
+            warning = "WARN",
+            error = "ERROR"
         },
 
         ---Events triggered by the mod.
@@ -174,6 +195,9 @@ TotoWarMod = {
         logFileName = "totowar_logs.txt"
     },
 
+    ---@type integer
+    turnNumber = 0,
+
     ---Utility tools for TotoWar mods.
     ---@type TotoWarUtils
     utils = nil,
@@ -199,8 +223,8 @@ function TotoWarMod.new()
     TotoWar.utils = TotoWarUtils.new()
     TotoWar.ui = TotoWarUIUtils.new()
 
-    TotoWar:loadMctOptions()
     TotoWar:addListeners()
+    TotoWar:loadMctOptions()
 
     TotoWar.loggers.generic:logInfo("TotoWar | Mod initialized")
     TotoWar.loggers.generic:logDebug("TotoWarMod.new(): COMPLETED")
@@ -214,14 +238,21 @@ function TotoWarMod:addListeners()
         "TotoWar",
         TotoWar.enums.gameEvents.factionTurnStart,
         true,
-        ---@param context TotoWarGameEventContext_FactionTurnStart
-        function(context)
-            TotoWar:onFactionTurnStart(context:faction())
+        function()
+            TotoWar:onFactionTurnStart()
         end)
 
     TotoWar.utils:addListener(
         "TotoWar",
         TotoWar.enums.modEvents.mctOptionsUpdated,
+        true,
+        function()
+            TotoWar:onMctOptionsUpdated()
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWar",
+        TotoWar.enums.modEvents.optionsUpdated,
         true,
         function()
             TotoWar:onOptionsUpdated()
@@ -261,38 +292,54 @@ function TotoWarMod:loadMctOptions()
         :get_option_by_key(TotoWar_OptionName_DebugEnabled)
         :get_finalized_setting()
 
-    TotoWar:overwriteOptionsForDebug()
+    -- Signaling option changes
+    core:trigger_event(TotoWar.enums.modEvents.optionsUpdated)
 
     TotoWar.loggers.generic:logInfo("TotoWar | Options loaded")
 end
 
 ---Reacts to the start of the turn of a faction.
----@param faction FACTION_SCRIPT_INTERFACE Faction.
-function TotoWarMod:onFactionTurnStart(faction)
+function TotoWarMod:onFactionTurnStart()
+    if cm:turn_number() == self.turnNumber then
+        return
+    end
+
+    self.turnNumber = cm:turn_number()
+
     TotoWar.loggers.generic:logInfo(
-        "\n\n==================== NEW TURN | %s ====================\n\n",
-        TotoWar.utils:getFactionCaption(faction:name()))
+        "\n\n\n==================== TURN %s ====================\n\n",
+        self.turnNumber)
 end
 
----Reacts to options being updated.
-function TotoWarMod:onOptionsUpdated()
-    TotoWar.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): STARTED")
+---Reacts to MCT options being updated.
+function TotoWarMod:onMctOptionsUpdated()
+    TotoWar.loggers.generic:logDebug("onMctOptionsUpdated(): STARTED")
 
     TotoWar:loadMctOptions()
 
-    -- Signaling option changes
-    core:trigger_event(TotoWar.enums.modEvents.optionsUpdated)
+    TotoWar.loggers.generic:logDebug("onMctOptionsUpdated(): COMPLETED")
+end
 
-    TotoWar.loggers.generic:logDebug("[EVENT] onOptionsUpdated(): COMPLETED")
+---Reacts to TotoWar options being updated.
+function TotoWarMod:onOptionsUpdated()
+    TotoWar.loggers.generic:logDebug("onOptionsUpdated(): STARTED")
+
+    -- Overriding options after they are loaded
+    -- Must be executed first in this function
+    TotoWar:overwriteOptionsForDebug()
+
+    TotoWar.loggers.generic:logDebug("onOptionsUpdated(): COMPLETED")
 end
 
 ---Allows to programatically overwrite option values for local debug purpose.
----
----This method is called after options are updated.
 function TotoWarMod:overwriteOptionsForDebug()
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
+    TotoWar.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
+    TotoWar.loggers.modsManager.logLevel = TotoWar.enums.logSeverity.error
+    TotoWar.loggers.uiUtils.logLevel = TotoWar.enums.logSeverity.error
+    TotoWar.loggers.utils.logLevel = TotoWar.enums.logSeverity.error
 
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

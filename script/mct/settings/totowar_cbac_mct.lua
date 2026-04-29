@@ -121,17 +121,4 @@ if mct then
     aiArmyArtilleryMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyArtilleryMaximumPercentage")
     cbacAiSection:assign_option(aiArmyArtilleryMaximumPercentageOption)
-
-    local aiArmyDisposableUnitsAmount = totoWarMod:add_new_option(
-        TotoWar_Cbac_OptionName_AiDisposableUnitsMaximumAmount,
-        "slider")
-    aiArmyDisposableUnitsAmount:slider_set_min_max(0, 20)
-    aiArmyDisposableUnitsAmount:slider_set_step_size(1)
-    aiArmyDisposableUnitsAmount:set_default_value(
-        TotoWar_Cbac_OptionDefaultValue_AiArmyDisposableUnitsMaximumAmount)
-    aiArmyDisposableUnitsAmount:set_text(
-        "totowar_cbac_mct_option_caption_aiArmyDisposableUnitsAmount")
-    aiArmyDisposableUnitsAmount:set_tooltip_text(
-        "totowar_cbac_mct_option_tooltip_aiArmyDisposableUnitsAmount")
-    cbacAiSection:assign_option(aiArmyDisposableUnitsAmount)
 end

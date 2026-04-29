@@ -10,13 +10,13 @@ TotoWarModsManager.__index = TotoWarModsManager
 ---Initializes a new instance.
 ---@return TotoWarModsManager
 function TotoWarModsManager.new()
-    TotoWar.loggers.modsManager:logDebug("new(): STARTED")
+    TotoWar.loggers.modsManager:logDebug("TotoWarModsManager.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarModsManager)
 
     instance.mods = {}
 
-    TotoWar.loggers.modsManager:logDebug("new(): COMPLETED")
+    TotoWar.loggers.modsManager:logDebug("TotoWarModsManager.new(): COMPLETED")
 
     return instance
 end

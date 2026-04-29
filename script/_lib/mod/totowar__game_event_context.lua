@@ -15,10 +15,16 @@ TotoWarGameEventContext_ComponentLeftClick = {
 ---Context for the FactionTurnStart event.
 ---@class TotoWarGameEventContext_FactionTurnStart
 TotoWarGameEventContext_FactionTurnStart = {}
-
 ---Gets the faction.
 ---@return FACTION_SCRIPT_INTERFACE
 function TotoWarGameEventContext_FactionTurnStart:faction() end
+
+---Context for the MilitaryForceCreated event.
+---@class TotoWarGameEventContext_MilitaryForceCreated
+TotoWarGameEventContext_MilitaryForceCreated = {}
+---Gets the army.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE
+function TotoWarGameEventContext_MilitaryForceCreated:military_force_created() end
 
 ---Context for the PanelOpenedCampaign event.
 ---@class TotoWarGameEventContext_PanelOpenedOrClosed
@@ -42,6 +48,24 @@ function TotoWarGameEventContext_UnitAddedToRecruitment:faction() end
 ---Gets the unit key as a string.
 ---@return string
 function TotoWarGameEventContext_UnitAddedToRecruitment:main_unit_record() end
+
+---Context for the UnitConverted event.
+---@class TotoWarGameEventContext_UnitConverted
+TotoWarGameEventContext_UnitConverted = {}
+---Gets the new unit the old unit was converted into.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarGameEventContext_UnitConverted:converted_unit() end
+
+---Gets the old unit.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarGameEventContext_UnitConverted:unit() end
+
+---Context for the UnitCreated event.
+---@class TotoWarGameEventContext_UnitCreated
+TotoWarGameEventContext_UnitCreated = {}
+---Gets the unit.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarGameEventContext_UnitCreated:unit() end
 
 ---Context for the UnitDisbanded event.
 ---@class TotoWarGameEventContext_UnitDisbanded
@@ -78,3 +102,10 @@ TotoWarGameEventContext_UnitTrained = {}
 ---Gets the unit.
 ---@return UNIT_SCRIPT_INTERFACE
 function TotoWarGameEventContext_UnitTrained:unit() end
+
+---Context for the UnitUpgraded event.
+---@class TotoWarGameEventContext_UnitUpgraded
+TotoWarGameEventContext_UnitUpgraded = {}
+---Gets the unit.
+---@return UNIT_SCRIPT_INTERFACE
+function TotoWarGameEventContext_UnitUpgraded:unit() end

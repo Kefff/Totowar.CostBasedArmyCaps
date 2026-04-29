@@ -1,19 +1,10 @@
----Log severities.
----@class TotoWarLoggerSeverity
-TotoWarLoggerSeverity = {
-    debug = "DEBUG",
-    info = "INFO",
-    warning = "WARN",
-    error = "ERROR"
-}
-
 ---Logger for TotoWar mods.
 ---@class TotoWarLogger
 TotoWarLogger = {
-    ---Indicates whether the logger is enabled.
-    ---@type TotoWarLoggerSeverity
+    ---Log level.
+    ---@type TotoWar_Enums_LogSeverity
     ---@diagnostic disable-next-line: assign-type-mismatch
-    logLevel = TotoWarLoggerSeverity.info,
+    logLevel = nil,
 
     ---Mod name.
     ---@type string
@@ -27,10 +18,33 @@ TotoWarLogger.__index = TotoWarLogger
 function TotoWarLogger.new(loggerName)
     local instance = setmetatable({}, TotoWarLogger)
 
+    if TotoWar.options.debugEnabled then
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.logLevel = TotoWar.enums.logSeverity.debug
+    else
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.logLevel = TotoWar.enums.logSeverity.info
+    end
+
     instance.loggerName = loggerName
+
+    instance:addListeners()
+
     instance:logInfo("Logger instance created")
 
     return instance
+end
+
+---Adds event listeners.
+function TotoWarLogger:addListeners()
+    core:add_listener(
+        "TotoWarLogger",
+        TotoWar.enums.modEvents.optionsUpdated,
+        true,
+        function()
+            self:onOptionsUpdated()
+        end,
+        true)
 end
 
 ---Logs a message.
@@ -46,7 +60,12 @@ local function log(instance, severity, message, ...)
     end
 
     message = string.format(message, unpack(parameters))
-    fullLog = string.format("%s | %s [%s] %s", os.date("%Y-%m-%d %H:%M:%S"), severity, instance.loggerName, message)
+    fullLog = string.format(
+        "%s | %s | %s | %s",
+        os.date("%Y-%m-%d %H:%M:%S"),
+        totoWar_textPadRight(instance.loggerName, 30),
+        totoWar_textPadRight(severity, 5),
+        message)
     ModLog(fullLog)
 
     local file = io.open(TotoWar.options.logFileName, "a")
@@ -61,7 +80,7 @@ end
 ---@param message string Message to log.
 ---@param ... (fun(): boolean | integer | nil | number | string) Functions for getting parameter values.
 function TotoWarLogger:logDebug(message, ...)
-    if TotoWar.options.debugEnabled then
+    if self.logLevel == TotoWar.enums.logSeverity.debug then
         local parameters = {}
 
         for i, valueFunction in ipairs({ ... }) do
@@ -74,7 +93,7 @@ function TotoWarLogger:logDebug(message, ...)
             parameters[i] = tostring(valueFunction())
         end
 
-        log(self, TotoWarLoggerSeverity.debug, message, unpack(parameters))
+        log(self, TotoWar.enums.logSeverity.debug, message, unpack(parameters))
     end
 end
 
@@ -82,17 +101,17 @@ end
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logError(message, ...)
-    log(self, TotoWarLoggerSeverity.error, message, ...)
+    log(self, TotoWar.enums.logSeverity.error, message, ...)
 end
 
 ---Logs an information message.
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logInfo(message, ...)
-    if TotoWar.options.debugEnabled
-        or self.logLevel == TotoWarLoggerSeverity.info
+    if self.logLevel == TotoWar.enums.logSeverity.debug
+        or self.logLevel == TotoWar.enums.logSeverity.info
     then
-        log(self, TotoWarLoggerSeverity.info, message, ...)
+        log(self, TotoWar.enums.logSeverity.info, message, ...)
     end
 end
 
@@ -100,10 +119,25 @@ end
 ---@param message string Message to log.
 ---@param ... boolean | integer | number | string Message parameters.
 function TotoWarLogger:logWarning(message, ...)
-    if TotoWar.options.debugEnabled
-        or self.logLevel == TotoWarLoggerSeverity.info
-        or self.logLevel == TotoWarLoggerSeverity.warning
+    if self.logLevel == TotoWar.enums.logSeverity.debug
+        or self.logLevel == TotoWar.enums.logSeverity.info
+        or self.logLevel == TotoWar.enums.logSeverity.warning
     then
-        log(self, TotoWarLoggerSeverity.warning, message, ...)
+        log(self, TotoWar.enums.logSeverity.warning, message, ...)
+    end
+end
+
+---Reacts to options being updated.
+function TotoWarLogger:onOptionsUpdated()
+    if TotoWar.options.debugEnabled
+        and self.logLevel ~= TotoWar.enums.logSeverity.debug
+    then
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        self.logLevel = TotoWar.enums.logSeverity.debug
+    elseif not TotoWar.options.debugEnabled
+        and self.logLevel == TotoWar.enums.logSeverity.debug
+    then
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        self.logLevel = TotoWar.enums.logSeverity.info
     end
 end
