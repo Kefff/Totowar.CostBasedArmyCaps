@@ -75,17 +75,28 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
         function() return army:unit_list():num_items() end)
 
     local characters = army:character_list()
-    local units = army:unit_list()
 
     for i = 0, characters:num_items() - 1, 1 do
         local character = characters:item_at(i)
         instance:addCharacter(character:cqi())
     end
 
+    local units = army:unit_list()
+
     for i = 0, units:num_items() - 1, 1 do
         local unit = units:item_at(i)
+        local unitCqi = unit:command_queue_index()
 
-        if not TotoWar.utils:isCharacterUnit(unit:command_queue_index()) then
+        local isAlreadyAddedCharacter = totoWar_linqAny(
+            instance.unitArmySuppliesCosts,
+            function(uasc)
+                -- We avoid adding the general and agents twice
+                return uasc.unitCqi == unitCqi
+                    and (uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
+                        or uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent)
+            end)
+
+        if not isAlreadyAddedCharacter then
             instance:addUnit(unit:unit_key(), unit:command_queue_index())
         end
     end
@@ -101,14 +112,14 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
 end
 
 ---Adds a unit to the army supplies cost.
----@param cqi integer Command queue index of the character.
-function TotoWarCbacArmySuppliesCost:addCharacter(cqi)
+---@param characterCqi integer Command queue index of the character.
+function TotoWarCbacArmySuppliesCost:addCharacter(characterCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:addCharacter(%s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(cqi)) end)
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
 
     ---@type TotoWarCbacUnitArmySuppliesCost
-    local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
+    local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
     table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
 
     self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
@@ -116,15 +127,15 @@ function TotoWarCbacArmySuppliesCost:addCharacter(cqi)
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:addCharacter(%s): COMPLETED => %s",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(cqi)) end,
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end,
         function() return self.totalCost end)
 end
 
 ---Adds a unit to the army supplies cost.
 ---@param unitKey string Unit key.
----@param cqi integer | nil Unit command queue index if we are able to get one.
+---@param unitCqi integer | nil Unit command queue index if we are able to get one.
 ---@param isInRecruitmentMercenary boolean | nil Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
-function TotoWarCbacArmySuppliesCost:addUnit(unitKey, cqi, isInRecruitmentMercenary)
+function TotoWarCbacArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary)
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
     end
@@ -138,10 +149,10 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, cqi, isInRecruitmentMercen
     local unitArmySuppliesCost
 
     if isInRecruitmentMercenary then
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
+        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         table.insert(self.inRecruitmentMercenaryUnits, unitArmySuppliesCost)
     else
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
+        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
     end
 
@@ -231,28 +242,30 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
 end
 
 ---Removes the character corresponding to a command queue index.
----@param cqi integer Character command queue index.
-function TotoWarCbacArmySuppliesCost:removeCharacter(cqi)
+---@param characerCqi integer Character command queue index.
+function TotoWarCbacArmySuppliesCost:removeCharacter(characerCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:removeCharacter(%s): STARTED",
-        function() return cqi end)
+        function() return characerCqi end)
 
     for i = 1, #self.unitArmySuppliesCosts, -1 do
         local unit = self.unitArmySuppliesCosts[i]
 
-        if unit.cqi == cqi then
+        if unit.characterCqi == characerCqi then
             self.totalCost = self.totalCost - unit.armySuppliesCost
             self.availableSupplies = self.totalArmySupplies - self.totalCost
             table.remove(self.unitArmySuppliesCosts, i)
 
             TotoWarCbac.loggers.armySuppliesCost:logDebug(
                 "TotoWarCbacArmySuppliesCost:removeCharacter(%s): COMPLETED => %s",
-                function() return cqi end,
+                function() return characerCqi end,
                 function() return TotoWar.utils:getUnitCaption(unit.unitKey) end)
         end
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logError("TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND", cqi)
+    TotoWarCbac.loggers.armySuppliesCost:logError(
+        "TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND",
+        characerCqi)
 end
 
 ---Removes a unit from the army supplies cost.
@@ -462,7 +475,7 @@ function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmyS
     if unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
         or unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
     then
-        local character = cm:get_character_by_cqi(unitArmySuppliesCost.cqi)
+        local character = cm:get_character_by_cqi(unitArmySuppliesCost.characterCqi)
 
         if character:has_military_force() then
             tooltipText = string.format(

@@ -138,7 +138,7 @@ function TotoWarCbacAiManager:adjustAiArmy(generalCqi)
 
     -- Removing units flagged as discardable to stay within the army supplies limit
     for index, unitToDiscard in ipairs(unitsToDiscard) do
-        self:removeUnitFromAiArmy(army, unitToDiscard.unitKey, unitToDiscard.cqi)
+        self:removeUnitFromAiArmy(army, unitToDiscard.unitKey, unitToDiscard.unitCqi)
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(
@@ -157,7 +157,7 @@ end
 function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
     local agents = totoWar_linqWhere(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(unit) return TotoWar.utils:isAgentUnit(unit.cqi) end)
+        function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent end)
     local agentsToRemoveAmount = #agents - TotoWarCbac.options.aiArmyAgentMaximumAmount
 
     if agentsToRemoveAmount <= 0 then
@@ -205,20 +205,20 @@ function TotoWarCbacAiManager:adjustAiArmyAgents(army, armySuppliesCost)
         -- If we do not teleport the agent, it is still in the army when we calculate army
         -- supplies costs during later `UnitTrained` events which we do not want.
         cm:teleport_to(
-            cm:char_lookup_str(agentToRemove.cqi),
+            cm:char_lookup_str(agentToRemove.characterCqi),
             ---@diagnostic disable-next-line: param-type-mismatch
             agentTargetPositionX,
             ---@diagnostic disable-next-line: param-type-mismatch
             agentTargetPositionY)
 
-        armySuppliesCost:removeCharacter(agentToRemove.cqi)
+        armySuppliesCost:removeCharacter(agentToRemove.characterCqi)
         agentsToRemoveAmount = agentsToRemoveAmount - 1
 
         TotoWarCbac.loggers.aiManager:logDebug(
             "adjustAiArmyAgents(%s from %s): REMOVED => %s (%s)",
             function() return TotoWar.utils:getCharacterCaption(general) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(agentToRemove.cqi)) end,
+            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(agentToRemove.characterCqi)) end,
             function() return TotoWar.utils:getUnitCaption(agentToRemove.unitKey) end)
     end
 

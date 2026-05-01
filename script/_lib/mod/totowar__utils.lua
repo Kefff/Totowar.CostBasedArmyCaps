@@ -186,64 +186,6 @@ function TotoWarUtils:getUnitCaption(unitKey)
     return caption
 end
 
----Indicates whether a unit is an agent.
----@param cqi integer | nil Unit command queue index.
----@return boolean
-function TotoWarUtils:isAgentUnit(cqi)
-    TotoWar.loggers.utils:logDebug(
-        "isAgent(%s): STARTED",
-        function() return cqi end)
-
-    local isAgent = false
-
-    if cqi ~= nil then
-        -- Directly searching for the character corresponding to the CQI
-        isAgent = common.get_context_value(
-            TotoWar.enums.ccoContextTypeIds.campaignCharacter,
-            tostring(cqi),
-            "IsAgent")
-
-        if not isAgent then
-            -- If the character is not found, it means we have the CQI of a unit
-            -- so we need to search for the character context through the unit context
-            isAgent = common.get_context_value(
-                TotoWar.enums.ccoContextTypeIds.campaignUnit,
-                tostring(cqi),
-                "CharacterContext.IsAgent")
-
-            if not isAgent then
-                -- isAgent can be nil when we arrive here
-                isAgent = false
-            end
-        end
-    end
-
-    TotoWar.loggers.utils:logDebug(
-        "isAgent(%s): COMPLETED => %s",
-        function() return cqi end,
-        function() return isAgent end)
-
-    return isAgent
-end
-
----Indicates whether a unit is a character.
----@param cqi integer Unit command queue index.
----@return boolean
-function TotoWarUtils:isCharacterUnit(cqi)
-    TotoWar.loggers.utils:logDebug(
-        "isCharacterUnit(%s): STARTED",
-        function() return cqi end)
-
-    local isCharacter = self:isGeneralUnit(cqi) or self:isAgentUnit(cqi)
-
-    TotoWar.loggers.utils:logDebug(
-        "isCharacterUnit(%s): COMPLETED => %s",
-        function() return cqi end,
-        function() return isCharacter end)
-
-    return isCharacter
-end
-
 ---Indicates whether a character is a general.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
@@ -264,41 +206,39 @@ function TotoWarUtils:isGeneralCharacter(character)
     return isPlayerFactionGeneral
 end
 
----Indicates whether a unit is a general.
----@param cqi integer | nil Unit command queue index.
+---Indicates whether a character is a general.
+---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return boolean
-function TotoWarUtils:isGeneralUnit(cqi)
+function TotoWarUtils:isGeneralUnit(characterCqi)
     TotoWar.loggers.utils:logDebug(
         "isGeneralUnit(%s): STARTED",
-        function() return cqi end)
+        function() return characterCqi end)
 
     local isGeneral = false
 
-    if cqi ~= nil then
-        -- Directly searching for the character corresponding to the CQI
+    -- Directly searching for the character corresponding to the CQI
+    isGeneral = common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.campaignCharacter,
+        tostring(characterCqi),
+        "IsArmy")
+
+    if not isGeneral then
+        -- If the character is not found, it means we have the CQI of a unit
+        -- so we need to search for the character context through the unit context
         isGeneral = common.get_context_value(
-            TotoWar.enums.ccoContextTypeIds.campaignCharacter,
-            tostring(cqi),
-            "IsArmy")
+            TotoWar.enums.ccoContextTypeIds.campaignUnit,
+            tostring(characterCqi),
+            "CharacterContext.IsArmy")
 
         if not isGeneral then
-            -- If the character is not found, it means we have the CQI of a unit
-            -- so we need to search for the character context through the unit context
-            isGeneral = common.get_context_value(
-                TotoWar.enums.ccoContextTypeIds.campaignUnit,
-                tostring(cqi),
-                "CharacterContext.IsArmy")
-
-            if not isGeneral then
-                -- isGeneral can be nil when we arrive here
-                isGeneral = false
-            end
+            -- isGeneral can be nil when we arrive here
+            isGeneral = false
         end
     end
 
     TotoWar.loggers.utils:logDebug(
         "isGeneralUnit(%s): COMPLETED => %s",
-        function() return cqi end,
+        function() return characterCqi end,
         function() return isGeneral end)
 
     return isGeneral

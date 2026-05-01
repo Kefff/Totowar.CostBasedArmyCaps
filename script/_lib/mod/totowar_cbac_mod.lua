@@ -252,11 +252,11 @@ function TotoWarCbacMod:overwriteOptionsForDebug()
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
-    -- TotoWarCbac.loggers.aiManager.logLevel = TotoWar.enums.logSeverity.error
-    -- TotoWarCbac.loggers.armySuppliesCost.logLevel = TotoWar.enums.logSeverity.error
-    -- TotoWarCbac.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
-    -- TotoWarCbac.loggers.playerManager.logLevel = TotoWar.enums.logSeverity.error
-    -- TotoWarCbac.loggers.uiManager.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.aiManager.logLevel = TotoWar.enums.logSeverity.warning
+    -- TotoWarCbac.loggers.armySuppliesCost.logLevel = TotoWar.enums.logSeverity.warning
+    -- TotoWarCbac.loggers.generic.logLevel = TotoWar.enums.logSeverity.warning
+    -- TotoWarCbac.loggers.playerManager.logLevel = TotoWar.enums.logSeverity.warning
+    -- TotoWarCbac.loggers.uiManager.logLevel = TotoWar.enums.logSeverity.warning
 
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

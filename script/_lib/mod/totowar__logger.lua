@@ -59,7 +59,22 @@ local function log(instance, severity, message, ...)
         parameters[i] = tostring(value)
     end
 
-    message = string.format(message, unpack(parameters))
+    local messageParameterCount = 0
+
+    for _ in string.gmatch(message, "%%s") do
+        messageParameterCount = messageParameterCount + 1
+    end
+
+    if messageParameterCount ~= #parameters then
+        severity = TotoWar.enums.logSeverity.error
+        message = string.format(
+            "TotoWarLogger:log(\"%s\", %s) => Invalid amount of parameters",
+            message,
+            #parameters)
+    else
+        message = string.format(message, unpack(parameters))
+    end
+
     fullLog = string.format(
         "%s | %s | %s | %s",
         os.date("%Y-%m-%d %H:%M:%S"),

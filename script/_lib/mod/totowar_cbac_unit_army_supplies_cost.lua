@@ -9,13 +9,21 @@ TotoWarCbacUnitArmySuppliesCost = {
     ---Used to identify agents of the same type but with different mounts.
     baseUnitKey = nil,
 
-    ---Command queue index of the unit or character if we are able to get one.
+    ---Command queue index of the character if the unit is a character.
+    ---
+    ---Characters have both a `characterCqi` and a `unitCqi` which are different.
     ---@type integer | nil
-    cqi = nil,
+    characterCqi = nil,
 
     ---Category of the unit.
     ---@type TotoWarCbac_Enums_ArmyCompositionUnitCategories
     unitCategory = nil,
+
+    ---Command queue index of the unit.
+    ---
+    ---Characters have both a `characterCqi` and a `unitCqi` which are different.
+    ---@type integer | nil
+    unitCqi = nil,
 
     ---Key of the unit.
     ---@type string
@@ -24,10 +32,10 @@ TotoWarCbacUnitArmySuppliesCost = {
 TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 
 ---Initializes a new instance from a character.
----@param cqi integer Command queue index of the character.
+---@param characterCqi integer Command queue index of the character.
 ---@return TotoWarCbacUnitArmySuppliesCost
-function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
-    local character = cm:get_character_by_cqi(cqi)
+function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
+    local character = cm:get_character_by_cqi(characterCqi)
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): STARTED",
@@ -35,7 +43,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
 
     local unitKey = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.campaignCharacter,
-        tostring(cqi),
+        tostring(characterCqi),
         "UnitContext.UnitRecordContext.Key")
 
     local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
@@ -47,9 +55,20 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(cqi)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
-    instance.cqi = cqi
-    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
+    instance.characterCqi = characterCqi
+    instance.unitCqi = tonumber(common.get_context_value(
+        TotoWar.enums.ccoContextTypeIds.campaignCharacter,
+        tostring(characterCqi),
+        "UnitContext.UniqueUiId")) -- UnitContext.UniqueUiId is a string
     instance.unitKey = unitKey
+
+    if TotoWar.utils:isGeneralUnit(characterCqi) then
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.general
+    else
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    end
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
@@ -62,9 +81,9 @@ end
 
 ---Initializes a new instance from a unit.
 ---@param unitKey string Unit key.
----@param cqi integer | nil Command queue index of the unit (if we are able to get one).
+---@param unitCqi integer | nil Command queue index of the unit (if we are able to get one).
 ---@return TotoWarCbacUnitArmySuppliesCost
-function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
+function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): STARTED",
         function() return TotoWar.utils:getUnitCaption(unitKey) end)
@@ -78,8 +97,8 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, cqi)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
-    instance.cqi = cqi
-    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey, cqi)
+    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
+    instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
@@ -93,9 +112,9 @@ end
 
 ---Gets the unit army composition type based on the category of a unit.
 ---@param unitKey string Unit key.
----@param cqi integer | nil Unit command queue index (if it has one).
+---@param characterCqi integer | nil Character command queue index (if it a character).
 ---@return TotoWarCbac_Enums_ArmyCompositionUnitCategories
-function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey, cqi)
+function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey, characterCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
         function() return unitKey end)
@@ -103,15 +122,13 @@ function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey,
     ---@type string | nil
     local armyCompositionUnitType = nil
 
-    if cqi ~= nil then
-        if TotoWar.utils:isGeneralUnit(cqi) then
+    if characterCqi ~= nil then
+        if TotoWar.utils:isGeneralUnit(characterCqi) then
             armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
-        elseif TotoWar.utils:isAgentUnit(cqi) then
+        else
             armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
         end
-    end
-
-    if armyCompositionUnitType == nil then
+    else
         local unitGroup = common.get_context_value(
             TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
             unitKey,
