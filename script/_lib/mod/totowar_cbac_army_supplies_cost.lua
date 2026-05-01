@@ -2,12 +2,17 @@
 ---@class TotoWarCbacArmySuppliesCost
 TotoWarCbacArmySuppliesCost = {
     ---Army supplies available to recruit additional units.
+    ---@type integer
     availableSupplies = nil,
 
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     inRecruitmentMercenaryUnits = nil,
+
+    ---Total army supplies available for all units.
+    ---@type integer
+    totalArmySupplies = nil,
 
     ---Total army supplies cost
     ---@type integer
@@ -20,17 +25,23 @@ TotoWarCbacArmySuppliesCost = {
 TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
 ---Initializes a new instance of TotoWarCbacArmySuppliesCost.
----@param availableArmySupplies number Total available army supplies in the army.
+---@param isAi boolean Indicates whether the army belongs to AI.
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new(availableArmySupplies)
+function TotoWarCbacArmySuppliesCost.new(isAi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
 
-    instance.availableSupplies = availableArmySupplies
+    if isAi then
+        instance.totalArmySupplies = TotoWarCbac.options.aiArmySuppliesAmount
+    else
+        instance.totalArmySupplies = TotoWarCbac.options.playerArmySuppliesAmount
+    end
+
+    instance.availableSupplies = instance.totalArmySupplies
     instance.inRecruitmentMercenaryUnits = {}
-    instance.unitArmySuppliesCosts = {}
     instance.totalCost = 0
+    instance.unitArmySuppliesCosts = {}
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): COMPLETED")
 
@@ -38,15 +49,15 @@ function TotoWarCbacArmySuppliesCost.new(availableArmySupplies)
 end
 
 ---Initializes a new instance of TotoWarCbacArmySuppliesCost from an army.
----@param availableArmySupplies number Total available army supplies in the army.
+---@param isAi boolean Indicates whether the army belongs to AI.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.newFromArmy(availableArmySupplies, army)
-    local instance = TotoWarCbacArmySuppliesCost.new(availableArmySupplies)
+function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
+    local instance = TotoWarCbacArmySuppliesCost.new(isAi)
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): STARTED",
-        function() return availableArmySupplies end,
+        function() return isAi end,
         function() return army:unit_list():num_items() end)
 
     local characters = army:character_list()
@@ -67,7 +78,7 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(availableArmySupplies, army)
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): COMPLETED => %s | %s",
-        function() return availableArmySupplies end,
+        function() return isAi end,
         function() return army:unit_list():num_items() end,
         function() return instance.totalCost end,
         function() return instance.availableSupplies end)
@@ -87,7 +98,7 @@ function TotoWarCbacArmySuppliesCost:addCharacter(cqi)
     table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
 
     self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
-    self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
+    self.availableSupplies = self.totalArmySupplies - self.totalCost
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:addCharacter(%s): COMPLETED => %s",
@@ -121,7 +132,7 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, cqi, isInRecruitmentMercen
     end
 
     self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
-    self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
+    self.availableSupplies = self.totalArmySupplies - self.totalCost
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:addUnit(%s, %s): COMPLETED => %s",
@@ -217,7 +228,7 @@ function TotoWarCbacArmySuppliesCost:removeCharacter(cqi)
 
         if unit.cqi == cqi then
             self.totalCost = self.totalCost - unit.armySuppliesCost
-            self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
+            self.availableSupplies = self.totalArmySupplies - self.totalCost
             table.remove(self.unitArmySuppliesCosts, i)
 
             TotoWarCbac.loggers.armySuppliesCost:logDebug(
@@ -253,7 +264,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         local unit = self.inRecruitmentMercenaryUnits[index]
 
         self.totalCost = self.totalCost - unit.armySuppliesCost
-        self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
+        self.availableSupplies = self.totalArmySupplies - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
 
         TotoWarCbac.loggers.armySuppliesCost:logDebug(
@@ -269,7 +280,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
 
             if unit.unitKey == unitKey then
                 self.totalCost = self.totalCost - unit.armySuppliesCost
-                self.availableSupplies = TotoWarCbac.options.playerArmySuppliesAmount - self.totalCost
+                self.availableSupplies = self.totalArmySupplies - self.totalCost
                 table.remove(self.unitArmySuppliesCosts, i)
 
                 TotoWarCbac.loggers.armySuppliesCost:logDebug(

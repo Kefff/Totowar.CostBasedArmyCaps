@@ -104,7 +104,7 @@ end
 function TotoWarCbacAiManager:adjustAiArmy(generalCqi)
     local general = cm:get_character_by_cqi(generalCqi)
     local army = general:military_force()
-    local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(TotoWarCbac.options.aiArmySuppliesAmount, army)
+    local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(true, army)
 
     if armySuppliesCost.availableSupplies >= 0 then
         return
