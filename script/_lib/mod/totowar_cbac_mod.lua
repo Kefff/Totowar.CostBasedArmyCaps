@@ -67,11 +67,13 @@ TotoWarCbacMod = {
     ---@class TotoWarCbac_Options
     options = {
         ---Maximum amount of agents in AI armies.
-        aiArmyAgentMaximumAmount =
-            TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount,
+        aiArmyAgentMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount,
 
         ---Total army supplies available in an army for the AI.
         aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
+
+        ---Bonus army supplies per level of the general in AI armies.
+        aiArmySuppliesBonusAmountPerLevel = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesBonusAmountPerLevel,
 
         ---Indicates whether army supplies restrictions are enabled for AI armies.
         aiArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled,
@@ -87,8 +89,11 @@ TotoWarCbacMod = {
         ---Total army supplies available in an army for the player.
         playerArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount,
 
+        ---Bonus army supplies per level of the general in player armies.
+        playerArmySuppliesBonusAmountPerLevel = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesBonusAmountPerLevel,
+
         ---Indicates whether army supplies restrictions are enabled for player armies.
-        playerArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled,
+        playerArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled
     },
 
     ---Manager for player army supplies.
@@ -180,6 +185,9 @@ function TotoWarCbacMod:loadMctOptions()
     TotoWarCbac.options.aiArmyAgentMaximumAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount)
         :get_finalized_setting()
+    TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesBonusAmountPerLevel)
+        :get_finalized_setting()
     TotoWarCbac.options.aiArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesAmount)
         :get_finalized_setting()
@@ -205,6 +213,9 @@ function TotoWarCbacMod:loadMctOptions()
 
     TotoWarCbac.options.playerArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)
+        :get_finalized_setting()
+    TotoWarCbac.options.playerArmySuppliesBonusAmountPerLevel = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesBonusAmountPerLevel)
         :get_finalized_setting()
     TotoWarCbac.options.playerArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesEnabled)
@@ -241,10 +252,11 @@ function TotoWarCbacMod:overwriteOptionsForDebug()
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
-    TotoWarCbac.loggers.armySuppliesCost.logLevel = TotoWar.enums.logSeverity.error
-    TotoWarCbac.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
-    TotoWarCbac.loggers.playerManager.logLevel = TotoWar.enums.logSeverity.error
-    TotoWarCbac.loggers.uiManager.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.aiManager.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.armySuppliesCost.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.playerManager.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWarCbac.loggers.uiManager.logLevel = TotoWar.enums.logSeverity.error
 
     TotoWarCbac.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

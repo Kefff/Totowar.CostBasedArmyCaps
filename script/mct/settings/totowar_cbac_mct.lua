@@ -26,12 +26,25 @@ if mct then
     local playerArmySuppliesOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount,
         "slider")
-    playerArmySuppliesOption:slider_set_min_max(100, 100000)
+    playerArmySuppliesOption:slider_set_min_max(100, 50000)
     playerArmySuppliesOption:slider_set_step_size(100)
     playerArmySuppliesOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount)
     playerArmySuppliesOption:set_text("totowar_cbac_mct_option_caption_playerArmySupplies")
     playerArmySuppliesOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_playerArmySupplies")
     cbacPlayerSection:assign_option(playerArmySuppliesOption)
+
+    local playerArmySuppliesBonusAmountPerLevelOption = totoWarMod:add_new_option(
+        TotoWar_Cbac_OptionName_PlayerArmySuppliesBonusAmountPerLevel,
+        "slider")
+    playerArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(10, 500)
+    playerArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(100)
+    playerArmySuppliesBonusAmountPerLevelOption:set_default_value(
+        TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesBonusAmountPerLevel)
+    playerArmySuppliesBonusAmountPerLevelOption:set_text(
+    "totowar_cbac_mct_option_caption_playerArmySuppliesBonusAmountPerLevel")
+    playerArmySuppliesBonusAmountPerLevelOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_playerArmySuppliesBonusAmountPerLevel")
+    cbacPlayerSection:assign_option(playerArmySuppliesBonusAmountPerLevelOption)
 
     -- AI section
     local cbacAiSection = totoWarMod:add_new_section(
@@ -50,12 +63,24 @@ if mct then
     local aiArmySuppliesAmountOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmySuppliesAmount,
         "slider")
-    aiArmySuppliesAmountOption:slider_set_min_max(100, 100000)
+    aiArmySuppliesAmountOption:slider_set_min_max(100, 50000)
     aiArmySuppliesAmountOption:slider_set_step_size(100)
     aiArmySuppliesAmountOption:set_default_value(TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount)
     aiArmySuppliesAmountOption:set_text("totowar_cbac_mct_option_caption_aiArmySupplies")
     aiArmySuppliesAmountOption:set_tooltip_text("totowar_cbac_mct_option_tooltip_aiArmySupplies")
     cbacAiSection:assign_option(aiArmySuppliesAmountOption)
+
+    local aiArmySuppliesBonusAmountPerLevelOption = totoWarMod:add_new_option(
+        TotoWar_Cbac_OptionName_AiArmySuppliesBonusAmountPerLevel,
+        "slider")
+    aiArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(10, 500)
+    aiArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(100)
+    aiArmySuppliesBonusAmountPerLevelOption:set_default_value(
+        TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesBonusAmountPerLevel)
+    aiArmySuppliesBonusAmountPerLevelOption:set_text("totowar_cbac_mct_option_caption_aiArmySuppliesBonusAmountPerLevel")
+    aiArmySuppliesBonusAmountPerLevelOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_aiArmySuppliesBonusAmountPerLevel")
+    cbacAiSection:assign_option(aiArmySuppliesBonusAmountPerLevelOption)
 
     local aiArmyAgentMaximumAmountOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount,

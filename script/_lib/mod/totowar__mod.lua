@@ -336,10 +336,10 @@ function TotoWarMod:overwriteOptionsForDebug()
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
-    TotoWar.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
-    TotoWar.loggers.modsManager.logLevel = TotoWar.enums.logSeverity.error
-    TotoWar.loggers.uiUtils.logLevel = TotoWar.enums.logSeverity.error
-    TotoWar.loggers.utils.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWar.loggers.generic.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWar.loggers.modsManager.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWar.loggers.uiUtils.logLevel = TotoWar.enums.logSeverity.error
+    -- TotoWar.loggers.utils.logLevel = TotoWar.enums.logSeverity.error
 
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end

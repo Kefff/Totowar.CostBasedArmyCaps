@@ -666,8 +666,8 @@ end
 function TotoWarCbacPlayerManager:updateUnitExchangeArmySuppliesCosts()
     TotoWarCbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
-    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(false)
-    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(false)
+    self.unitExchangeArmySuppliesCost1 = TotoWarCbacArmySuppliesCost.new(false, self.selectedGeneral:rank())
+    self.unitExchangeArmySuppliesCost2 = TotoWarCbacArmySuppliesCost.new(false, self.selectedGeneral:rank())
 
     local unitExchangePool1UIComponent = TotoWar.ui:getUIComponent(TotoWar.ui.uiComponentQueries.unitExchangePool1)
     self:updateUnitExchangeArmySuppliesCost(

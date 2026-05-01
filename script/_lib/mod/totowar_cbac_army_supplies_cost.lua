@@ -5,6 +5,10 @@ TotoWarCbacArmySuppliesCost = {
     ---@type integer
     availableSupplies = nil,
 
+    ---Level of the general.
+    ---@type integer
+    generalLevel = nil,
+
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
     ---@type TotoWarCbacUnitArmySuppliesCost[]
@@ -26,24 +30,34 @@ TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
 ---Initializes a new instance of TotoWarCbacArmySuppliesCost.
 ---@param isAi boolean Indicates whether the army belongs to AI.
+---@param generalLevel integer Level of the general leading the army.
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new(isAi)
+function TotoWarCbacArmySuppliesCost.new(isAi, generalLevel)
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
 
+    local levelBonus = 0
+
     if isAi then
-        instance.totalArmySupplies = TotoWarCbac.options.aiArmySuppliesAmount
+        levelBonus = (generalLevel - 1) * TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel
+        instance.totalArmySupplies = TotoWarCbac.options.aiArmySuppliesAmount + levelBonus
     else
-        instance.totalArmySupplies = TotoWarCbac.options.playerArmySuppliesAmount
+        levelBonus = (generalLevel - 1) * TotoWarCbac.options.playerArmySuppliesBonusAmountPerLevel
+        instance.totalArmySupplies = TotoWarCbac.options.playerArmySuppliesAmount + levelBonus
     end
 
     instance.availableSupplies = instance.totalArmySupplies
+    instance.generalLevel = generalLevel
     instance.inRecruitmentMercenaryUnits = {}
     instance.totalCost = 0
     instance.unitArmySuppliesCosts = {}
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): COMPLETED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
+        "TotoWarCbacArmySuppliesCost.new(): COMPLETED => General level: %s | Bonus army supplies: %s | Total army supplies: %s",
+        function() return instance.generalLevel end,
+        function() return levelBonus end,
+        function() return instance.totalArmySupplies end)
 
     return instance
 end
@@ -53,7 +67,7 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return TotoWarCbacArmySuppliesCost
 function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
-    local instance = TotoWarCbacArmySuppliesCost.new(isAi)
+    local instance = TotoWarCbacArmySuppliesCost.new(isAi, army:general_character():rank())
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): STARTED",
@@ -395,8 +409,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local unitsArmySuppliesCostTooltipText = ""
 
-    -- Sorting groups by category, price and and caption
-    self:sortUnitArmySuppliesCost()
+    self:sortUnitArmySuppliesCost() -- Sorting groups by category, price and and caption
 
     for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
         unitsArmySuppliesCostTooltipText =
@@ -425,7 +438,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
 
     local tooltipText = string.format(
         common.get_localised_string("totowar_cbac_tooltip_armySuppliesCost"),
-        TotoWarCbac.options.playerArmySuppliesAmount,
+        self.totalArmySupplies,
         self.totalCost,
         availableArmySuppliesString,
         depletedArmySuppliesWarning,
