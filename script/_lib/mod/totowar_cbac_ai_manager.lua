@@ -9,6 +9,9 @@ TotoWarCbacAiManager = {
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
+local _elitismCoefficients = { 1, 1.25, 1.5, 1.75, 2 }
+local _storageKeyElitismCoefficientPrefix = "totowar_cbac_elitism_coefficient_"
+
 ---Initializes a new instance.
 ---@return TotoWarCbacAiManager
 function TotoWarCbacAiManager.new()
@@ -303,9 +306,11 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
         return
     end
 
+    local general = army:general_character()
+
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyUnits(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
@@ -318,12 +323,27 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
                 and uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
         end)
 
+    ---@type number | nil
+    local elitismCoefficient = cm:get_saved_value(_storageKeyElitismCoefficientPrefix .. general:cqi())
+
+    if elitismCoefficient == nil then
+        local index = math.random(1, #_elitismCoefficients)
+        elitismCoefficient = _elitismCoefficients[index]
+        cm:set_saved_value(_storageKeyElitismCoefficientPrefix .. general:cqi(), elitismCoefficient)
+    end
+
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     local finalSelectedUnits = {}
     local armySuppliesCostToDiscard = -armySuppliesCost.availableSupplies
-    local elitismCoefficient = 1.5
     local disposableUnitsNumber = math.floor(
-        elitismCoefficient * self.armyAdjustmentQueue[army:general_character():cqi()])
+        elitismCoefficient * self.armyAdjustmentQueue[general:cqi()])
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "adjustAiArmyUnits(%s from %s): DISPOSABLE UNITS => %s | Elitism coefficient: %s",
+        function() return TotoWar.utils:getCharacterCaption(general) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return disposableUnitsNumber end,
+        function() return elitismCoefficient end)
 
     for i = 1, disposableUnitsNumber, 1 do
         -- Iterating to find up to disposableUnitsNumber units that can be discarded to cover armySuppliesCostToDiscard
@@ -365,7 +385,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
 
         TotoWarCbac.loggers.aiManager:logDebug(
             "adjustAiArmyUnits(%s from %s): UNIT TO DISCARD: %s (%s)",
-            function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+            function() return TotoWar.utils:getCharacterCaption(general) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
             function() return TotoWar.utils:getUnitCaption(selectedUnits[#selectedUnits].unitKey) end,
             function() return selectedUnits[#selectedUnits].armySuppliesCost end)
@@ -384,7 +404,7 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(general) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)

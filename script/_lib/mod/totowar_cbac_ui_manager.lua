@@ -727,10 +727,12 @@ function TotoWarCbacUIManager:updateUnitsPanel()
         TotoWar.ui.uiComponentQueries.unitsPanelIconList)
     local armySuppliesCostText = self:getArmySuppliesCostText(TotoWarCbac.playerManager
         .selectedGeneralArmySuppliesCost)
+    local armySuppliesCostTooltip =
+        TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText()
     self:createOrUpdateArmySuppliesUIComponent(
         unitsPanelIconListUIComponent,
         armySuppliesCostText,
-        TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText())
+        armySuppliesCostTooltip)
 
     TotoWarCbac.loggers.uiManager:logDebug("updateUnitsPanel(): COMPLETED")
 end
