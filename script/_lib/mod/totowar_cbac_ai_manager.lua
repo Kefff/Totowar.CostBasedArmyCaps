@@ -104,8 +104,8 @@ end
 function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
     local lord = cm:get_character_by_cqi(lordCqi)
 
-    if lord == nil then
-        -- This can happen sometimes (5 times in 80 turns) for some reason
+    if not lord then
+        -- This can happen sometimes for some reason
         TotoWarCbac.loggers.aiManager:logError("adjustAiArmy(%s): LORD NOT FOUND", lordCqi)
 
         return
