@@ -41,7 +41,7 @@ if mct then
     playerArmySuppliesBonusAmountPerLevelOption:set_default_value(
         TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesBonusAmountPerLevel)
     playerArmySuppliesBonusAmountPerLevelOption:set_text(
-    "totowar_cbac_mct_option_caption_playerArmySuppliesBonusAmountPerLevel")
+        "totowar_cbac_mct_option_caption_playerArmySuppliesBonusAmountPerLevel")
     playerArmySuppliesBonusAmountPerLevelOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_playerArmySuppliesBonusAmountPerLevel")
     cbacPlayerSection:assign_option(playerArmySuppliesBonusAmountPerLevelOption)
@@ -82,18 +82,18 @@ if mct then
         "totowar_cbac_mct_option_tooltip_aiArmySuppliesBonusAmountPerLevel")
     cbacAiSection:assign_option(aiArmySuppliesBonusAmountPerLevelOption)
 
-    local aiArmyAgentMaximumAmountOption = totoWarMod:add_new_option(
-        TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount,
+    local aiArmyHeroMaximumAmountOption = totoWarMod:add_new_option(
+        TotoWar_Cbac_OptionName_AiArmyHeroMaximumAmount,
         "slider")
-    aiArmyAgentMaximumAmountOption:slider_set_min_max(0, 20)
-    aiArmyAgentMaximumAmountOption:slider_set_step_size(1)
-    aiArmyAgentMaximumAmountOption:set_default_value(
-        TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount)
-    aiArmyAgentMaximumAmountOption:set_text(
-        "totowar_cbac_mct_option_caption_aiArmyAgentMaximumAmount")
-    aiArmyAgentMaximumAmountOption:set_tooltip_text(
-        "totowar_cbac_mct_option_tooltip_aiArmyAgentMaximumAmount")
-    cbacAiSection:assign_option(aiArmyAgentMaximumAmountOption)
+    aiArmyHeroMaximumAmountOption:slider_set_min_max(0, 20)
+    aiArmyHeroMaximumAmountOption:slider_set_step_size(1)
+    aiArmyHeroMaximumAmountOption:set_default_value(
+        TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumAmount)
+    aiArmyHeroMaximumAmountOption:set_text(
+        "totowar_cbac_mct_option_caption_aiArmyHeroMaximumAmount")
+    aiArmyHeroMaximumAmountOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_aiArmyHeroMaximumAmount")
+    cbacAiSection:assign_option(aiArmyHeroMaximumAmountOption)
 
     local aiArmyMeleeInfantryMaximumPercentageOption = totoWarMod:add_new_option(
         TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage,

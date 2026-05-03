@@ -20,7 +20,7 @@ TotoWarMod = {
         ---Colors.
         ---@class TotoWar_Enums_CharacterTypes
         characterTypes = {
-            general = "general"
+            lord = "lord"
         },
 
         ---Events triggered by the game.
@@ -156,8 +156,8 @@ TotoWarMod = {
             ---queue.
             recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$",
 
-            ---Pattern for identifying a UI component corresponding to the unit card of an agent during unit exchange.
-            unitExchangeAgentCard = "^AgentCard",
+            ---Pattern for identifying a UI component corresponding to the unit card of an hero during unit exchange.
+            unitExchangeHeroCard = "^HeroCard",
 
             ---Pattern for identifying a UI component corresponding to a unit card during unit exchange.
             unitExchangeUnitCard = "^UnitCard"

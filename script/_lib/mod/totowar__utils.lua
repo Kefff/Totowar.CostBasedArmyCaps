@@ -186,62 +186,62 @@ function TotoWarUtils:getUnitCaption(unitKey)
     return caption
 end
 
----Indicates whether a character is a general.
+---Indicates whether a character is a lord.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
-function TotoWarUtils:isGeneralCharacter(character)
+function TotoWarUtils:isLordCharacter(character)
     TotoWar.loggers.utils:logDebug(
-        "isGeneralCharacter(%s): STARTED",
+        "isLordCharacter(%s): STARTED",
         function() return self:getCharacterCaption(character) end)
 
-    local isPlayerFactionGeneral =
+    local isPlayerFactionLord =
         character:has_military_force()
         and self:canRecruitUnits(character:military_force())
 
     TotoWar.loggers.utils:logDebug(
-        "isGeneralCharacter(%s): COMPLETED => %s",
+        "isLordCharacter(%s): COMPLETED => %s",
         function() return self:getCharacterCaption(character) end,
-        function() return isPlayerFactionGeneral end)
+        function() return isPlayerFactionLord end)
 
-    return isPlayerFactionGeneral
+    return isPlayerFactionLord
 end
 
----Indicates whether a character is a general.
+---Indicates whether a character is a lord.
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return boolean
-function TotoWarUtils:isGeneralUnit(characterCqi)
+function TotoWarUtils:isLordUnit(characterCqi)
     TotoWar.loggers.utils:logDebug(
-        "isGeneralUnit(%s): STARTED",
+        "isLordUnit(%s): STARTED",
         function() return characterCqi end)
 
-    local isGeneral = false
+    local isLord = false
 
     -- Directly searching for the character corresponding to the CQI
-    isGeneral = common.get_context_value(
+    isLord = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "IsArmy")
 
-    if not isGeneral then
+    if not isLord then
         -- If the character is not found, it means we have the CQI of a unit
         -- so we need to search for the character context through the unit context
-        isGeneral = common.get_context_value(
+        isLord = common.get_context_value(
             TotoWar.enums.ccoContextTypeIds.campaignUnit,
             tostring(characterCqi),
             "CharacterContext.IsArmy")
 
-        if not isGeneral then
-            -- isGeneral can be nil when we arrive here
-            isGeneral = false
+        if not isLord then
+            -- isLord can be nil when we arrive here
+            isLord = false
         end
     end
 
     TotoWar.loggers.utils:logDebug(
-        "isGeneralUnit(%s): COMPLETED => %s",
+        "isLordUnit(%s): COMPLETED => %s",
         function() return characterCqi end,
-        function() return isGeneral end)
+        function() return isLord end)
 
-    return isGeneral
+    return isLord
 end
 
 ---Indicates whether a faction is the faction of the player.
@@ -252,12 +252,12 @@ function TotoWarUtils:isPlayerFaction(factionName)
         "isPlayerFaction(%s): STARTED",
         function() return self:getFactionCaption(factionName) end)
 
-    local isPlayerFactionGeneral = factionName == self.playerFactionName
+    local isPlayerFactionLord = factionName == self.playerFactionName
 
     TotoWar.loggers.utils:logDebug(
         "isPlayerFaction(%s): COMPLETED => %s",
         function() return self:getFactionCaption(factionName) end,
-        function() return isPlayerFactionGeneral end)
+        function() return isPlayerFactionLord end)
 
-    return isPlayerFactionGeneral
+    return isPlayerFactionLord
 end

@@ -5,9 +5,9 @@ TotoWarCbacArmySuppliesCost = {
     ---@type integer
     availableSupplies = nil,
 
-    ---Level of the general.
+    ---Level of the lord.
     ---@type integer
-    generalLevel = nil,
+    lordLevel = nil,
 
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
@@ -30,9 +30,9 @@ TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
 
 ---Initializes a new instance of TotoWarCbacArmySuppliesCost.
 ---@param isAi boolean Indicates whether the army belongs to AI.
----@param generalLevel integer Level of the general leading the army.
+---@param lordLevel integer Level of the lord leading the army.
 ---@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new(isAi, generalLevel)
+function TotoWarCbacArmySuppliesCost.new(isAi, lordLevel)
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): STARTED")
 
     local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
@@ -40,22 +40,22 @@ function TotoWarCbacArmySuppliesCost.new(isAi, generalLevel)
     local levelBonus = 0
 
     if isAi then
-        levelBonus = (generalLevel - 1) * TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel
+        levelBonus = (lordLevel - 1) * TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel
         instance.totalArmySupplies = TotoWarCbac.options.aiArmySuppliesAmount + levelBonus
     else
-        levelBonus = (generalLevel - 1) * TotoWarCbac.options.playerArmySuppliesBonusAmountPerLevel
+        levelBonus = (lordLevel - 1) * TotoWarCbac.options.playerArmySuppliesBonusAmountPerLevel
         instance.totalArmySupplies = TotoWarCbac.options.playerArmySuppliesAmount + levelBonus
     end
 
     instance.availableSupplies = instance.totalArmySupplies
-    instance.generalLevel = generalLevel
+    instance.lordLevel = lordLevel
     instance.inRecruitmentMercenaryUnits = {}
     instance.totalCost = 0
     instance.unitArmySuppliesCosts = {}
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost.new(): COMPLETED => General level: %s | Bonus army supplies: %s | Total army supplies: %s",
-        function() return instance.generalLevel end,
+        "TotoWarCbacArmySuppliesCost.new(): COMPLETED => Lord level: %s | Bonus army supplies: %s | Total army supplies: %s",
+        function() return instance.lordLevel end,
         function() return levelBonus end,
         function() return instance.totalArmySupplies end)
 
@@ -90,10 +90,10 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
         local isAlreadyAddedCharacter = totoWar_linqAny(
             instance.unitArmySuppliesCosts,
             function(uasc)
-                -- We avoid adding the general and agents twice
+                -- We avoid adding the lord and heroes twice
                 return uasc.unitCqi == unitCqi
-                    and (uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
-                        or uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent)
+                    and (uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
+                        or uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero)
             end)
 
         if not isAlreadyAddedCharacter then
@@ -179,7 +179,7 @@ end
 
 ---Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
 ---
----General and agents are not taken into account.
+---Lord and heroes are not taken into account.
 ---@return { [string]: number }
 function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): STARTED")
@@ -193,19 +193,19 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
     local categoryUnitExcessCounts = {}
 
     for key, armyCompositionUnitType in pairs(TotoWarCbac.enums.armyCompositionUnitTypes) do
-        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
-            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
+            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
         then
-            -- The general and agents are not taken into consideration in the proportion
+            -- The lord and heroes are not taken into consideration in the proportion
             categoryUnitCounts[armyCompositionUnitType] = 0
         end
     end
 
     for index, unit in ipairs(self.unitArmySuppliesCosts) do
-        if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.general
-            and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
+            and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
         then
-            -- The general and agents are not taken into consideration in the proportion.
+            -- The lord and heroes are not taken into consideration in the proportion.
             -- In recruitment mercenary units are ignored since they can only exist when the
             -- player is in a mercenary recruitment panel
             categoryUnitCounts[unit.unitCategory] = categoryUnitCounts[unit.unitCategory] + 1
@@ -327,27 +327,27 @@ end
 
 ---Sorts army supplies costs by unit category, army supplies cost and name.
 ---
----Unit category order : General, Agent, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
+---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
 function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
     table.sort(
         self.unitArmySuppliesCosts,
         function(item1, item2)
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general then
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord then
                 return true
             end
 
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general then
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord then
                 return false
             end
 
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
             then
                 return true
             end
 
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
             then
                 return false
             end
@@ -472,20 +472,20 @@ function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmyS
     ---@type string
     local tooltipText
 
-    if unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.general
-        or unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.agent
+    if unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
+        or unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
     then
         local character = cm:get_character_by_cqi(unitArmySuppliesCost.characterCqi)
 
         if character:has_military_force() then
             tooltipText = string.format(
-                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfGeneral"),
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfLord"),
                 TotoWar.utils:getCharacterCaption(character),
                 TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
                 unitArmySuppliesCost.armySuppliesCost)
         else
             tooltipText = string.format(
-                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfAgent"),
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfHero"),
                 TotoWar.utils:getCharacterCaption(character),
                 TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
                 unitArmySuppliesCost.armySuppliesCost)

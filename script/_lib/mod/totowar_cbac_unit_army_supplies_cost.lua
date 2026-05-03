@@ -6,7 +6,7 @@ TotoWarCbacUnitArmySuppliesCost = {
     armySuppliesCost = 0,
 
     ---Key of the base unit this unit derives from (like mounted characters).
-    ---Used to identify agents of the same type but with different mounts.
+    ---Used to identify heroes of the same type but with different mounts.
     baseUnitKey = nil,
 
     ---Command queue index of the character if the unit is a character.
@@ -62,12 +62,12 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
         "UnitContext.UniqueUiId")) -- UnitContext.UniqueUiId is a string
     instance.unitKey = unitKey
 
-    if TotoWar.utils:isGeneralUnit(characterCqi) then
+    if TotoWar.utils:isLordUnit(characterCqi) then
         ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.general
+        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.lord
     else
         ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+        instance.unitCategory = TotoWarCbac.enums.armyCompositionUnitTypes.hero
     end
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
@@ -123,10 +123,10 @@ function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey,
     local armyCompositionUnitType = nil
 
     if characterCqi ~= nil then
-        if TotoWar.utils:isGeneralUnit(characterCqi) then
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.general
+        if TotoWar.utils:isLordUnit(characterCqi) then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.lord
         else
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.agent
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.hero
         end
     else
         local unitGroup = common.get_context_value(

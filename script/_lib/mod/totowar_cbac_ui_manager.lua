@@ -165,14 +165,14 @@ function TotoWarCbacUIManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacUIManager",
-        TotoWarCbac.enums.modEvents.selectedGeneralArmySuppliesCostChanged,
+        TotoWarCbac.enums.modEvents.selectedLordArmySuppliesCostChanged,
         function()
             return
                 TotoWarCbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
         end,
         function()
-            self:onSelectedGeneralArmySuppliesCostChanged()
+            self:onSelectedLordArmySuppliesCostChanged()
         end)
 
     TotoWar.utils:addListener(
@@ -408,7 +408,7 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     --- We do not need to update the units_panel when it is opened, because it is the
     --- fact that it is opened that triggers the army supplies cost calculation.
     --- So when it is opened, the army supplies cost is not up to date.
-    --- It is later updated when the SelectedGeneralArmySuppliesCostChanged event is triggered.
+    --- It is later updated when the SelectedLordArmySuppliesCostChanged event is triggered.
 
     TotoWarCbac.loggers.uiManager:logDebug(
         "onPanelOpened(%s): STARTED",
@@ -437,16 +437,16 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
         function() return panelName end)
 end
 
----Reacts to the army supplies cost of the selected general changing.
-function TotoWarCbacUIManager:onSelectedGeneralArmySuppliesCostChanged()
-    TotoWarCbac.loggers.uiManager:logDebug("onSelectedGeneralArmySuppliesCostChanged(): STARTED")
+---Reacts to the army supplies cost of the selected lord changing.
+function TotoWarCbacUIManager:onSelectedLordArmySuppliesCostChanged()
+    TotoWarCbac.loggers.uiManager:logDebug("onSelectedLordArmySuppliesCostChanged(): STARTED")
 
     self:updateUnitsPanel()
 
     local recruitmentPools = self:findOpenRecruitmentPools()
     self:updateRecruitmentPools(recruitmentPools)
 
-    TotoWarCbac.loggers.uiManager:logDebug("onSelectedGeneralArmySuppliesCostChanged(): COMPLETED")
+    TotoWarCbac.loggers.uiManager:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Resets flags that indicate UI changes have been made to display army supply costs.
@@ -638,8 +638,8 @@ function TotoWarCbacUIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     local unitBaseCostText = tostring(unitBaseCost)
 
-    if unitBaseCost > TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost.availableSupplies then
-        -- Disabling the unit card when its the army supplies exceeds the available army supplies of the selected general
+    if unitBaseCost > TotoWarCbac.playerManager.selectedLordArmySuppliesCost.availableSupplies then
+        -- Disabling the unit card when its the army supplies exceeds the available army supplies of the selected lord
         TotoWarCbac.loggers.uiManager:logDebug(
             "updateRecruitableUnitCard(%s): UNIT RECRUITMENT DISABLED => (%s, %s)",
             function() return unitCardUIComponent:Id() end,
@@ -726,9 +726,9 @@ function TotoWarCbacUIManager:updateUnitsPanel()
     local unitsPanelIconListUIComponent = TotoWar.ui:getUIComponent(
         TotoWar.ui.uiComponentQueries.unitsPanelIconList)
     local armySuppliesCostText = self:getArmySuppliesCostText(TotoWarCbac.playerManager
-        .selectedGeneralArmySuppliesCost)
+        .selectedLordArmySuppliesCost)
     local armySuppliesCostTooltip =
-        TotoWarCbac.playerManager.selectedGeneralArmySuppliesCost:toArmySuppliesCostTooltipText()
+        TotoWarCbac.playerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()
     self:createOrUpdateArmySuppliesUIComponent(
         unitsPanelIconListUIComponent,
         armySuppliesCostText,

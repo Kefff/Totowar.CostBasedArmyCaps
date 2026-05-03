@@ -11,10 +11,10 @@ TotoWarCbacMod = {
         ---Unit categories composing an army.
         ---@class TotoWarCbac_Enums_ArmyCompositionUnitCategories
         armyCompositionUnitTypes = {
-            agent = "agent",
+            hero = "hero",
             artillery = "artillery",
             cavalryAndMonsters = "cavalryAndMonsters",
-            general = "general",
+            lord = "lord",
             meleeInfantry = "meleeInfantry",
             rangedInfantry = "rangedInfantry",
         },
@@ -28,7 +28,7 @@ TotoWarCbacMod = {
             optionsUpdated = "TotoWarCab_OptionsUpdated",
 
             ---Event triggered when the army supplies cost of the selected army changes.
-            selectedGeneralArmySuppliesCostChanged = "TotoWarCbac_SelectedGeneralArmySuppliesCostChanged",
+            selectedLordArmySuppliesCostChanged = "TotoWarCbac_SelectedLordArmySuppliesCostChanged",
 
             ---Event triggered when the army supplies cost of army exchanging units changes.
             unitExchangeArmySuppliesCostChanged = "TotoWarCbac_UnitExchangeArmySuppliesCostChanged",
@@ -66,13 +66,13 @@ TotoWarCbacMod = {
     ---Options
     ---@class TotoWarCbac_Options
     options = {
-        ---Maximum amount of agents in AI armies.
-        aiArmyAgentMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiArmyAgentMaximumAmount,
+        ---Maximum amount of heroes in AI armies.
+        aiArmyHeroMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumAmount,
 
         ---Total army supplies available in an army for the AI.
         aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
 
-        ---Bonus army supplies per level of the general in AI armies.
+        ---Bonus army supplies per level of the lord in AI armies.
         aiArmySuppliesBonusAmountPerLevel = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesBonusAmountPerLevel,
 
         ---Indicates whether army supplies restrictions are enabled for AI armies.
@@ -89,7 +89,7 @@ TotoWarCbacMod = {
         ---Total army supplies available in an army for the player.
         playerArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount,
 
-        ---Bonus army supplies per level of the general in player armies.
+        ---Bonus army supplies per level of the lord in player armies.
         playerArmySuppliesBonusAmountPerLevel = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesBonusAmountPerLevel,
 
         ---Indicates whether army supplies restrictions are enabled for player armies.
@@ -182,8 +182,8 @@ function TotoWarCbacMod:loadMctOptions()
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
 
-    TotoWarCbac.options.aiArmyAgentMaximumAmount = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyAgentMaximumAmount)
+    TotoWarCbac.options.aiArmyHeroMaximumAmount = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyHeroMaximumAmount)
         :get_finalized_setting()
     TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesBonusAmountPerLevel)
