@@ -235,6 +235,7 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
                 message = 'No excess'
             end
 
+
             return message
         end)
 
@@ -242,30 +243,32 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
 end
 
 ---Removes the character corresponding to a command queue index.
----@param characerCqi integer Character command queue index.
-function TotoWarCbacArmySuppliesCost:removeCharacter(characerCqi)
+---@param characterCqi integer Character command queue index.
+function TotoWarCbacArmySuppliesCost:removeCharacter(characterCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:removeCharacter(%s): STARTED",
-        function() return characerCqi end)
+        function() return characterCqi end)
 
-    for i = 1, #self.unitArmySuppliesCosts, -1 do
+    for i = 1, #self.unitArmySuppliesCosts, 1 do
         local unit = self.unitArmySuppliesCosts[i]
 
-        if unit.characterCqi == characerCqi then
+        if unit.characterCqi == characterCqi then
             self.totalCost = self.totalCost - unit.armySuppliesCost
             self.availableSupplies = self.totalArmySupplies - self.totalCost
             table.remove(self.unitArmySuppliesCosts, i)
 
             TotoWarCbac.loggers.armySuppliesCost:logDebug(
                 "TotoWarCbacArmySuppliesCost:removeCharacter(%s): COMPLETED => %s",
-                function() return characerCqi end,
+                function() return characterCqi end,
                 function() return TotoWar.utils:getUnitCaption(unit.unitKey) end)
+
+            return
         end
     end
 
     TotoWarCbac.loggers.armySuppliesCost:logError(
         "TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND",
-        characerCqi)
+        characterCqi)
 end
 
 ---Removes a unit from the army supplies cost.

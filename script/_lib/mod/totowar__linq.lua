@@ -66,14 +66,29 @@ function totoWar_linqLastOrDefault(list, predicate)
     return nil
 end
 
+---Selects the result of a predicate for each element of a list.
+---@generic T, Y
+---@param list T[] List.
+---@param predicate fun(item: T): Y Predicate.
+---@return Y[]
+function totoWar_linqSelect(list, predicate)
+    ---@diagnostic disable-next-line: undefined-doc-name
+    ---@type Y[]
+    local result = {}
+
+    for index, item in ipairs(list) do
+        table.insert(result, predicate(item))
+    end
+
+    return result
+end
+
 ---Sums for each element of a list the value corresponding a predicate.
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): number Predicate.
 ---@return number
 function totoWar_linqSum(list, predicate)
-    TotoWar.loggers.utils:logDebug("linqSum(%s): STARTED", function() return #list end)
-
     ---@type number
     local result = 0
 

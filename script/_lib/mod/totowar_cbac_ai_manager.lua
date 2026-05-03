@@ -9,7 +9,7 @@ TotoWarCbacAiManager = {
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
-local _elitismCoefficients = { 1, 1.25, 1.5, 1.75, 2 }
+local _elitismCoefficients = { 1, 1.1, 1.2, 1.3, 1.4, 1.5 }
 local _storageKeyElitismCoefficientPrefix = "totowar_cbac_elitism_coefficient_"
 
 ---Initializes a new instance.
@@ -103,6 +103,14 @@ end
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
 function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
     local lord = cm:get_character_by_cqi(lordCqi)
+
+    if lord == nil then
+        -- This can happen sometimes (5 times in 80 turns) for some reason
+        TotoWarCbac.loggers.aiManager:logError("adjustAiArmy(%s): LORD NOT FOUND", lordCqi)
+
+        return
+    end
+
     local army = lord:military_force()
     local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(true, army)
 
@@ -111,7 +119,7 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmy(): STARTED => %s from %s | Total army supplies cost: %s | Available army supplies: %s",
+        "adjustAiArmy(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
@@ -142,7 +150,7 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmy(): COMPLETED => %s from %s | Total army supplies cost: %s | Available army supplies: %s",
+        "adjustAiArmy(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
@@ -480,6 +488,9 @@ function TotoWarCbacAiManager:onAiUnitRecruited(unit)
     then
         self.armyAdjustmentQueue[lord:cqi()] = 1
 
+        -- Forced to use a callback here to defer the adjustment until all units are recruited.
+        -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
+        -- we switched to a defered global adjustment to fix that.
         cm:callback(
             function()
                 self:adjustAiArmy(lord:cqi())

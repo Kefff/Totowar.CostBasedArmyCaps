@@ -35,11 +35,9 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 ---@param characterCqi integer Command queue index of the character.
 ---@return TotoWarCbacUnitArmySuppliesCost
 function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
-    local character = cm:get_character_by_cqi(characterCqi)
-
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(character) end)
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
 
     local unitKey = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.campaignCharacter,
@@ -72,7 +70,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
-        function() return TotoWar.utils:getCharacterCaption(character) end,
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end,
         function() return instance.baseUnitKey end,
         function() return instance.armySuppliesCost end)
 
