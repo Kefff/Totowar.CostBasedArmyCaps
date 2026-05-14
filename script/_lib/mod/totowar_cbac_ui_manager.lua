@@ -418,7 +418,7 @@ function TotoWarCbacUIManager:onRecruitmentPanelOpened(panelName)
     local recruitmentPoolsToUpdate = {}
 
     for i, recruitmentPool in ipairs(recruitmentPools) do
-        local wasOpen = totoWar_linqAny(
+        local wasOpen = TotoWarLinq:any(
             self.lastOpenedRecruitmentPools,
             function(lorp) return lorp == recruitmentPool.name end)
 

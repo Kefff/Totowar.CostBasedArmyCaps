@@ -7,6 +7,7 @@ TotoWarCbacUnitArmySuppliesCost = {
 
     ---Key of the base unit this unit derives from (like mounted characters).
     ---Used to identify heroes of the same type but with different mounts.
+    ---@type string
     baseUnitKey = nil,
 
     ---Command queue index of the character if the unit is a character.

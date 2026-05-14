@@ -140,7 +140,7 @@ function TotoWarUIUtils:isUIComponentChildOf(uiComponent, parentNames)
         function() return uiComponent:Id() end,
         function() return parentNamesText end)
 
-    local hasParent = totoWar_linqAny(
+    local hasParent = TotoWarLinq:any(
         parentNames,
         function(pn)
             return (uicomponent_has_parent_filter(

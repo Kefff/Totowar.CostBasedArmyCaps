@@ -87,7 +87,7 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
         local unit = units:item_at(i)
         local unitCqi = unit:command_queue_index()
 
-        local isAlreadyAddedCharacter = totoWar_linqAny(
+        local isAlreadyAddedCharacter = TotoWarLinq:any(
             instance.unitArmySuppliesCosts,
             function(uasc)
                 -- We avoid adding the lord and heroes twice

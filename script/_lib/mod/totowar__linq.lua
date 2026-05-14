@@ -1,12 +1,46 @@
+---Represents an utility class for managin enumerations.
+---@class TotoWarLinq
+TotoWarLinq = {}
+TotoWarLinq.__index = TotoWarLinq
+
+---Indicates whether all elements of a list match a predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return boolean
+function TotoWarLinq:all(list, predicate)
+    local nonMatchingElement = TotoWarLinq:firstOrDefault(list, function(e) return not predicate(e) end)
+    local allMatch = nonMatchingElement == nil
+
+    return allMatch
+end
+
 ---Indicates whether a list contains an element that matches a predicate.
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
-function totoWar_linqAny(list, predicate)
-    local exists = totoWar_linqFirstOrDefault(list, predicate) ~= nil
+function TotoWarLinq:any(list, predicate)
+    local exists = TotoWarLinq:firstOrDefault(list, predicate) ~= nil
 
     return exists
+end
+
+---Finds the index of the first element in a list that matches a predicate, or -1 if there are none.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+---@return number
+function TotoWarLinq:findIndex(list, predicate)
+    for index, item in ipairs(list) do
+        local predicateResult = predicate(item)
+
+        if predicateResult then
+            return index
+        end
+    end
+
+    return -1
 end
 
 ---Gets the first element of a list that matches a predicate, or nil if there are none.
@@ -14,7 +48,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T | nil
-function totoWar_linqFirstOrDefault(list, predicate)
+function TotoWarLinq:firstOrDefault(list, predicate)
     for index, item in ipairs(list) do
         local predicateResult = predicate(item)
 
@@ -27,13 +61,12 @@ function totoWar_linqFirstOrDefault(list, predicate)
 end
 
 ---Groups elements of a list based on a predicate used as a group key.
----@generic T
+---@generic T, Y
 ---@param list T[] List.
----@param predicate fun(item: T): string Predicate.
----@return { [string]: T[] }
-function totoWar_linqGroupBy(list, predicate)
-    ---@type { [string]: `T`[] }
-    local groups = {}
+---@param predicate fun(item: T): Y Predicate.
+---@return TotoWarDictionary<Y, T[]>
+function TotoWarLinq:groupBy(list, predicate)
+    local groups = TotoWarDictionary.new()
 
     for index, item in ipairs(list) do
         local key = predicate(item)
@@ -53,7 +86,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T
-function totoWar_linqLastOrDefault(list, predicate)
+function TotoWarLinq:lastOrDefault(list, predicate)
     for i = #list, 1, -1 do
         local item = list[i]
         local predicateResult = predicate(item)
@@ -71,7 +104,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): Y Predicate.
 ---@return Y[]
-function totoWar_linqSelect(list, predicate)
+function TotoWarLinq:select(list, predicate)
     ---@diagnostic disable-next-line: undefined-doc-name
     ---@type Y[]
     local result = {}
@@ -88,7 +121,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): number Predicate.
 ---@return number
-function totoWar_linqSum(list, predicate)
+function TotoWarLinq:sum(list, predicate)
     ---@type number
     local result = 0
 
@@ -104,7 +137,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T[]
-function totoWar_linqWhere(list, predicate)
+function TotoWarLinq:where(list, predicate)
     local filteredTable = {}
 
     for index, item in ipairs(list) do
