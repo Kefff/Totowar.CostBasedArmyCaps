@@ -166,6 +166,28 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMe
         function() return self.totalCost end)
 end
 
+---Checks whether a unit category has a number of units that exceed its maximum allowed proportion in the army composition.
+---@param category TotoWarCbac_Enums_ArmyCompositionUnitCategories Unit category.
+---@param categoryUnitCounts TotoWarDictionary<string, integer> Unit counts per category.
+---@param totalUnitCount integer Total number of units in the army.
+---@return boolean
+function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount)
+    if totalUnitCount <= 0 then
+        return false
+    end
+
+    local currentCount = categoryUnitCounts[category] or 0
+
+    if currentCount <= 0 then
+        return false
+    end
+
+    local proportion = currentCount / totalUnitCount
+    local maxProp = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[category]
+
+    return proportion > maxProp
+end
+
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): STARTED")
@@ -180,45 +202,72 @@ end
 ---Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
 ---
 ---Lord and heroes are not taken into account.
----@return { [string]: number }
+---@return TotoWarDictionary<string, integer>
 function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
     TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): STARTED")
 
     local totalUnitCount = 0
+    local orderedCategories = {
+        TotoWarCbac.enums.armyCompositionUnitTypes.artillery,
+        TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
+        TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
+        TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
+    }
 
-    ---@type { [string]: integer }
-    local categoryUnitCounts = {}
+    ---@type TotoWarDictionary<string, integer>
+    local categoryUnitCounts = TotoWarDictionary.new()
 
-    ---@type { [string]: integer }
-    local categoryUnitExcessCounts = {}
+    ---@type TotoWarDictionary<string, integer>
+    local categoryUnitExcessCounts = TotoWarDictionary.new()
 
-    for key, armyCompositionUnitType in pairs(TotoWarCbac.enums.armyCompositionUnitTypes) do
-        if armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-            and armyCompositionUnitType ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
-        then
-            -- The lord and heroes are not taken into consideration in the proportion
-            categoryUnitCounts[armyCompositionUnitType] = 0
-        end
+    -- Initialize counts for each category (excluding lord and heroes)
+    for key, armyCompositionUnitType in pairs(orderedCategories) do
+        categoryUnitCounts:set(armyCompositionUnitType, 0)
     end
 
+    -- Count units per category (excluding lord and heroes)
     for index, unit in ipairs(self.unitArmySuppliesCosts) do
         if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
             and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
         then
-            -- The lord and heroes are not taken into consideration in the proportion.
-            -- In recruitment mercenary units are ignored since they can only exist when the
-            -- player is in a mercenary recruitment panel
-            categoryUnitCounts[unit.unitCategory] = categoryUnitCounts[unit.unitCategory] + 1
+            ---@diagnostic disable-next-line: param-type-mismatch
+            categoryUnitCounts:set(unit.unitCategory, categoryUnitCounts:get(unit.unitCategory) + 1)
             totalUnitCount = totalUnitCount + 1
         end
     end
 
-    for key, value in pairs(categoryUnitCounts) do
-        local proportion = value / totalUnitCount
+    if totalUnitCount > 0 then
+        -- Initialize excess counts
+        for _, category in ipairs(orderedCategories) do
+            categoryUnitExcessCounts:set(category, 0)
+        end
 
-        if proportion > TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key] then
-            categoryUnitExcessCounts[key] = totoWar_numberRoundToNearestInteger(
-                totalUnitCount * (proportion - TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[key]))
+        -- Iterate over each category, selecting at most 1 unit per category over the limit each cycle to remove until no category is above the limit anymore.
+        -- Units that are selected as excess are not taken into consideration in the ratio computation for the next iterations.
+        while true do
+            local hasRemoved = false
+
+            for _, category in ipairs(orderedCategories) do
+                ---@diagnostic disable-next-line: param-type-mismatch
+                if self:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount) then
+                    categoryUnitExcessCounts:set(category, categoryUnitExcessCounts:get(category) + 1)
+                    categoryUnitCounts:set(category, categoryUnitCounts:get(category) - 1)
+                    totalUnitCount = totalUnitCount - 1
+
+                    hasRemoved = true
+                end
+            end
+
+            if not hasRemoved then
+                break
+            end
+        end
+
+        -- Removing entries with 0 excess
+        for index, category in ipairs(orderedCategories) do
+            if categoryUnitExcessCounts:get(category) == 0 then
+                categoryUnitExcessCounts:remove(category)
+            end
         end
     end
 
@@ -234,7 +283,6 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
             if message == '' then
                 message = 'No excess'
             end
-
 
             return message
         end)

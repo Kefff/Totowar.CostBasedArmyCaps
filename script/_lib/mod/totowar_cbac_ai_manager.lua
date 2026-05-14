@@ -289,12 +289,14 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     -- and removedCost is minimal above deficit.
 
     -- Build minimum removal requirements per category (only those > 0)
-    ---@type table<string, integer>
-    local minReq = {}
+    ---@type TotoWarDictionary<string, integer>
+    local minReq = TotoWarDictionary.new()
 
-    for cat, count in pairs(unitCategoryExcessCounts) do
-        if count ~= nil and count > 0 then
-            minReq[cat] = count
+    for index, category in ipairs(unitCategoryExcessCounts:getKeys()) do
+        local count = unitCategoryExcessCounts:get(category)
+
+        if count > 0 then
+            minReq:set(category, count)
         end
     end
 
@@ -323,8 +325,8 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     ---@type string[]
     local categories = {}
 
-    for cat, _ in pairs(minReq) do
-        table.insert(categories, cat)
+    for index, category in ipairs(minReq:getKeys()) do
+        table.insert(categories, category)
     end
 
     table.sort(categories)
@@ -344,8 +346,8 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         end,
         function()
             local total = 0
-            for _, count in pairs(minReq) do
-                total = total + count
+            for index, category in ipairs(minReq:getKeys()) do
+                total = total + minReq:get(category)
             end
 
             return total

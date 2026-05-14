@@ -1,14 +1,14 @@
 ---State class used to store unit removal counts for constrained categories when adjusting the units of an AI army.
 ---@class TotoWarCbacAiManagerAdjustmentSelection
 ---@field categories string[]
----@field minReq table<string, integer>
+---@field minReq TotoWarDictionary<string, integer>
 ---@field counts integer[]
 TotoWarCbacAiManagerAdjustmentSelection = {}
 TotoWarCbacAiManagerAdjustmentSelection.__index = TotoWarCbacAiManagerAdjustmentSelection
 
 ---Initializes a new instance.
 ---@param categories string[]
----@param minReq table<string, integer>
+---@param minReq TotoWarDictionary<string, integer>
 ---@return TotoWarCbacAiManagerAdjustmentSelection
 function TotoWarCbacAiManagerAdjustmentSelection.new(categories, minReq)
     ---@type TotoWarCbacAiManagerAdjustmentSelection
@@ -27,16 +27,18 @@ end
 ---Initializes a new instance from a key string, categories and requirements.
 ---@param key string
 ---@param categories string[]
----@param minReq table<string, integer>
+---@param minReq TotoWarDictionary<string, integer>
 ---@return TotoWarCbacAiManagerAdjustmentSelection
 function TotoWarCbacAiManagerAdjustmentSelection.newFromKey(key, categories, minReq)
-    local st = TotoWarCbacAiManagerAdjustmentSelection.new(categories, minReq)
-    local idx = 1
+    local instance = TotoWarCbacAiManagerAdjustmentSelection.new(categories, minReq)
+    local index = 1
+
     for num in string.gmatch(key, "([^,]+)") do
-        st.counts[idx] = tonumber(num) or 0
-        idx = idx + 1
+        instance.counts[index] = tonumber(num) or 0
+        index = index + 1
     end
-    return st
+
+    return instance
 end
 
 ---Increments the count for the given category, if it exists in the categories list.
@@ -47,7 +49,7 @@ function TotoWarCbacAiManagerAdjustmentSelection:add(category)
             self.counts[i] = self.counts[i] + 1
 
             -- Clamp to requirement (beyond requirement doesn't matter)
-            local req = self.minReq[cat]
+            local req = self.minReq:get(cat)
 
             if self.counts[i] > req then
                 self.counts[i] = req
@@ -66,17 +68,18 @@ function TotoWarCbacAiManagerAdjustmentSelection:clone()
     copy.categories = self.categories
     copy.minReq = self.minReq
     copy.counts = { unpack(self.counts) }
+
     return copy
 end
 
 ---Gets a unique key representing the counts for the given categories and requirements.
 ---@param categories string[]
----@param minReq table<string, integer>
+---@param minReq TotoWarDictionary<string, integer>
 ---@return string
 function TotoWarCbacAiManagerAdjustmentSelection.getFinalKey(categories, minReq)
     local counts = {}
     for i, cat in ipairs(categories) do
-        counts[i] = minReq[cat]
+        counts[i] = minReq:get(cat)
     end
     return table.concat(counts, ",")
 end
