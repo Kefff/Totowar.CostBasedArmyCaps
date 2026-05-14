@@ -1,10 +1,10 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
 totowar_cbac_mct_option_caption_aiArmyHeroMaximumAmount	Aimed number of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] in restricted armies	false
-totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage	Aimed percentage of [[col:totowar_cbac_unit_category_artillery]]artillery[[/col]] units in restricted armies	false
-totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Aimed percentage of [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units in restricted armies	false
-totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Aimed percentage of [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units in restricted armies	false
-totowar_cbac_mct_option_caption_aiArmyRangedInfantryMaximumPercentage	Aimed percentage of [[col:totowar_cbac_unit_category_rangedInfantry]]ranged infantry[[/col]] units in restricted armies	false
+totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_artillery]]artillery[[/col]] units in restricted armies	false
+totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units in restricted armies	false
+totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units in restricted armies	false
+totowar_cbac_mct_option_caption_aiArmyRangedInfantryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_rangedInfantry]]ranged infantry[[/col]] units in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmySupplies	Base [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] per army	false
 totowar_cbac_mct_option_caption_aiArmySuppliesBonusAmountPerLevel	Bonus [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] per level of the [[col:totowar_cbac_unit_category_lord]]lord[[/col]]	true
 totowar_cbac_mct_option_caption_aiArmySuppliesEnabled	Enable [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] restrictions	false

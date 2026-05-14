@@ -70,11 +70,13 @@ function TotoWarLinq:groupBy(list, predicate)
 
     for index, item in ipairs(list) do
         local key = predicate(item)
+        local group = groups:get(key)
 
-        if groups[key] == nil then
-            groups[key] = { item }
+        if group == nil then
+            group = { item }
+            groups:set(key, group)
         else
-            table.insert(groups[key], item)
+            table.insert(group, item)
         end
     end
 

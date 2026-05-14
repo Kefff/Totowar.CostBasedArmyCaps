@@ -9,8 +9,7 @@ TotoWarCbacAiManager = {
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
-local _elitismCoefficients = { 1, 1.1, 1.2, 1.3, 1.4, 1.5 }
-local _storageKeyElitismCoefficientPrefix = "totowar_cbac_elitism_coefficient_"
+local _storageKeyTargetArmySizePrefix = "totowar_cbac_target_army_size_"
 
 ---Initializes a new instance.
 ---@return TotoWarCbacAiManager
@@ -138,11 +137,8 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
     ---@type TotoWarCbacUnitArmySuppliesCost[]
     local unitsToDiscard = {}
 
-    -- Adding to the list of units to remove the cheapest units of categories that have too many units
-    self:adjustAiArmyComposition(army, armySuppliesCost, unitsToDiscard)
-
-    -- Adding to the list of units to remove the cheapest units to pass under the maximum army supplies cost
-    self:adjustAiArmyUnits(army, armySuppliesCost, unitsToDiscard)
+    -- Adjust composition and units simultaneously
+    self:adjustAiArmyCompositionAndUnits(army, armySuppliesCost, unitsToDiscard)
 
     -- Removing units flagged as discardable to stay within the army supplies limit
     for index, unitToDiscard in ipairs(unitsToDiscard) do
@@ -163,13 +159,13 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
 function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
-    local heroes = totoWar_linqWhere(
+    local heroes = TotoWarLinq:where(
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
     local heroesToRemoveAmount = #heroes - TotoWarCbac.options.aiArmyHeroMaximumAmount
 
     if heroesToRemoveAmount <= 0 then
-        return
+        return 0
     end
 
     local lord = army:general_character()
@@ -182,23 +178,21 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
         function() return armySuppliesCost.availableSupplies end)
 
     -- Grouping heroes by their base type to ignore their mount
-    local heroUnitGroups = totoWar_linqGroupBy(heroes, function(a) return a.baseUnitKey end)
+    local heroUnitGroups = TotoWarLinq:groupBy(heroes, function(a) return a.baseUnitKey end)
 
     while heroesToRemoveAmount > 0 do
         -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
-        ---@type string
-        local heroGroupKey
-        local heroGroupUnitCount = 0
+        ---@type TotoWarKeyValue<string, TotoWarCbacUnitArmySuppliesCost[]>
+        local heroUnitGroupWithMostHeroes = nil
 
-        for key, heroUnits in pairs(heroUnitGroups) do
-            if #heroUnits >= heroGroupUnitCount then
-                heroGroupUnitCount = #heroUnits
-                heroGroupKey = key
+        for index, entry in ipairs(heroUnitGroups.entries) do
+            if heroUnitGroupWithMostHeroes == nil or #entry.value >= #heroUnitGroupWithMostHeroes.value then
+                heroUnitGroupWithMostHeroes = entry
             end
         end
 
-        local heroToRemoveIndex = #heroUnitGroups[heroGroupKey]
-        local heroToRemove = heroUnitGroups[heroGroupKey][heroToRemoveIndex]
+        local heroToRemoveIndex = #heroUnitGroupWithMostHeroes.value
+        local heroToRemove = heroUnitGroupWithMostHeroes.value[heroToRemoveIndex]
 
         -- Getting the location where the hero will be teleported
         local heroTargetPositionX, heroTargetPositionY = cm:find_valid_spawn_location_for_character_from_position(
@@ -238,78 +232,14 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
         function() return armySuppliesCost.availableSupplies end)
 end
 
----Adjusts the units in an army to stay within maximum number of units allowed in each unit category.
+---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
----Cheapest units are removed first.
+---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the exact size reduction when required.
+---Totally vibe-coded, I'm too dumb to implement this.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
 ---@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List in which units to discard are stored. Updated if units are flagged as to be removed.
-function TotoWarCbacAiManager:adjustAiArmyComposition(army, armySuppliesCost, unitsToDiscard)
-    if armySuppliesCost.availableSupplies >= 0 then
-        return
-    end
-
-    TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyComposition(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return armySuppliesCost.totalCost end,
-        function() return armySuppliesCost.availableSupplies end)
-
-    -- Getting the number of units that exceeds the maximum proportion that is configured
-    local unitCategoryExcessCounts = armySuppliesCost:getUnitCategoryExcessCounts()
-
-    -- While the army supplies cost exceeds the maximum allowed, we add the exceeding units to the list of units to remove
-    for unitCategory, unitCategoryExcessCount in pairs(unitCategoryExcessCounts) do
-        if armySuppliesCost.availableSupplies > 0 or unitCategoryExcessCount == 0 then
-            break
-        end
-
-        TotoWarCbac.loggers.aiManager:logDebug(
-            "adjustAiArmyComposition(%s from %s): Category: %s | Excess: %s | Total army supplies cost: %s | Available army supplies: %s",
-            function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return unitCategory end,
-            function() return unitCategoryExcessCount end,
-            function() return armySuppliesCost.totalCost end,
-            function() return armySuppliesCost.availableSupplies end)
-
-        for index, unitArmySuppliesCost in ipairs(armySuppliesCost.unitArmySuppliesCosts) do
-            if armySuppliesCost.availableSupplies > 0 or unitCategoryExcessCount == 0 then
-                break
-            end
-
-            if unitArmySuppliesCost.unitCategory == unitCategory then
-                table.insert(unitsToDiscard, unitArmySuppliesCost)
-                armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey)
-                unitCategoryExcessCount = unitCategoryExcessCount - 1
-
-                TotoWarCbac.loggers.aiManager:logDebug(
-                    "adjustAiArmyComposition(%s from %s): EXCEEDING => %s | Category: %s | Remaining excess: %s | Total army supplies cost: %s | Available army supplies: %s",
-                    function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-                    function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-                    function() return TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey) end,
-                    function() return unitCategory end,
-                    function() return unitCategoryExcessCount end,
-                    function() return armySuppliesCost.totalCost end,
-                    function() return armySuppliesCost.availableSupplies end)
-            end
-        end
-    end
-
-    TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyComposition(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return armySuppliesCost.totalCost end,
-        function() return armySuppliesCost.availableSupplies end)
-end
-
----Adjusts the units in an army to stay below the army supplies cost limit by removing a combination of the cheapest possible units.
----@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
----@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List in which units to discard are stored. Updated if units are flagged as to be removed.
-function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToDiscard)
+function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySuppliesCost, unitsToDiscard)
     if armySuppliesCost.availableSupplies >= 0 then
         return
     end
@@ -317,13 +247,13 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
     local lord = army:general_character()
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyUnits(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
+        "adjustAiArmyCompositionAndUnits(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
 
-    local disposableUnits = totoWar_linqWhere(
+    local removableUnits = TotoWarLinq:where(
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc)
             return
@@ -331,91 +261,245 @@ function TotoWarCbacAiManager:adjustAiArmyUnits(army, armySuppliesCost, unitsToD
                 and uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
         end)
 
-    ---@type number | nil
-    local elitismCoefficient = cm:get_saved_value(_storageKeyElitismCoefficientPrefix .. lord:cqi())
-
-    if elitismCoefficient == nil then
-        local index = math.random(1, #_elitismCoefficients)
-        elitismCoefficient = _elitismCoefficients[index]
-        cm:set_saved_value(_storageKeyElitismCoefficientPrefix .. lord:cqi(), elitismCoefficient)
+    if #removableUnits == 0 then
+        return
     end
 
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
-    local finalSelectedUnits = {}
-    local armySuppliesCostToDiscard = -armySuppliesCost.availableSupplies
-    local disposableUnitsNumber = math.floor(
-        elitismCoefficient * self.armyAdjustmentQueue[lord:cqi()])
+    local unitCategoryExcessCounts = armySuppliesCost:getUnitCategoryExcessCounts()
+    local targetArmySize = self:getLordTargetArmySize(lord:cqi())
+    local currentArmySize = #armySuppliesCost.unitArmySuppliesCosts
+    local requiredRemovalsForSize = math.max(0, currentArmySize - targetArmySize)
+    local excessArmySuppliesCost = -armySuppliesCost.availableSupplies
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyUnits(%s from %s): DISPOSABLE UNITS => %s | Elitism coefficient: %s",
+        "adjustAiArmyCompositionAndUnits(%s from %s): Target army size: %s | Army size: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return disposableUnitsNumber end,
-        function() return elitismCoefficient end)
+        function() return targetArmySize end,
+        function() return currentArmySize end)
 
-    for i = 1, disposableUnitsNumber, 1 do
-        -- Iterating to find up to disposableUnitsNumber units that can be discarded to cover armySuppliesCostToDiscard
-        local startIndex = 0
-        local endIndex = startIndex + disposableUnitsNumber - 1
+    -- Convert the candidate units into a DP-friendly table. Each unit gets a value: excessScore * 1,000,000 + armySuppliesCost.
+    -- This biases the DP to prefer excess-category units first, then higher cost.
+    local candidateUnitList = {}
+    local maxCandidateCost = 0
 
-        if endIndex > #disposableUnits - 1 then
-            endIndex = #disposableUnits - 1
+    for unitIndex, unit in ipairs(removableUnits) do
+        local excessCategoryScore = 0
+
+        if unitCategoryExcessCounts[unit.unitCategory] and unitCategoryExcessCounts[unit.unitCategory] > 0 then
+            excessCategoryScore = 1
         end
 
-        ---@type TotoWarCbacUnitArmySuppliesCost[]
-        local selectedUnits = {}
-        local selectedUnitsArmySuppliesCost = 0
+        local unitScore = excessCategoryScore * 1000000 + unit.armySuppliesCost
+        table.insert(
+            candidateUnitList,
+            {
+                unit = unit,
+                cost = unit.armySuppliesCost,
+                excessScore = excessCategoryScore,
+                value = unitScore,
+                index = unitIndex
+            })
+        maxCandidateCost = maxCandidateCost + unit.armySuppliesCost
+    end
 
-        while endIndex < #disposableUnits and selectedUnitsArmySuppliesCost < armySuppliesCostToDiscard do
-            -- Iterating throught each combination of disposableUnitsNumber units until we find the first
-            -- combination that covers the armySuppliesCostToDiscard (or we reach the last unit)
-            selectedUnits = {}
-            selectedUnitsArmySuppliesCost = 0
+    -- DP table dimensions: count of removed units × total cost covered.
+    local candidateCount = #candidateUnitList
+    local maxRemovableUnits = candidateCount
+    local MINIMUM_SCORE = -1e18
 
-            startIndex = startIndex + 1
-            endIndex = endIndex + 1
+    local bestScoreForCountAndCost = {}
+    local parentPointer = {}
 
-            for j = startIndex, endIndex, 1 do
-                table.insert(selectedUnits, disposableUnits[j])
-                selectedUnitsArmySuppliesCost = selectedUnitsArmySuppliesCost + disposableUnits[j].armySuppliesCost
+    for removedUnitCount = 0, maxRemovableUnits do
+        bestScoreForCountAndCost[removedUnitCount] = {}
+        parentPointer[removedUnitCount] = {}
+        for accumulatedCost = 0, maxCandidateCost do
+            bestScoreForCountAndCost[removedUnitCount][accumulatedCost] = MINIMUM_SCORE
+        end
+    end
+    bestScoreForCountAndCost[0][0] = 0
 
-                if selectedUnitsArmySuppliesCost >= armySuppliesCostToDiscard then
-                    break
+    -- Fill the DP table.
+    -- bestScoreForCountAndCost[count][cost] = best total score achievable by removing exactly `count` units with summed cost `cost`.
+    for candidateIndex = 1, candidateCount do
+        local candidateUnit = candidateUnitList[candidateIndex]
+
+        for removedUnitCount = maxRemovableUnits, 1, -1 do
+            for accumulatedCost = maxCandidateCost, candidateUnit.cost, -1 do
+                local previousScore =
+                    bestScoreForCountAndCost[removedUnitCount - 1][accumulatedCost - candidateUnit.cost]
+                if previousScore > MINIMUM_SCORE then
+                    local candidateScore = previousScore + candidateUnit.value
+                    if candidateScore > bestScoreForCountAndCost[removedUnitCount][accumulatedCost] then
+                        bestScoreForCountAndCost[removedUnitCount][accumulatedCost] = candidateScore
+                        parentPointer[removedUnitCount][accumulatedCost] = {
+                            prevCost = accumulatedCost -
+                                candidateUnit.cost,
+                            candidateIndex = candidateIndex
+                        }
+                    end
                 end
             end
         end
+    end
 
-        -- Adding the priciest unit of the combination to the list of units that will be discarded.
-        -- Since it is this unit that made it possible to reach the armySuppliesCostToDiscard, we know for sure that it must be discarded.
-        -- Further iterations are used to optimise the cost of the other units that must also be discarded to the reach remaining armySuppliesCostToDiscard.
-        table.insert(finalSelectedUnits, selectedUnits[#selectedUnits])
-        armySuppliesCostToDiscard = armySuppliesCostToDiscard - selectedUnits[#selectedUnits].armySuppliesCost
+    -- Reconstruct selected units from parent pointers.
+    local function reconstructSolution(removeCount, totalCost)
+        local selectedUnits = {}
+        local usedUnitIndexes = {}
+        while removeCount > 0 and totalCost >= 0 do
+            local step = parentPointer[removeCount][totalCost]
 
-        TotoWarCbac.loggers.aiManager:logDebug(
-            "adjustAiArmyUnits(%s from %s): UNIT TO DISCARD: %s (%s)",
-            function() return TotoWar.utils:getCharacterCaption(lord) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getUnitCaption(selectedUnits[#selectedUnits].unitKey) end,
-            function() return selectedUnits[#selectedUnits].armySuppliesCost end)
+            if not step then
+                break
+            end
 
-        if armySuppliesCostToDiscard <= 0 then
-            -- If armySuppliesCostToDiscard is less than or equal to 0 after adding the priciest unit of the combination to the list of units
-            -- that will be discarded, there is no need to find further units to discard as the cost is covered by the last priciest unit.
-            break
+            local entry = candidateUnitList[step.candidateIndex]
+            table.insert(selectedUnits, entry)
+            usedUnitIndexes[step.candidateIndex] = true
+            totalCost = step.prevCost
+            removeCount = removeCount - 1
+        end
+
+        return selectedUnits, usedUnitIndexes
+    end
+
+    local chosenRemovalCount = nil
+    local chosenRemovalCost = nil
+    local chosenRemovalScore = MINIMUM_SCORE
+
+    if requiredRemovalsForSize > 0 then
+        -- We must remove exactly requiredRemovalsForSize units.
+        local requiredRemovalCount = requiredRemovalsForSize
+
+        if requiredRemovalCount > maxRemovableUnits then
+            requiredRemovalCount = maxRemovableUnits
+        end
+
+        -- Choose the best cost >= costDeficit for that exact removal count.
+        for accumulatedCost = excessArmySuppliesCost, maxCandidateCost do
+            local score = bestScoreForCountAndCost[requiredRemovalCount][accumulatedCost]
+
+            if score > chosenRemovalScore or (score == chosenRemovalScore and (chosenRemovalCost == nil or accumulatedCost > chosenRemovalCost)) then
+                chosenRemovalScore = score
+                chosenRemovalCost = accumulatedCost
+                chosenRemovalCount = requiredRemovalCount
+            end
+        end
+
+        -- If no feasible cost covers the deficit, pick the best available exact-count solution.
+        if chosenRemovalScore == MINIMUM_SCORE then
+            for accumulatedCost = 0, maxCandidateCost do
+                local score = bestScoreForCountAndCost[requiredRemovalCount][accumulatedCost]
+
+                if score > chosenRemovalScore or (score == chosenRemovalScore and (chosenRemovalCost == nil or accumulatedCost > chosenRemovalCost)) then
+                    chosenRemovalScore = score
+                    chosenRemovalCost = accumulatedCost
+                    chosenRemovalCount = requiredRemovalCount
+                end
+            end
+        end
+    else
+        -- We can remove any number of units; choose the smallest count that covers the deficit.
+        for removedUnitCount = 1, maxRemovableUnits do
+            local bestScoreForThisCount = MINIMUM_SCORE
+            local bestCostForThisCount = nil
+
+            for accumulatedCost = excessArmySuppliesCost, maxCandidateCost do
+                local score = bestScoreForCountAndCost[removedUnitCount][accumulatedCost]
+                if score > bestScoreForThisCount or (score == bestScoreForThisCount and (bestCostForThisCount == nil or accumulatedCost < bestCostForThisCount)) then
+                    bestScoreForThisCount = score
+                    bestCostForThisCount = accumulatedCost
+                end
+            end
+
+            if bestScoreForThisCount > MINIMUM_SCORE then
+                if not chosenRemovalCount or removedUnitCount < chosenRemovalCount or (removedUnitCount == chosenRemovalCount and bestScoreForThisCount > chosenRemovalScore) then
+                    chosenRemovalCount = removedUnitCount
+                    chosenRemovalCost = bestCostForThisCount
+                    chosenRemovalScore = bestScoreForThisCount
+                end
+            end
+
+            if chosenRemovalCount and chosenRemovalCount < removedUnitCount then
+                break
+            end
         end
     end
 
-    for index, selectedUnit in ipairs(finalSelectedUnits) do
-        table.insert(unitsToDiscard, selectedUnit)
-        armySuppliesCost:removeUnit(selectedUnit.unitKey)
+    if not chosenRemovalCount or not chosenRemovalCost then
+        return
+    end
+
+    local selectedUnits, usedUnitIndexes = reconstructSolution(chosenRemovalCount, chosenRemovalCost)
+    local selectedTotalCost = 0
+
+    for _, entry in ipairs(selectedUnits) do
+        selectedTotalCost = selectedTotalCost + entry.cost
+    end
+
+    -- Fallback: if exact-count solution doesn't cover the deficit, add extra units by priority.
+    if requiredRemovalsForSize > 0 and selectedTotalCost < excessArmySuppliesCost then
+        local remainingCandidates = {}
+
+        for candidateIndex, entry in ipairs(candidateUnitList) do
+            if not usedUnitIndexes[candidateIndex] then
+                table.insert(remainingCandidates, entry)
+            end
+        end
+
+        table.sort(remainingCandidates, function(a, b)
+            if a.excessScore ~= b.excessScore then
+                return a.excessScore > b.excessScore
+            end
+
+            return a.cost > b.cost
+        end)
+
+        for _, entry in ipairs(remainingCandidates) do
+            if selectedTotalCost >= excessArmySuppliesCost then
+                break
+            end
+
+            table.insert(selectedUnits, entry)
+            selectedTotalCost = selectedTotalCost + entry.cost
+        end
+    end
+
+    -- Apply the final solution to unitsToDiscard and update the cost object.
+    for _, entry in ipairs(selectedUnits) do
+        table.insert(unitsToDiscard, entry.unit)
+        armySuppliesCost:removeUnit(entry.unit.unitKey)
+
+        if unitCategoryExcessCounts[entry.unit.unitCategory] then
+            unitCategoryExcessCounts[entry.unit.unitCategory] = unitCategoryExcessCounts[entry.unit.unitCategory] - 1
+        end
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
+        "adjustAiArmyCompositionAndUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
-        function() return armySuppliesCost.availableSupplies end)
+        function() return armySuppliesCost.availableSupplies end,
+        function() return #armySuppliesCost.unitArmySuppliesCosts end)
+end
+
+---Gets the target army size for a lord.
+---
+---If it is not set yet, it is randomly generated and stored in the game state.
+---@param lordCqi integer Command queue index of the lord.
+---@return integer
+function TotoWarCbacAiManager:getLordTargetArmySize(lordCqi)
+    local targetArmySize = cm:get_saved_value(_storageKeyTargetArmySizePrefix .. lordCqi)
+
+    if targetArmySize == nil then
+        targetArmySize = math.random(12, 20)
+        cm:set_saved_value(_storageKeyTargetArmySizePrefix .. lordCqi, targetArmySize)
+    end
+
+    return targetArmySize
 end
 
 ---Reacts to an army being created by an AI faction.
@@ -496,7 +580,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(unit)
                 self:adjustAiArmy(lord:cqi())
                 self.armyAdjustmentQueue[lord:cqi()] = nil
             end,
-            0.001)
+            0.1)
     else
         self.armyAdjustmentQueue[lord:cqi()] = self.armyAdjustmentQueue[lord:cqi()] + 1
     end
