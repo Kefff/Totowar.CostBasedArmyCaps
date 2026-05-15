@@ -1,4 +1,4 @@
----Represents an utility class for managin enumerations.
+---Represents an utility class for managing enumerations.
 ---@class TotoWarLinq
 TotoWarLinq = {}
 TotoWarLinq.__index = TotoWarLinq
@@ -99,6 +99,22 @@ function TotoWarLinq:lastOrDefault(list, predicate)
     end
 
     return nil
+end
+
+---Removes the elements corresponding to a predicate.
+---@generic T
+---@param list T[] List.
+---@param predicate fun(item: T): boolean Predicate.
+function TotoWarLinq:remove(list, predicate)
+    while true do
+        local index = TotoWarLinq:findIndex(list, predicate)
+
+        if index == -1 then
+            return
+        else
+            table.remove(list, index)
+        end
+    end
 end
 
 ---Selects the result of a predicate for each element of a list.

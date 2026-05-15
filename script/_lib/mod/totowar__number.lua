@@ -1,7 +1,12 @@
+---Represents an utility class for managing number.
+---@class TotoWarNumber
+TotoWarNumber = {}
+TotoWarNumber.__index = TotoWarNumber
+
 ---Rounds a number to the nearest integer.
 ---@param number_ number Number.
 ---@return integer
-function totoWar_numberRoundToNearestInteger(number_)
+function TotoWarNumber:roundToNearestInteger(number_)
     local result = 0
 
     if number_ >= 0 then

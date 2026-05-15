@@ -1,9 +1,14 @@
+---Represents an utility class for managing strings.
+---@class TotoWarString
+TotoWarString = {}
+TotoWarString.__index = TotoWarString
+
 ---Adds padding to the left of a text to reach a certain length.
 ---@param text string Text.
 ---@param length integer Target length.
 ---@param paddingCharacter string | nil Padding character. Space by default.
 ---@return string
-function totowar_textPadLeft(text, length, paddingCharacter)
+function TotoWarString:padLeft(text, length, paddingCharacter)
     paddingCharacter = paddingCharacter or ' '
     text = string.rep(paddingCharacter, length - #text) .. text
 
@@ -15,7 +20,7 @@ end
 ---@param length integer Target length.
 ---@param paddingCharacter string | nil Padding character. Space by default.
 ---@return string
-function totoWar_textPadRight(text, length, paddingCharacter)
+function TotoWarString:padRight(text, length, paddingCharacter)
     paddingCharacter = paddingCharacter or ' '
     text = text .. string.rep(paddingCharacter, length - #text)
 

@@ -78,8 +78,8 @@ local function log(instance, severity, message, ...)
     fullLog = string.format(
         "%s | %s | %s | %s",
         os.date("%Y-%m-%d %H:%M:%S"),
-        totoWar_textPadRight(instance.loggerName, 30),
-        totoWar_textPadRight(severity, 5),
+        TotoWarString:padRight(instance.loggerName, 30),
+        TotoWarString:padRight(severity, 5),
         message)
     ModLog(fullLog)
 

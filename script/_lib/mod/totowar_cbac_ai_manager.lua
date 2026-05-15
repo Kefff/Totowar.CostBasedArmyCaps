@@ -1,11 +1,9 @@
 ---Manager in charge of managing the army supplies for the AI armies.
 ---@class TotoWarCbacAiManager
 TotoWarCbacAiManager = {
-    ---List of armies to check and adjust in order to comply with army supply restrictions.
-    ---Key: Command queue index of the lord.
-    ---Value: Number of recruited units.
-    ---@type TotoWarDictionary<integer, integer>
-    armyAdjustmentQueue = TotoWarDictionary.new()
+    ---List of command queue interfaces of the lors for which we need to check and adjust the composition in order to comply with army supply restrictions.
+    ---@type integer[]
+    armyAdjustmentQueue = {}
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
@@ -21,6 +19,25 @@ function TotoWarCbacAiManager.new()
     TotoWarCbac.loggers.aiManager:logDebug("TotoWarCbacAiManager.new(): COMPLETED")
 
     return instance
+end
+
+---Adds an army to the adjustment queue.
+---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
+function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
+    if not TotoWarLinq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
+    then
+        table.insert(self.armyAdjustmentQueue, lordCqi)
+
+        -- Forced to use a callback here to defer the adjustment until all units are recruited.
+        -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
+        -- we switched to a defered global adjustment to fix that.
+        cm:callback(
+            function()
+                self:adjustAiArmy(lordCqi)
+                TotoWarLinq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
+            end,
+            0.05)
+    end
 end
 
 ---Adds listeners for events.
@@ -670,9 +687,11 @@ end
 ---@param originalUnit UNIT_SCRIPT_INTERFACE Unit.
 ---@param newUnit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitConverted(originalUnit, newUnit)
+    local lord = newUnit:military_force():general_character()
+
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitConverted(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(newUnit:military_force():general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(newUnit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(originalUnit:unit_key()) end,
         function() return TotoWar.utils:getUnitCaption(newUnit:unit_key()) end)
@@ -681,7 +700,7 @@ function TotoWarCbacAiManager:onAiUnitConverted(originalUnit, newUnit)
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitConverted(%s from %s, %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(newUnit:military_force():general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(newUnit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(originalUnit:unit_key()) end,
         function() return TotoWar.utils:getUnitCaption(newUnit:unit_key()) end)
@@ -690,13 +709,15 @@ end
 ---Reacts to a unit being disbanded by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitDisbanded(unit)
+    local lord = unit:military_force():general_character()
+
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    -- This is just to log how AI disbands units and how it impacts the mod
+    -- This is just to log how AI converts units and how it impacts the mod
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): COMPLETED",
@@ -716,22 +737,7 @@ function TotoWarCbacAiManager:onAiUnitRecruited(unit)
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    if not self.armyAdjustmentQueue:exists(lord:cqi())
-    then
-        self.armyAdjustmentQueue:set(lord:cqi(), 1)
-
-        -- Forced to use a callback here to defer the adjustment until all units are recruited.
-        -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
-        -- we switched to a defered global adjustment to fix that.
-        cm:callback(
-            function()
-                self:adjustAiArmy(lord:cqi())
-                self.armyAdjustmentQueue:remove(lord:cqi())
-            end,
-            0.05)
-    else
-        self.armyAdjustmentQueue:set(lord:cqi(), self.armyAdjustmentQueue:get(lord:cqi()) + 1)
-    end
+    self:addArmyToAdjustmentQueue(lord:cqi())
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitRecruited(%s from %s, %s): COMPLETED",
@@ -743,17 +749,19 @@ end
 ---Reacts to a unit being upgraded by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitUpgraded(unit)
+    local lord = unit:military_force():general_character()
+
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitUpgraded(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    -- This is just to log how AI upgrades units and how it impacts the mod
+    self:addArmyToAdjustmentQueue(lord:cqi())
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitUpgraded(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 end
