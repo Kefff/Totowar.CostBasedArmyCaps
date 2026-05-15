@@ -47,11 +47,14 @@ end
 
 ---Gets the value corresponding to a key if it exists.
 ---@param key T Key
----@return Y | nil
+---@return Y
 function TotoWarDictionary:get(key)
     local entry = TotoWarLinq:firstOrDefault(self.entries, function(e) return e.key == key end)
 
     if entry == nil then
+        TotoWar.loggers.generic:logError("TotoWarDictionary:get(%s) => NOT FOUND", tostring(key))
+
+        ---@diagnostic disable-next-line: return-type-mismatch
         return nil
     end
 

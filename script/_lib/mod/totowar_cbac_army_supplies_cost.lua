@@ -177,7 +177,7 @@ function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryU
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return category end,
         ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) or 0 end,
+        function() return categoryUnitCounts:get(category) end,
         function() return totalUnitCount end)
 
     if totalUnitCount <= 0 then
@@ -185,7 +185,7 @@ function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryU
     end
 
     ---@diagnostic disable-next-line: param-type-mismatch
-    local currentCount = categoryUnitCounts:get(category) or 0
+    local currentCount = categoryUnitCounts:get(category)
 
     if currentCount <= 0 then
         return false
@@ -201,7 +201,7 @@ function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryU
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return category end,
         ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) or 0 end,
+        function() return categoryUnitCounts:get(category) end,
         function() return totalUnitCount end,
         function() return isExcess end,
         function() return proportion end,
