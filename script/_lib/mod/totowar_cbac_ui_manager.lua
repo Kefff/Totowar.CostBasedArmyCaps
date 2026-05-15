@@ -43,7 +43,7 @@ TotoWarCbacUIManager = {
     lastOpenedRecruitmentPools = {},
 
     ---Recruitment pool UIs.
-    ---@type{ [string]: TotoWarCbacRecruitmentPoolUI }
+    ---@type TotoWarDictionary<string, TotoWarCbacRecruitmentPoolUI>
     recruitmentPools = nil
 }
 TotoWarCbacUIManager.__index = TotoWarCbacUIManager
@@ -55,39 +55,39 @@ function TotoWarCbacUIManager.new()
 
     local instance = setmetatable({}, TotoWarCbacUIManager)
 
-    instance.recruitmentPools = {}
-    instance.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.allied] = {
+    instance.recruitmentPools = TotoWarDictionary.new()
+    instance.recruitmentPools:set(TotoWarCbac.enums.uiRecruitmentPoolNames.allied, {
         name = TotoWarCbac.enums.uiRecruitmentPoolNames.allied,
         panelName = TotoWar.enums.uiPanels.mercenaryRecruitment,
         uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool,
         updateUIFunction = function()
             instance:updateAlliedRecruitmentPool()
         end
-    }
-    instance.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.global] = {
+    })
+    instance.recruitmentPools:set(TotoWarCbac.enums.uiRecruitmentPoolNames.global, {
         name = TotoWarCbac.enums.uiRecruitmentPoolNames.global,
         panelName = TotoWar.enums.uiPanels.standardRecruitment,
         uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsGlobalRecruitmentPool,
         updateUIFunction = function()
             instance:updateGlobalRecruitmentPool()
         end
-    }
-    instance.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.local_] = {
+    })
+    instance.recruitmentPools:set(TotoWarCbac.enums.uiRecruitmentPoolNames.local_, {
         name = TotoWarCbac.enums.uiRecruitmentPoolNames.local_,
         panelName = TotoWar.enums.uiPanels.standardRecruitment,
         uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsLocalRecruitmentPool,
         updateUIFunction = function()
             instance:updateLocalRecruitmentPool()
         end
-    }
-    instance.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.mercenary] = {
+    })
+    instance.recruitmentPools:set(TotoWarCbac.enums.uiRecruitmentPoolNames.mercenary, {
         name = TotoWarCbac.enums.uiRecruitmentPoolNames.mercenary,
         panelName = TotoWar.enums.uiPanels.mercenaryRecruitment,
         uiComponentQuery = TotoWar.ui.uiComponentQueries.recruitmentOptionsMercenaryRecruitmentPool,
         updateUIFunction = function()
             instance:updateMercenaryRecruitmentPool()
         end
-    }
+    })
 
     TotoWarCbac.loggers.uiManager:logDebug("TotoWarCbacUIManager.new(): COMPLETED")
 
@@ -255,7 +255,8 @@ function TotoWarCbacUIManager:findOpenRecruitmentPools()
 
     local recruitmentPools = {}
 
-    for key, recruitmentPool in pairs(self.recruitmentPools) do
+    for index, entry in ipairs(self.recruitmentPools.entries) do
+        local recruitmentPool = entry.value
         local uiComponent = TotoWar.ui:findUIComponent(recruitmentPool.uiComponentQuery)
 
         if uiComponent and uiComponent:Visible(true) then
@@ -278,8 +279,9 @@ function TotoWarCbacUIManager:findRecruitmentPoolsInPanel(panelName)
 
     local recruitmentPools = {}
 
-    for key, recruitmentPool in pairs(self.recruitmentPools) do
-        ---@cast recruitmentPool TotoWarCbacRecruitmentPoolUI
+    for index, entry in ipairs(self.recruitmentPools.entries) do
+        local key = entry.key
+        local recruitmentPool = entry.value
 
         if recruitmentPool.panelName == panelName then
             local uiComponent = TotoWar.ui:findUIComponent(recruitmentPool.uiComponentQuery)
@@ -355,7 +357,8 @@ function TotoWarCbacUIManager:isRecruitmentPanel(panelName)
 
     local result = false
 
-    for key, recruitmentPool in pairs(self.recruitmentPools) do
+    for index, entry in ipairs(self.recruitmentPools.entries) do
+        local recruitmentPool = entry.value
         if recruitmentPool.panelName == panelName then
             result = true
 
@@ -515,7 +518,7 @@ function TotoWarCbacUIManager:updateGlobalRecruitmentPool()
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local globalRecruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
-        self.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.global].uiComponentQuery)
+        self.recruitmentPools:get(TotoWarCbac.enums.uiRecruitmentPoolNames.global).uiComponentQuery)
     local unitListUIComponent = TotoWar.ui:findUIComponentChild(
         globalRecruitmentPoolUIComponent,
         unitListQuery)
@@ -541,7 +544,7 @@ function TotoWarCbacUIManager:updateLocalRecruitmentPool()
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local localRecruitmentPoolUIComponent = TotoWar.ui:getUIComponent(
-        self.recruitmentPools[TotoWarCbac.enums.uiRecruitmentPoolNames.local_].uiComponentQuery)
+        self.recruitmentPools:get(TotoWarCbac.enums.uiRecruitmentPoolNames.local_).uiComponentQuery)
     local unitListUIComponent = TotoWar.ui:findUIComponentChild(
         localRecruitmentPoolUIComponent,
         unitListQuery)

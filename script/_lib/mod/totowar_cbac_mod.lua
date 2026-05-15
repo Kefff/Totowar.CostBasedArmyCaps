@@ -79,12 +79,8 @@ TotoWarCbacMod = {
         aiArmySuppliesEnabled = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled,
 
         ---Maximum percentage of each unit category to target in AI armies.
-        aiArmyUnitCategoryMaximumPercentages = {
-            ["artillery"] = TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage,
-            ["cavalryAndMonsters"] = TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage,
-            ["meleeInfantry"] = TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage,
-            ["rangedInfantry"] = TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage,
-        },
+        ---@type TotoWarDictionary<string, number>
+        aiArmyUnitCategoryMaximumPercentages = TotoWarDictionary.new(),
 
         ---Total army supplies available in an army for the player.
         playerArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount,
@@ -117,6 +113,16 @@ function TotoWarCbacMod.new()
     TotoWarCbac = setmetatable({}, TotoWarCbacMod)
 
     TotoWarCbac:initializeLoggers()
+
+    -- Initialize the dictionary with default values
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set("artillery",
+        TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set("cavalryAndMonsters",
+        TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set("meleeInfantry",
+        TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set("rangedInfantry",
+        TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage)
 
     TotoWarCbac.aiManager = TotoWarCbacAiManager:new()
     TotoWarCbac.playerManager = TotoWarCbacPlayerManager:new()
@@ -194,22 +200,25 @@ function TotoWarCbacMod:loadMctOptions()
     TotoWarCbac.options.aiArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesEnabled)
         :get_finalized_setting()
-    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.artillery] =
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set(TotoWarCbac.enums.armyCompositionUnitTypes.artillery,
         options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage)
-        :get_finalized_setting() / 100
-    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters] =
+        :get_finalized_setting() / 100)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set(
+        TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
         options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage)
-        :get_finalized_setting() / 100
-    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry] =
+        :get_finalized_setting() / 100)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set(
+        TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry,
         options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage)
-        :get_finalized_setting() / 100
-    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry] =
+        :get_finalized_setting() / 100)
+    TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:set(
+        TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
         options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyRangedInfantryMaximumPercentage)
-        :get_finalized_setting() / 100
+        :get_finalized_setting() / 100)
 
     TotoWarCbac.options.playerArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount)

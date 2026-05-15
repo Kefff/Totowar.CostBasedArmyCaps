@@ -4,8 +4,8 @@ TotoWarCbacAiManager = {
     ---List of armies to check and adjust in order to comply with army supply restrictions.
     ---Key: Command queue index of the lord.
     ---Value: Number of recruited units.
-    ---@type { [string]: integer }
-    armyAdjustmentQueue = {}
+    ---@type TotoWarDictionary<integer, integer>
+    armyAdjustmentQueue = TotoWarDictionary.new()
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
@@ -272,12 +272,12 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     local deficit = -armySuppliesCost.availableSupplies
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyCompositionAndUnits(%s from %s): Removable units: %s | Target army size: %s | Army size: %s | Required removals for size: %s | Deficit: %s",
+        "adjustAiArmyCompositionAndUnits(%s from %s): Army size: %s | Removable units: %s | Target army size: %s | Required removals for size: %s | Deficit: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return currentArmySize end,
         function() return #removableUnits end,
         function() return targetArmySize end,
-        function() return currentArmySize end,
         function() return requiredRemovalsForSize end,
         function() return deficit end)
 
@@ -716,9 +716,9 @@ function TotoWarCbacAiManager:onAiUnitRecruited(unit)
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    if self.armyAdjustmentQueue[lord:cqi()] == nil
+    if not self.armyAdjustmentQueue:exists(lord:cqi())
     then
-        self.armyAdjustmentQueue[lord:cqi()] = 1
+        self.armyAdjustmentQueue:set(lord:cqi(), 1)
 
         -- Forced to use a callback here to defer the adjustment until all units are recruited.
         -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
@@ -726,11 +726,11 @@ function TotoWarCbacAiManager:onAiUnitRecruited(unit)
         cm:callback(
             function()
                 self:adjustAiArmy(lord:cqi())
-                self.armyAdjustmentQueue[lord:cqi()] = nil
+                self.armyAdjustmentQueue:remove(lord:cqi())
             end,
             0.05)
     else
-        self.armyAdjustmentQueue[lord:cqi()] = self.armyAdjustmentQueue[lord:cqi()] + 1
+        self.armyAdjustmentQueue:set(lord:cqi(), self.armyAdjustmentQueue:get(lord:cqi()) + 1)
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(

@@ -172,31 +172,53 @@ end
 ---@param totalUnitCount integer Total number of units in the army.
 ---@return boolean
 function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount)
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
+        "checkUnitCategoryExcess(%s, %s, %s): STARTED",
+        ---@diagnostic disable-next-line: return-type-mismatch
+        function() return category end,
+        ---@diagnostic disable-next-line: param-type-mismatch
+        function() return categoryUnitCounts:get(category) or 0 end,
+        function() return totalUnitCount end)
+
     if totalUnitCount <= 0 then
         return false
     end
 
-    local currentCount = categoryUnitCounts[category] or 0
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local currentCount = categoryUnitCounts:get(category) or 0
 
     if currentCount <= 0 then
         return false
     end
 
     local proportion = currentCount / totalUnitCount
-    local maxProp = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages[category]
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local maxProp = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:get(category)
+    local isExcess = proportion > maxProp
+
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
+        "checkUnitCategoryExcess(%s, %s, %s): COMPLETED => Is excess: %s | Proportion: %s | Max proportion: %s",
+        ---@diagnostic disable-next-line: return-type-mismatch
+        function() return category end,
+        ---@diagnostic disable-next-line: param-type-mismatch
+        function() return categoryUnitCounts:get(category) or 0 end,
+        function() return totalUnitCount end,
+        function() return isExcess end,
+        function() return proportion end,
+        function() return maxProp end)
 
     return proportion > maxProp
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): STARTED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): STARTED")
 
     for i = 1, #self.inRecruitmentMercenaryUnits, 1 do
         self:removeUnit(TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment(): COMPLETED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
@@ -204,7 +226,7 @@ end
 ---Lord and heroes are not taken into account.
 ---@return TotoWarDictionary<string, integer>
 function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): STARTED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug("getUnitCategoryExcessCounts(): STARTED")
 
     local totalUnitCount = 0
     local orderedCategories = {
@@ -276,8 +298,8 @@ function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
         function()
             local message = ''
 
-            for key, value in pairs(categoryUnitExcessCounts) do
-                message = string.format("%s| %s: %s ", message, key, value)
+            for index, entry in ipairs(categoryUnitExcessCounts.entries) do
+                message = string.format("%s| %s: %s ", message, entry.key, entry.value)
             end
 
             if message == '' then
@@ -469,7 +491,7 @@ end
 ---Gets the list of unit army supplies costs as a tooltip string.
 ---@return string
 function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:toTooltipText(): STARTED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug("toTooltipText(): STARTED")
 
     local unitsArmySuppliesCostTooltipText = ""
 
@@ -508,7 +530,7 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
         depletedArmySuppliesWarning,
         unitsArmySuppliesCostTooltipText)
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost:toTooltipText(): COMPLETED")
+    TotoWarCbac.loggers.armySuppliesCost:logDebug("toTooltipText(): COMPLETED")
 
     return tooltipText
 end
