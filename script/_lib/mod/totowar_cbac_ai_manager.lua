@@ -1,12 +1,20 @@
 ---Manager in charge of managing the army supplies for the AI armies.
 ---@class TotoWarCbacAiManager
 TotoWarCbacAiManager = {
-    ---List of command queue interfaces of the lors for which we need to check and adjust the composition in order to comply with army supply restrictions.
+    ---List of command queue interfaces of the lords for which we need to check and adjust the composition in order to comply with army supply restrictions.
     ---@type integer[]
-    armyAdjustmentQueue = {}
+    armyAdjustmentQueue = {},
+
+    ---List of command queue interfaces of the lords for which we need to check whether disbanded units should be reinstated.
+    ---@type TotoWarDictionary<integer, UNIT_SCRIPT_INTERFACE[]>
+    disbandQueue = TotoWarDictionary.new()
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
+---Storage key prefix for the target army size of a lord.
+local _storageKeyLastAdjustmentTurnPrefix = "totowar_cbac_last_adjustment_turn_"
+
+---Storage key prefix for the target army size of a lord.
 local _storageKeyTargetArmySizePrefix = "totowar_cbac_target_army_size_"
 
 ---Initializes a new instance.
@@ -24,6 +32,10 @@ end
 ---Adds an army to the adjustment queue.
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
 function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "addArmyToAdjustmentQueue(%s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end)
+
     if not TotoWarLinq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
     then
         table.insert(self.armyAdjustmentQueue, lordCqi)
@@ -36,8 +48,59 @@ function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
                 self:adjustAiArmy(lordCqi)
                 TotoWarLinq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
             end,
-            0.05)
+            0.001)
     end
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "addArmyToAdjustmentQueue(%s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end)
+end
+
+---Adds an army to the disband queue to check whether the unit should be reinstated if disbanded after the army has already been adjusted.
+---@param unit UNIT_SCRIPT_INTERFACE Disbanded unit.
+function TotoWarCbacAiManager:addUnitToDisbandQueue(unit)
+    local lordCqi = unit:military_force():general_character():cqi()
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "addUnitToDisbandQueue(%s from %s, %s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+
+    local lastAdjustmentTurn = cm:get_saved_value(_storageKeyLastAdjustmentTurnPrefix .. lordCqi)
+
+    if lastAdjustmentTurn ~= cm:turn_number() then
+        TotoWarCbac.loggers.aiManager:logDebug(
+            "addUnitToDisbandQueue(%s from %s, %s): DISBAND CONFIRMED => Current turn: %s | Last adjustment turn: %s",
+            function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+            function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
+            function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end,
+            function() return cm:turn_number() end,
+            function() return lastAdjustmentTurn end)
+
+        return
+    end
+
+    if self.disbandQueue:exists(lordCqi) then
+        local units = self.disbandQueue:get(lordCqi)
+        self.disbandQueue:set(lordCqi, { unpack(units), unit })
+    else
+        self.disbandQueue:set(lordCqi, { unit })
+
+        -- Callback to wait for other disband events to be executed before checking whether we should reinstate the unit
+        cm:callback(
+            function()
+                self:cancelDisbandIfAlreadyAdjusted(lordCqi)
+                self.disbandQueue:remove(lordCqi)
+            end,
+            0.1)
+    end
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "addUnitToDisbandQueue(%s from %s, %s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Adds listeners for events.
@@ -671,6 +734,10 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey)
     end
 
+    -- Storing the current turn as the last adjustment turn for that lord to be able to cancel the disbands that may happen just after the adjustment
+    -- to avoid removing too many units from the army
+    cm:set_saved_value(_storageKeyLastAdjustmentTurnPrefix .. lord:cqi(), cm:turn_number())
+
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
@@ -678,6 +745,68 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end,
         function() return #armySuppliesCost.unitArmySuppliesCosts end)
+end
+
+---Cancels the disband of a unit if the army it was in was already adjusted in order to comply with army supplies restrictions.
+---@param lordCqi integer Command queue index of the lord whose army may have been adjusted.
+function TotoWarCbacAiManager:cancelDisbandIfAlreadyAdjusted(lordCqi)
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "[TEST]:\n%s",
+        function()
+            local texts = {}
+            for index, entry in ipairs(self.disbandQueue.entries) do
+                local text = string.format(
+                    "%s: %s",
+                    TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(entry.key)),
+                    table.concat(TotoWarLinq:select(entry.value, function(v) return v:unit_key() end), ', '))
+                table.insert(texts, text)
+            end
+
+            return table.concat(texts, '\n')
+        end)
+
+    local lord = cm:get_character_by_cqi(lordCqi)
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "cancelDisbandIfAlreadyAdjusted(%s from %s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
+        function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end)
+
+    local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(true, lord:military_force())
+    local disbandedUnits = self.disbandQueue:get(lordCqi)
+
+    for index, disbandedUnit in ipairs(disbandedUnits) do
+        local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(disbandedUnit:unit_key())
+
+        if armySuppliesCost.availableSupplies >= unitArmySuppliesCost.armySuppliesCost then
+            cm:grant_unit_to_character(
+                cm:char_lookup_str(lord:cqi()),
+                disbandedUnit:unit_key())
+            armySuppliesCost:addUnit(disbandedUnit:unit_key())
+
+            TotoWarCbac.loggers.aiManager:logDebug(
+                "cancelDisbandIfAlreadyAdjusted(%s from %s): DISBAND CANCELLED => %s | Unit cost: %s | Available supplies: %s",
+                function() return TotoWar.utils:getCharacterCaption(lord) end,
+                function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end,
+                function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end,
+                function() return unitArmySuppliesCost.armySuppliesCost end,
+                function() return armySuppliesCost.availableSupplies end)
+        else
+            -- In theory, we should never be in this case because the army adjustment should have removed enough units to prevent it
+            TotoWarCbac.loggers.aiManager:logDebug(
+                "cancelDisbandIfAlreadyAdjusted(%s from %s): DISBAND CONFIRMED => Unit: %s | Unit cost: %s | Available supplies : %s",
+                function() return TotoWar.utils:getCharacterCaption(lord) end,
+                function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end,
+                function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end,
+                function() return unitArmySuppliesCost.armySuppliesCost end,
+                function() return armySuppliesCost.availableSupplies end)
+        end
+    end
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "cancelDisbandIfAlreadyAdjusted(%s from %s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
+        function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end)
 end
 
 ---Gets the target army size for a lord.
@@ -738,15 +867,13 @@ end
 ---Reacts to a unit being disbanded by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
 function TotoWarCbacAiManager:onAiUnitDisbanded(unit)
-    local lord = unit:military_force():general_character()
-
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
+        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
         function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
 
-    -- This is just to log how AI converts units and how it impacts the mod
+    self:addUnitToDisbandQueue(unit)
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): COMPLETED",
