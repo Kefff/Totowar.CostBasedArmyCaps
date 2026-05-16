@@ -11,7 +11,7 @@ TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage = 20
 TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage = 50
 
 ---Default value for the maximum percentage of melee infantry to target in AI armies.
-TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage = 60
+TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage = 75
 
 ---Default value for the maximum percentage of ranged infantry to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyRangedInfantryMaximumPercentage = 50
