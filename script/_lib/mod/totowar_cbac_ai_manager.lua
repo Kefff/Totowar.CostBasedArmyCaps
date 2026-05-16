@@ -298,98 +298,93 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         function() return requiredRemovalsForSize end,
         function() return deficit end)
 
-    -- Dynamic programming knapsack:
-    -- We select a subset of removable units to remove such that:
-    -- - removedCost >= deficit
-    -- - removedCount == requiredRemovalsForSize (if requiredRemovalsForSize > 0)
-    -- - removedCategoryCount[cat] >= unitCategoryExcessCounts[cat]
-    -- and removedCost is minimal above deficit.
-
+    -------------------------------------------------------------------------
     -- Build minimum removal requirements per category (only those > 0)
+    -------------------------------------------------------------------------
     ---@type TotoWarDictionary<string, integer>
     local minReq = TotoWarDictionary.new()
 
-    for index, category in ipairs(unitCategoryExcessCounts:getKeys()) do
+    -- Preserve the order given by unitCategoryExcessCounts
+    ---@type string[]
+    local categories = {}
+
+    for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
         local count = unitCategoryExcessCounts:get(category)
 
         if count > 0 then
             minReq:set(category, count)
+            table.insert(categories, category)
         end
     end
 
-    -- If no size constraint is required, we will try to remove as few units as possible.
     local exactRemovalCount = requiredRemovalsForSize > 0
-    local maxRemovals = requiredRemovalsForSize
-
-    if not exactRemovalCount then
-        maxRemovals = #removableUnits
-    end
-
-    -- Clamp maxRemovals to available units
-    maxRemovals = math.min(maxRemovals, #removableUnits)
-
-    if maxRemovals <= 0 then
-        return
-    end
-
-    -- Sort removable units by increasing cost (helps with pruning + debugging)
-    table.sort(removableUnits, function(a, b)
-        return a.armySuppliesCost < b.armySuppliesCost
-    end)
-
-    ---@type string[]
-    local categories = {}
-
-    for index, category in ipairs(minReq:getKeys()) do
-        table.insert(categories, category)
-    end
-
-    table.sort(categories)
 
     local finalKey = TotoWarCbacAiManagerAdjustmentSelection.getFinalKey(categories, minReq)
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyCompositionAndUnits(%s from %s): Categories: %s | Min required count: %s | Final key: %s",
+        "adjustAiArmyCompositionAndUnits(%s from %s): Categories in excess: %s | Final key: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function()
             if #categories == 0 then
                 return "none"
             end
-
             return table.concat(categories, ",")
-        end,
-        function()
-            local total = 0
-
-            for index, category in ipairs(minReq:getKeys()) do
-                total = total + minReq:get(category)
-            end
-
-            return total
         end,
         function() return finalKey end)
 
-    -- Bound the DP cost space to avoid explosion:
-    -- We only care about reaching deficit, so we cap costs at deficit + margin.
-    -- Margin = sum of the biggest unit costs we might remove.
-    local biggestCosts = {}
+    -------------------------------------------------------------------------
+    -- Split removable units into:
+    -- - excessUnits (categories in excess)
+    -- - otherUnits (everything else)
+    -------------------------------------------------------------------------
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    local excessUnits = {}
+
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    local otherUnits = {}
 
     for _, u in ipairs(removableUnits) do
+        ---@diagnostic disable-next-line: param-type-mismatch
+        if minReq:exists(u.unitCategory) then
+            table.insert(excessUnits, u)
+        else
+            table.insert(otherUnits, u)
+        end
+    end
+
+    -------------------------------------------------------------------------
+    -- Determine maxRemovals for the main DP (only using excessUnits)
+    -------------------------------------------------------------------------
+    local maxRemovals = #excessUnits
+
+    if exactRemovalCount then
+        maxRemovals = math.min(requiredRemovalsForSize, #excessUnits)
+    end
+
+    -------------------------------------------------------------------------
+    -- Bound DP cost space:
+    -- We only care about reaching deficit, so we cap costs at deficit + margin.
+    -------------------------------------------------------------------------
+    local biggestCosts = {}
+
+    for _, u in ipairs(excessUnits) do
         table.insert(biggestCosts, u.armySuppliesCost)
     end
 
     table.sort(biggestCosts, function(a, b) return a > b end)
 
     local margin = 0
-
     for i = 1, math.min(maxRemovals, #biggestCosts) do
         margin = margin + biggestCosts[i]
     end
 
     local maxCost = deficit + margin
 
+    -------------------------------------------------------------------------
+    -- MAIN DP over excessUnits only
     -- DP[removedCount][stateKey][removedCost] = pickedUnits
+    -------------------------------------------------------------------------
     ---@type table<integer, table<string, table<integer, TotoWarCbacUnitArmySuppliesCost[]>>>
     local DP = {}
     DP[0] = {}
@@ -400,8 +395,12 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     DP[0][startKey] = {}
     DP[0][startKey][0] = {}
 
-    -- Main DP loop (0/1 knapsack, so iterate counts backwards)
-    for _, unit in ipairs(removableUnits) do
+    -- Sort excess units by increasing cost (helps with pruning + better minimal solutions)
+    table.sort(excessUnits, function(a, b)
+        return a.armySuppliesCost < b.armySuppliesCost
+    end)
+
+    for _, unit in ipairs(excessUnits) do
         for removedCount = maxRemovals - 1, 0, -1 do
             if DP[removedCount] then
                 DP[removedCount + 1] = DP[removedCount + 1] or {}
@@ -417,11 +416,9 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
                             ---@diagnostic disable-next-line: param-type-mismatch
                             newState:add(unit.unitCategory)
                             local newKey = newState:getKey()
+
                             DP[removedCount + 1][newKey] = DP[removedCount + 1][newKey] or {}
 
-                            -- Only store if this exact cost doesn't exist yet.
-                            -- (We don't need to compare, because for a fixed cost the picked set is irrelevant,
-                            --  but we store one valid set for reconstruction.)
                             if DP[removedCount + 1][newKey][newCost] == nil then
                                 local newPicked = { unpack(picked) }
                                 table.insert(newPicked, unit)
@@ -434,31 +431,26 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         end
     end
 
-    -- Find best solution:
-    -- If possible: satisfy all constraints and cover deficit with minimal extra cost.
-    -- Otherwise: fallback to best partial solution then add units to cover the deficit.
+    -------------------------------------------------------------------------
+    -- Find best solution inside excessUnits first:
+    --
+    -- If requiredRemovalsForSize <= 0:
+    --   - remove as few units as possible
+    --   - cover deficit if possible
+    --   - otherwise pick best partial (closest below deficit)
+    --
+    -- If requiredRemovalsForSize > 0:
+    --   - try to remove exactly requiredRemovalsForSize (limited by excessUnits count)
+    --   - cover deficit if possible
+    --   - otherwise pick best partial (closest below deficit)
+    -------------------------------------------------------------------------
     local bestPicked = nil
     local bestCost = nil
     local bestRemovalCount = nil
-    local fallbackPicked = nil
-    local fallbackCost = nil
-    local fallbackRemovalCount = nil
-    local fallbackSatisfiedScore = nil
 
-    ---Compute how many category requirements are satisfied (sum of counts).
-    ---@param stateKey string
-    ---@return integer
-    local function computeSatisfiedScore(stateKey)
-        if stateKey == "" then
-            return 0
-        end
-
-        local score = 0
-        for num in string.gmatch(stateKey, "([^,]+)") do
-            score = score + (tonumber(num) or 0)
-        end
-        return score
-    end
+    local partialPicked = nil
+    local partialCost = nil
+    local partialRemovalCount = nil
 
     local function considerSolutions(k)
         if not DP[k] then
@@ -466,176 +458,200 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         end
 
         for stateKey, costTable in pairs(DP[k]) do
-            local score = computeSatisfiedScore(stateKey)
-
-            for cost, picked in pairs(costTable) do
-                -- Full solution (meets category requirements + meets deficit)
-                if stateKey == finalKey and cost >= deficit then
-                    if bestCost == nil then
-                        bestCost = cost
-                        bestPicked = picked
-                        bestRemovalCount = k
-                    else
-                        if exactRemovalCount then
-                            -- if exactRemovalCount, we only check one k anyway
-                            if cost < bestCost then
-                                bestCost = cost
-                                bestPicked = picked
-                                bestRemovalCount = k
-                            end
+            if stateKey == finalKey then
+                for cost, picked in pairs(costTable) do
+                    if cost >= deficit then
+                        -- FULL SOLUTION
+                        if bestPicked == nil then
+                            bestPicked = picked
+                            bestCost = cost
+                            bestRemovalCount = k
                         else
-                            -- prefer fewer removals, then cheaper cost
-                            if k < bestRemovalCount or (k == bestRemovalCount and cost < bestCost) then
-                                bestCost = cost
-                                bestPicked = picked
-                                bestRemovalCount = k
+                            if exactRemovalCount then
+                                -- fixed k, just take cheaper cost
+                                if cost < bestCost then
+                                    bestPicked = picked
+                                    bestCost = cost
+                                    bestRemovalCount = k
+                                end
+                            else
+                                -- prefer fewer removals, then cheaper cost
+                                if k < bestRemovalCount or (k == bestRemovalCount and cost < bestCost) then
+                                    bestPicked = picked
+                                    bestCost = cost
+                                    bestRemovalCount = k
+                                end
                             end
                         end
+                    else
+                        -- PARTIAL SOLUTION (respects categories but doesn't cover deficit)
+                        if partialPicked == nil
+                            or cost > partialCost
+                            or (cost == partialCost and k < partialRemovalCount)
+                        then
+                            partialPicked = picked
+                            partialCost = cost
+                            partialRemovalCount = k
+                        end
                     end
-                end
-
-                -- Fallback solution (even if it doesn't meet finalKey or deficit) prefer:
-                -- 1) maximize satisfied score
-                -- 2) maximize cost (closest to deficit from below)
-                -- 3) minimize removals
-                if fallbackSatisfiedScore == nil
-                    or score > fallbackSatisfiedScore
-                    or (score == fallbackSatisfiedScore and (fallbackCost == nil or cost > fallbackCost))
-                    or (score == fallbackSatisfiedScore and cost == fallbackCost and (fallbackRemovalCount == nil or k < fallbackRemovalCount))
-                then
-                    fallbackSatisfiedScore = score
-                    fallbackCost = cost
-                    fallbackPicked = picked
-                    fallbackRemovalCount = k
                 end
             end
         end
     end
 
     if exactRemovalCount then
-        considerSolutions(requiredRemovalsForSize)
+        considerSolutions(maxRemovals)
     else
         for k = 1, maxRemovals do
             considerSolutions(k)
+            if bestPicked then
+                break -- minimal removals achieved
+            end
         end
     end
 
-    -- If no full solution exists, use fallback and add extra units greedily
     if not bestPicked then
-        if not fallbackPicked then
-            TotoWarCbac.loggers.aiManager:logWarning(
-                "adjustAiArmyCompositionAndUnits(%s from %s): No DP solution at all",
-                TotoWar.utils:getCharacterCaption(lord),
-                TotoWar.utils:getFactionCaption(army:faction():name()))
-            return
+        bestPicked = partialPicked
+        bestCost = partialCost
+        bestRemovalCount = partialRemovalCount
+    end
+
+    if not bestPicked then
+        -- No valid excess-category solution at all => start from empty and complete with other units
+        bestPicked = {}
+        bestCost = 0
+        bestRemovalCount = 0
+    end
+
+    -------------------------------------------------------------------------
+    -- COMPLETE WITH otherUnits if deficit is not covered
+    -- DP2 tries to find subset of otherUnits that covers remaining deficit with:
+    -- - minimal number of units
+    -- - then minimal cost above remainingDeficit
+    --
+    -- If exactRemovalCount:
+    -- - try to stay as close as possible to requiredRemovalsForSize
+    -------------------------------------------------------------------------
+    local pickedSet = {}
+    for _, u in ipairs(bestPicked) do
+        pickedSet[u.unitCqi] = true
+    end
+
+    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    local remaining = {}
+
+    for _, u in ipairs(otherUnits) do
+        if not pickedSet[u.unitCqi] then
+            table.insert(remaining, u)
+        end
+    end
+
+    local remainingDeficit = deficit - bestCost
+
+    if remainingDeficit > 0 and #remaining > 0 then
+        local sumAll = 0
+        for _, u in ipairs(remaining) do
+            sumAll = sumAll + u.armySuppliesCost
         end
 
-        TotoWarCbac.loggers.aiManager:logDebug(
-            "adjustAiArmyCompositionAndUnits(%s from %s): FALLBACK DP => Satisfied score: %s | Cost: %s | Deficit: %s | Removals: %s",
-            function() return TotoWar.utils:getCharacterCaption(lord) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return fallbackSatisfiedScore end,
-            function() return fallbackCost end,
-            function() return deficit end,
-            function() return fallbackRemovalCount end)
+        ---@type table<integer, { count: integer, picked: TotoWarCbacUnitArmySuppliesCost[] }>
+        local DP2 = {}
+        DP2[0] = { count = 0, picked = {} }
 
-        bestPicked = { unpack(fallbackPicked) }
-        bestCost = fallbackCost
-        bestRemovalCount = fallbackRemovalCount
+        for _, unit in ipairs(remaining) do
+            for cost = sumAll - unit.armySuppliesCost, 0, -1 do
+                local entry = DP2[cost]
+                if entry then
+                    local newCost = cost + unit.armySuppliesCost
+                    local newCount = entry.count + 1
 
-        -- Avoid duplicates
-        local pickedSet = {}
-        for _, u in ipairs(bestPicked) do
-            pickedSet[u.unitCqi] = true
-        end
+                    local existing = DP2[newCost]
 
-        -- Remaining candidates
-        local remaining = {}
-        for _, u in ipairs(removableUnits) do
-            if not pickedSet[u.unitCqi] then
-                table.insert(remaining, u)
+                    if existing == nil or newCount < existing.count then
+                        local newPicked = { unpack(entry.picked) }
+                        table.insert(newPicked, unit)
+
+                        DP2[newCost] = {
+                            count = newCount,
+                            picked = newPicked
+                        }
+                    end
+                end
             end
         end
 
-        -- Find the subset that covers remainingDeficit with:
-        -- 1) minimal number of units
-        -- 2) minimal total cost above remainingDeficit
-        local remainingDeficit = deficit - bestCost
+        local bestExtraPicked = nil
+        local bestExtraCost = nil
+        local bestExtraCount = nil
 
-        if remainingDeficit > 0 and #remaining > 0 then
-            -- Bound cost search space
-            local sumAll = 0
-            for _, u in ipairs(remaining) do
-                sumAll = sumAll + u.armySuppliesCost
-            end
+        local targetExtraCount = nil
+        if exactRemovalCount then
+            targetExtraCount = math.max(0, requiredRemovalsForSize - bestRemovalCount)
+        end
 
-            -- DP2[cost] = { count = minimalUnits, picked = list }
-            ---@type table<integer, { count: integer, picked: TotoWarCbacUnitArmySuppliesCost[] }>
-            local DP2 = {}
+        for cost, entry in pairs(DP2) do
+            if cost >= remainingDeficit then
+                if bestExtraPicked == nil then
+                    bestExtraPicked = entry.picked
+                    bestExtraCost = cost
+                    bestExtraCount = entry.count
+                else
+                    if targetExtraCount ~= nil then
+                        local distA = math.abs(entry.count - targetExtraCount)
+                        local distB = math.abs(bestExtraCount - targetExtraCount)
 
-            DP2[0] = { count = 0, picked = {} }
-
-            for _, unit in ipairs(remaining) do
-                -- iterate backward to avoid reusing unit twice
-                for cost = sumAll - unit.armySuppliesCost, 0, -1 do
-                    local entry = DP2[cost]
-                    if entry then
-                        local newCost = cost + unit.armySuppliesCost
-                        local newCount = entry.count + 1
-
-                        local existing = DP2[newCost]
-
-                        -- Choose best for this exact newCost:
-                        -- minimal number of units
-                        if existing == nil or newCount < existing.count then
-                            local newPicked = { unpack(entry.picked) }
-                            table.insert(newPicked, unit)
-
-                            DP2[newCost] = {
-                                count = newCount,
-                                picked = newPicked
-                            }
+                        if distA < distB
+                            or (distA == distB and entry.count < bestExtraCount)
+                            or (distA == distB and entry.count == bestExtraCount and cost < bestExtraCost)
+                        then
+                            bestExtraPicked = entry.picked
+                            bestExtraCost = cost
+                            bestExtraCount = entry.count
+                        end
+                    else
+                        if entry.count < bestExtraCount
+                            or (entry.count == bestExtraCount and cost < bestExtraCost)
+                        then
+                            bestExtraPicked = entry.picked
+                            bestExtraCost = cost
+                            bestExtraCount = entry.count
                         end
                     end
                 end
             end
+        end
 
-            -- Find best cost >= remainingDeficit:
-            -- minimize count first, then cost
-            local bestExtraPicked = nil
-            local bestExtraCost = nil
-            local bestExtraCount = nil
-
-            for cost, entry in pairs(DP2) do
-                if cost >= remainingDeficit then
-                    if bestExtraCount == nil
-                        or entry.count < bestExtraCount
-                        or (entry.count == bestExtraCount and cost < bestExtraCost)
-                    then
-                        bestExtraCount = entry.count
-                        bestExtraCost = cost
-                        bestExtraPicked = entry.picked
-                    end
-                end
+        if bestExtraPicked then
+            for _, u in ipairs(bestExtraPicked) do
+                table.insert(bestPicked, u)
             end
-
-            if bestExtraPicked then
-                for _, u in ipairs(bestExtraPicked) do
-                    table.insert(bestPicked, u)
-                end
-                bestCost = bestCost + bestExtraCost
-                bestRemovalCount = bestRemovalCount + bestExtraCount
-            end
+            bestCost = bestCost + bestExtraCost
+            bestRemovalCount = bestRemovalCount + bestExtraCount
         end
     end
 
-    -- Add the result to the list of units to discard
+    -------------------------------------------------------------------------
+    -- Final safety: ensure deficit is covered
+    -------------------------------------------------------------------------
+    if bestCost < deficit then
+        TotoWarCbac.loggers.aiManager:logWarning(
+            "adjustAiArmyCompositionAndUnits(%s from %s): FAILED => Deficit: %s | Removed cost: %s",
+            TotoWar.utils:getCharacterCaption(lord),
+            TotoWar.utils:getFactionCaption(army:faction():name()),
+            deficit,
+            bestCost)
+    end
+
+    -------------------------------------------------------------------------
+    -- Apply removals
+    -------------------------------------------------------------------------
     for _, unitArmySuppliesCost in ipairs(bestPicked) do
         TotoWarCbac.loggers.aiManager:logDebug(
-            "adjustAiArmyCompositionAndUnits(%s from %s): UNIT TO DISCARD => %s (%s)",
+            "adjustAiArmyCompositionAndUnits(%s from %s): UNIT TO DISCARD => %s | Category: %s | Cost: %s",
             function() return TotoWar.utils:getCharacterCaption(lord) end,
             function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
             function() return TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey) end,
+            function() return unitArmySuppliesCost.unitCategory end,
             function() return unitArmySuppliesCost.armySuppliesCost end)
 
         table.insert(unitsToDiscard, unitArmySuppliesCost)
