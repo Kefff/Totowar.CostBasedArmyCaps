@@ -82,23 +82,20 @@ end
 function TotoWarDictionary:remove(key)
     local entryIndex = TotoWarLinq:findIndex(self.entries, function(e) return e.key == key end)
 
-    if entryIndex < 0 then
-        return
+    if entryIndex >= 1 then
+        table.remove(self.entries, entryIndex)
     end
-
-    table.remove(self.entries, entryIndex)
 end
 
 ---Sets the value corresponding to a key. Replaces the previous value when the key already exists.
 ---@param key T Key
----@return Y | nil
 function TotoWarDictionary:set(key, value)
     local entry = TotoWarLinq:firstOrDefault(self.entries, function(e) return e.key == key end)
 
     if entry == nil then
         entry = TotoWarKeyValue.new(key, value)
         table.insert(self.entries, entry)
+    else
+        entry.value = value
     end
-
-    entry.value = value
 end
