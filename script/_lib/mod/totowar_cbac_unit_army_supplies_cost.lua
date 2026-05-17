@@ -92,10 +92,27 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.BaseCost")
+
+    if instance.armySuppliesCost <= 0 then
+        -- For some reason, some units have a negative base cost (the Blue Scribes from Tzeench for example).
+        -- We use the absolute value as a fallback.
+        local transformedCost = math.abs(instance.armySuppliesCost)
+
+        TotoWarCbac.loggers.armySuppliesCost:logWarning(
+            "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): INVALID PRICE => %s, transformed to %s",
+            TotoWar.utils:getUnitCaption(unitKey),
+            instance.armySuppliesCost,
+            transformedCost)
+
+        instance.armySuppliesCost = transformedCost
+    end
+
     instance.baseUnitKey = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
+
+
     instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
