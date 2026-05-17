@@ -33,8 +33,9 @@ end
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
 function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
     TotoWarCbac.loggers.aiManager:logDebug(
-        "addArmyToAdjustmentQueue(%s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end)
+        "addArmyToAdjustmentQueue(%s from %s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
+        function() return TotoWar.utils:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
 
     if not TotoWarLinq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
     then
@@ -52,8 +53,9 @@ function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
     end
 
     TotoWarCbac.loggers.aiManager:logDebug(
-        "addArmyToAdjustmentQueue(%s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end)
+        "addArmyToAdjustmentQueue(%s from %s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
+        function() return TotoWar.utils:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
 end
 
 ---Adds an army to the disband queue to check whether the unit should be reinstated if disbanded after the army has already been adjusted.
@@ -318,7 +320,7 @@ end
 
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
----Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the exact size reduction when required.
+---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
 ---@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List in which units to discard are stored. Updated if units are flagged as to be removed.
@@ -382,8 +384,6 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         end
     end
 
-    local exactRemovalCount = requiredRemovalsForSize > 0
-
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): Categories in excess: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
@@ -392,6 +392,7 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
             if #categories == 0 then
                 return "none"
             end
+
             return table.concat(
                 TotoWarLinq:select(
                     unitCategoryExcessCounts.entries,
@@ -422,8 +423,9 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     -- Determine maxRemovals for the main DP (only using excessUnits)
     -------------------------------------------------------------------------
     local maxRemovals = #excessUnits
-    if exactRemovalCount then
-        maxRemovals = math.min(requiredRemovalsForSize, #excessUnits)
+
+    if maxRemovals <= 0 then
+        maxRemovals = 0
     end
 
     -------------------------------------------------------------------------
@@ -470,7 +472,6 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
                 for stateKey, costTable in pairs(DP[removedCount]) do
                     local baseState = TotoWarCbacAiManagerAdjustmentState.newFromKey(stateKey, categories, maxPerCategory)
 
-                    -- If we cannot add in that category because it would exceed allowed excess, skip early.
                     ---@diagnostic disable-next-line: param-type-mismatch
                     if baseState:canAdd(unit.unitCategory) then
                         for removedCost, picked in pairs(costTable) do
@@ -499,28 +500,48 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     end
 
     -------------------------------------------------------------------------
-    -- Find best solution from excess units.
+    -- Best selection among excess units:
     --
-    -- Priority (FULL solutions):
-    -- 1) minimal removals
-    -- 2) minimal cost above deficit
-    -- 3) maximal satisfiedScore (remove more excess-category units)
+    -- FULL solutions (cost >= deficit):
+    -- 1) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
+    -- 2) fewer removals (tie breaker)
+    -- 3) minimal cost above deficit
+    -- 4) maximal satisfiedScore
     --
-    -- Partial solutions:
+    -- PARTIAL solutions (cost < deficit):
     -- 1) maximal cost (closest below deficit)
-    -- 2) minimal removals
-    -- 3) maximal satisfiedScore
+    -- 2) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
+    -- 3) fewer removals
+    -- 4) maximal satisfiedScore
     -------------------------------------------------------------------------
+    local idealRemovalCount = nil
+    if requiredRemovalsForSize > 0 then
+        idealRemovalCount = requiredRemovalsForSize
+    end
+
     local bestPicked = nil
     local bestCost = nil
+    ---@type integer
     local bestRemovalCount = nil
     local bestSatisfiedScore = nil
 
     local partialPicked = nil
     local partialCost = nil
+    ---@type integer
     local partialRemovalCount = nil
     local partialSatisfiedScore = nil
 
+    ---@param k integer
+    ---@return integer
+    local function getDistanceToIdeal(k)
+        if idealRemovalCount == nil then
+            return 0
+        end
+
+        return math.abs(k - idealRemovalCount)
+    end
+
+    ---@param k integer
     local function considerSolutions(k)
         if not DP[k] then
             return
@@ -538,12 +559,16 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
                         bestRemovalCount = k
                         bestSatisfiedScore = satisfiedScore
                     else
+                        local bestDist = getDistanceToIdeal(bestRemovalCount)
+                        local newDist = getDistanceToIdeal(k)
+
                         local bestExcess = bestCost - deficit
                         local newExcess = cost - deficit
 
-                        if k < bestRemovalCount
-                            or (k == bestRemovalCount and newExcess < bestExcess)
-                            or (k == bestRemovalCount and newExcess == bestExcess and satisfiedScore > bestSatisfiedScore)
+                        if newDist < bestDist
+                            or (newDist == bestDist and k < bestRemovalCount)
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess < bestExcess)
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and satisfiedScore > bestSatisfiedScore)
                         then
                             bestPicked = picked
                             bestCost = cost
@@ -558,9 +583,13 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
                         partialRemovalCount = k
                         partialSatisfiedScore = satisfiedScore
                     else
+                        local partialDist = getDistanceToIdeal(partialRemovalCount)
+                        local newDist = getDistanceToIdeal(k)
+
                         if cost > partialCost
-                            or (cost == partialCost and k < partialRemovalCount)
-                            or (cost == partialCost and k == partialRemovalCount and satisfiedScore > partialSatisfiedScore)
+                            or (cost == partialCost and newDist < partialDist)
+                            or (cost == partialCost and newDist == partialDist and k < partialRemovalCount)
+                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and satisfiedScore > partialSatisfiedScore)
                         then
                             partialPicked = picked
                             partialCost = cost
@@ -573,15 +602,8 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         end
     end
 
-    if exactRemovalCount then
-        considerSolutions(maxRemovals)
-    else
-        for k = 1, maxRemovals do
-            considerSolutions(k)
-            if bestPicked then
-                break
-            end
-        end
+    for k = 1, maxRemovals do
+        considerSolutions(k)
     end
 
     if not bestPicked then
@@ -662,8 +684,8 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
         local bestExtraCount = nil
 
         local targetExtraCount = nil
-        if exactRemovalCount then
-            targetExtraCount = math.max(0, requiredRemovalsForSize - bestRemovalCount)
+        if idealRemovalCount ~= nil then
+            targetExtraCount = math.max(0, idealRemovalCount - bestRemovalCount)
         end
 
         for cost, entry in pairs(DP2) do
