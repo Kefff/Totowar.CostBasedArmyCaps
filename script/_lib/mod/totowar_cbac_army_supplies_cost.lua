@@ -317,28 +317,28 @@ end
 function TotoWarCbacArmySuppliesCost:removeCharacter(characterCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:removeCharacter(%s): STARTED",
-        function() return characterCqi end)
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
 
-    for i = 1, #self.unitArmySuppliesCosts, 1 do
-        local unit = self.unitArmySuppliesCosts[i]
+    local characterIndex = TotoWarLinq:findIndex(
+        self.unitArmySuppliesCosts,
+        function(uasc) return uasc.characterCqi == characterCqi end)
 
-        if unit.characterCqi == characterCqi then
-            self.totalCost = self.totalCost - unit.armySuppliesCost
-            self.availableSupplies = self.totalArmySupplies - self.totalCost
-            table.remove(self.unitArmySuppliesCosts, i)
+    if characterIndex == -1 then
+        TotoWarCbac.loggers.armySuppliesCost:logError(
+            "TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND",
+            TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
 
-            TotoWarCbac.loggers.armySuppliesCost:logDebug(
-                "TotoWarCbacArmySuppliesCost:removeCharacter(%s): COMPLETED => %s",
-                function() return characterCqi end,
-                function() return TotoWar.utils:getUnitCaption(unit.unitKey) end)
-
-            return
-        end
+        return
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logError(
-        "TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND",
-        characterCqi)
+    local character = self.unitArmySuppliesCosts[characterIndex]
+    self.totalCost = self.totalCost - character.armySuppliesCost
+    self.availableSupplies = self.totalArmySupplies - self.totalCost
+    table.remove(self.unitArmySuppliesCosts, characterIndex)
+
+    TotoWarCbac.loggers.armySuppliesCost:logDebug(
+        "TotoWarCbacArmySuppliesCost:removeCharacter(%s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
 end
 
 ---Removes a unit from the army supplies cost.

@@ -1,8 +1,8 @@
 ---Name of the TotoWar Cost-Based Army Caps mod.
 TotoWar_Cbac_ModName = "totowar_cost_based_army_caps"
 
----Name of the option for the maximum amount of heroes in AI armies.
-TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumAmount = 2
+---Name of the option for the maximum percentage of heroes in AI armies.
+TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumPercentage = 15
 
 ---Default value for the maximum percentage of artillery to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage = 20
@@ -36,8 +36,8 @@ TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesBonusAmountPerLevel = 50
 ---Default value for the option that enabled AI army supplies restrictions.
 TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled = true
 
----Name of the option for the maximum amount of heroes in AI armies.
-TotoWar_Cbac_OptionName_AiArmyHeroMaximumAmount = "totowar_cbac_aiArmyHeroMaximumAmount"
+---Name of the option for the maximum percentage of heroes in AI armies.
+TotoWar_Cbac_OptionName_AiArmyHeroMaximumPercentage = "totowar_cbac_aiArmyHeroMaximumPercentage"
 
 ---Name of the option for the maximum percentage of artillery to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage = "totowar_cbac_aiArmyArtilleryMaximumPercentage"

@@ -1,6 +1,6 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
-totowar_cbac_mct_option_caption_aiArmyHeroMaximumAmount	Aimed number of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] in restricted armies	false
+totowar_cbac_mct_option_caption_aiArmyHeroMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmyArtilleryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_artillery]]artillery[[/col]] units in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units in restricted armies	false
@@ -11,7 +11,7 @@ totowar_cbac_mct_option_caption_aiArmySuppliesEnabled	Enable [[col:white]][[img:
 totowar_cbac_mct_option_caption_playerArmySupplies	Base [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] per army	false
 totowar_cbac_mct_option_caption_playerArmySuppliesBonusAmountPerLevel	Bonus [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] per level of the [[col:totowar_cbac_unit_category_lord]]lord[[/col]]	true
 totowar_cbac_mct_option_caption_playerArmySuppliesEnabled	Enable [[col:white]][[img:icon_merc]][[/img]]Army supplies[[/col]] restrictions	false
-totowar_cbac_mct_option_tooltip_aiArmyHeroMaximumAmount	Maximum amount of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] an AI army will aim to contain in restricted armies.\\n\\n[[col:white]]2[[/col]] by default.	true
+totowar_cbac_mct_option_tooltip_aiArmyHeroMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] an AI army will aim to contain in restricted armies.\\n\\n[[col:white]]15[[/col]] by default.	true
 totowar_cbac_mct_option_tooltip_aiArmyArtilleryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_artillery]]artillery[[/col]] units an AI army will aim to contain in restricted armies.\\n\\nThe percentage does not take the [[col:totowar_cbac_unit_category_lord]]lord[[/col]] and [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] into consideration.\\n\\n[[col:white]]20[[/col]] by default.	true
 totowar_cbac_mct_option_tooltip_aiArmyCavalryAndMonstersMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units an AI army will aim to contain in restricted armies.\\n\\nThe percentage does not take the [[col:totowar_cbac_unit_category_lord]]lord[[/col]] and [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] into consideration.\\n\\n[[col:white]]50[[/col]] by default.	true
 totowar_cbac_mct_option_tooltip_aiArmyMeleeInfantryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units an AI army will aim to contain in restricted armies.\\n\\nThe percentage does not take the [[col:totowar_cbac_unit_category_lord]]lord[[/col]] and [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] into consideration.\\n\\n[[col:white]]60[[/col]] by default.	true
