@@ -49,7 +49,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
     instance.armySuppliesCost = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,
-        "UnmountedUnitRecordContext.BaseCost")
+        "UnmountedUnitRecordContext.BaseCost") or 0
 
     if instance.armySuppliesCost <= 0 then
         -- For some reason, some units have a negative base cost (the Blue Scribes from Tzeench for example).
