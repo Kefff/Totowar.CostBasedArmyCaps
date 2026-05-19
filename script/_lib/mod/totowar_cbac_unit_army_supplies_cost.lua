@@ -34,18 +34,28 @@ TotoWarCbacUnitArmySuppliesCost.__index = TotoWarCbacUnitArmySuppliesCost
 
 ---Initializes a new instance from a character.
 ---@param characterCqi integer Command queue index of the character.
----@return TotoWarCbacUnitArmySuppliesCost
+---@return TotoWarCbacUnitArmySuppliesCost | nil
 function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+
+    local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
 
     local unitKey = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "UnitContext.UnitRecordContext.Key")
 
-    local instance = setmetatable({}, TotoWarCbacUnitArmySuppliesCost)
+    if unitKey == nil then
+        -- For some reason, some characters may have no CcoCampaignCharacter so we cannot obtain information on them
+        TotoWarCbac.loggers.armySuppliesCost:logWarning(
+            "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): INVALID CHARACTER => No unit record found",
+            TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
+
+        return nil
+    end
+
     instance.armySuppliesCost = common.get_context_value(
         TotoWar.enums.ccoContextTypeIds.mainUnitRecord,
         unitKey,

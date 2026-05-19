@@ -118,12 +118,14 @@ function TotoWarCbacArmySuppliesCost:addCharacter(characterCqi)
         "TotoWarCbacArmySuppliesCost:addCharacter(%s): STARTED",
         function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
 
-    ---@type TotoWarCbacUnitArmySuppliesCost
     local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
-    table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
 
-    self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
-    self.availableSupplies = self.totalArmySupplies - self.totalCost
+    if unitArmySuppliesCost ~= nil then
+        table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
+
+        self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
+        self.availableSupplies = self.totalArmySupplies - self.totalCost
+    end
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
         "TotoWarCbacArmySuppliesCost:addCharacter(%s): COMPLETED => %s",

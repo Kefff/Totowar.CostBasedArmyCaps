@@ -66,8 +66,8 @@ TotoWarCbacMod = {
     ---Options
     ---@class TotoWarCbac_Options
     options = {
-        ---Maximum amount of heroes in AI armies.
-        aiArmyHeroMaximumAmount = TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumAmount,
+        ---Maximum percentage of heroes in AI armies.
+        aiArmyHeroMaximumPercentage = TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumPercentage,
 
         ---Total army supplies available in an army for the AI.
         aiArmySuppliesAmount = TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesAmount,
@@ -188,8 +188,8 @@ function TotoWarCbacMod:loadMctOptions()
 
     local options = mct:get_mod_by_key(TotoWar_ModName)
 
-    TotoWarCbac.options.aiArmyHeroMaximumAmount = options
-        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyHeroMaximumAmount)
+    TotoWarCbac.options.aiArmyHeroMaximumPercentage = options
+        :get_option_by_key(TotoWar_Cbac_OptionName_AiArmyHeroMaximumPercentage)
         :get_finalized_setting()
     TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel = options
         :get_option_by_key(TotoWar_Cbac_OptionName_AiArmySuppliesBonusAmountPerLevel)
