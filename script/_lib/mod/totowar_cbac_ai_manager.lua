@@ -251,92 +251,6 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
         function() return armySuppliesCost.availableSupplies end)
 end
 
----Adjusts the amount of heroes in an army if it exceeds the limit.
----
----Duplicate hero types are removed first.
----@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
-function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
-    local heroes = TotoWarLinq:where(
-        armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
-    local heroesToRemoveAmount = #heroes -
-        math.floor(#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage / 100)
-
-    if heroesToRemoveAmount == 0 then
-        return 0
-    end
-
-    local lord = army:general_character()
-
-    TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyHeroes(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s | Heroes to remove: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return armySuppliesCost.totalCost end,
-        function() return armySuppliesCost.availableSupplies end,
-        function() return #armySuppliesCost.unitArmySuppliesCosts end,
-        function() return heroesToRemoveAmount end)
-
-    while heroesToRemoveAmount > 0 do
-        -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
-        ---@type TotoWarKeyValue<string, TotoWarCbacUnitArmySuppliesCost[]>
-        local heroUnitGroupWithMostHeroes = nil
-
-        -- Grouping heroes by their base type to ignore their mount
-        local heroUnitGroups = TotoWarLinq:groupBy(heroes, function(a) return a.baseUnitKey end)
-
-        for index, entry in ipairs(heroUnitGroups.entries) do
-            if heroUnitGroupWithMostHeroes == nil or #entry.value >= #heroUnitGroupWithMostHeroes.value then
-                heroUnitGroupWithMostHeroes = entry
-            end
-        end
-
-        local heroToRemoveIndex = #heroUnitGroupWithMostHeroes.value
-        local heroToRemove = heroUnitGroupWithMostHeroes.value[heroToRemoveIndex]
-
-        -- Getting the location where the hero will be teleported
-        local heroTargetPositionX, heroTargetPositionY = cm:find_valid_spawn_location_for_character_from_position(
-            lord:faction():name(),
-            lord:logical_position_x(),
-            lord:logical_position_y(),
-            true);
-
-        -- Teleporting the last hero of the group out of the lord army.
-        -- Forced to use the teleport method instead of just moving the hero because teleporting is
-        -- done instantly while moving is done after the next `UnitTrained` events are received.
-        -- If we do not teleport the hero, it is still in the army when we calculate army
-        -- supplies costs during later `UnitTrained` events which we do not want.
-        cm:teleport_to(
-            cm:char_lookup_str(heroToRemove.characterCqi),
-            ---@diagnostic disable-next-line: param-type-mismatch
-            heroTargetPositionX,
-            ---@diagnostic disable-next-line: param-type-mismatch
-            heroTargetPositionY)
-
-        armySuppliesCost:removeCharacter(heroToRemove.characterCqi)
-        table.remove(
-            heroes,
-            TotoWarLinq:findIndex(heroes, function(h) return h.characterCqi == heroToRemove.characterCqi end))
-        heroesToRemoveAmount = heroesToRemoveAmount - 1
-
-        TotoWarCbac.loggers.aiManager:logDebug(
-            "adjustAiArmyHeroes(%s from %s): REMOVED => %s (%s)",
-            function() return TotoWar.utils:getCharacterCaption(lord) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(heroToRemove.characterCqi)) end,
-            function() return TotoWar.utils:getUnitCaption(heroToRemove.unitKey) end)
-    end
-
-    TotoWarCbac.loggers.aiManager:logDebug(
-        "adjustAiArmyHeroes(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return armySuppliesCost.totalCost end,
-        function() return armySuppliesCost.availableSupplies end,
-        function() return #armySuppliesCost.unitArmySuppliesCosts end)
-end
-
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
 ---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
@@ -788,6 +702,92 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return armySuppliesCost.totalCost end,
+        function() return armySuppliesCost.availableSupplies end,
+        function() return #armySuppliesCost.unitArmySuppliesCosts end)
+end
+
+---Adjusts the amount of heroes in an army if it exceeds the limit.
+---
+---Duplicate hero types are removed first.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
+function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
+    local heroes = TotoWarLinq:where(
+        armySuppliesCost.unitArmySuppliesCosts,
+        function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
+    local heroesToRemoveAmount = #heroes -
+        math.floor(#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage / 100)
+
+    if heroesToRemoveAmount == 0 then
+        return 0
+    end
+
+    local lord = army:general_character()
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "adjustAiArmyHeroes(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s | Heroes to remove: %s",
+        function() return TotoWar.utils:getCharacterCaption(lord) end,
+        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return armySuppliesCost.totalCost end,
+        function() return armySuppliesCost.availableSupplies end,
+        function() return #armySuppliesCost.unitArmySuppliesCosts end,
+        function() return heroesToRemoveAmount end)
+
+    while heroesToRemoveAmount > 0 do
+        -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
+        ---@type TotoWarKeyValue<string, TotoWarCbacUnitArmySuppliesCost[]>
+        local heroUnitGroupWithMostHeroes = nil
+
+        -- Grouping heroes by their base type to ignore their mount
+        local heroUnitGroups = TotoWarLinq:groupBy(heroes, function(a) return a.baseUnitKey end)
+
+        for index, entry in ipairs(heroUnitGroups.entries) do
+            if heroUnitGroupWithMostHeroes == nil or #entry.value >= #heroUnitGroupWithMostHeroes.value then
+                heroUnitGroupWithMostHeroes = entry
+            end
+        end
+
+        local heroToRemoveIndex = #heroUnitGroupWithMostHeroes.value
+        local heroToRemove = heroUnitGroupWithMostHeroes.value[heroToRemoveIndex]
+
+        -- Getting the location where the hero will be teleported
+        local heroTargetPositionX, heroTargetPositionY = cm:find_valid_spawn_location_for_character_from_position(
+            lord:faction():name(),
+            lord:logical_position_x(),
+            lord:logical_position_y(),
+            true);
+
+        -- Teleporting the last hero of the group out of the lord army.
+        -- Forced to use the teleport method instead of just moving the hero because teleporting is
+        -- done instantly while moving is done after the next `UnitTrained` events are received.
+        -- If we do not teleport the hero, it is still in the army when we calculate army
+        -- supplies costs during later `UnitTrained` events which we do not want.
+        cm:teleport_to(
+            cm:char_lookup_str(heroToRemove.characterCqi),
+            ---@diagnostic disable-next-line: param-type-mismatch
+            heroTargetPositionX,
+            ---@diagnostic disable-next-line: param-type-mismatch
+            heroTargetPositionY)
+
+        armySuppliesCost:removeCharacter(heroToRemove.characterCqi)
+        table.remove(
+            heroes,
+            TotoWarLinq:findIndex(heroes, function(h) return h.characterCqi == heroToRemove.characterCqi end))
+        heroesToRemoveAmount = heroesToRemoveAmount - 1
+
+        TotoWarCbac.loggers.aiManager:logDebug(
+            "adjustAiArmyHeroes(%s from %s): REMOVED => %s (%s)",
+            function() return TotoWar.utils:getCharacterCaption(lord) end,
+            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(heroToRemove.characterCqi)) end,
+            function() return TotoWar.utils:getUnitCaption(heroToRemove.unitKey) end)
+    end
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "adjustAiArmyHeroes(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
         function() return TotoWar.utils:getCharacterCaption(lord) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,

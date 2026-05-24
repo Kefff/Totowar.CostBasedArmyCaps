@@ -1,5 +1,16 @@
 ---@diagnostic disable: missing-return
 
+---Context for the ForceAdoptsStance event.
+---@class TotoWarGameEventContext_ArmyStanceChanged
+TotoWarGameEventContext_ArmyStanceChanged = {}
+---Gets the army.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE
+function TotoWarGameEventContext_ArmyStanceChanged:military_force() end
+
+---Gets a number representing the stance.
+---@return integer
+function TotoWarGameEventContext_ArmyStanceChanged:stance_adopted() end
+
 ---Context for the ComponentLClickUp event.
 ---@class TotoWarGameEventContext_ComponentLeftClick
 TotoWarGameEventContext_ComponentLeftClick = {

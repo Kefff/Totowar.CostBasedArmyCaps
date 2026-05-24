@@ -26,12 +26,18 @@ TotoWarMod = {
         ---Events triggered by the game.
         ---@class TotoWar_Enums_GameEvents
         gameEvents = {
+            ---Event triggered when an army changes its stance.
+            armyStanceChanged = "ForceAdoptsStance",
+
             ---Event triggered when a character is deselected.
             ---Is not triggered when a character is already selected and the player selects another character.
             characterDeselected = "CharacterDeselected",
 
             ---Event triggered when a character is selected.
             characterSelected = "CharacterSelected",
+
+            ---Event triggered when the turn of a character ends.
+            characterTurnEnd = "CharacterTurnEnd",
 
             ---Event triggered when the left click on a UI component is released.
             componentLeftClick = "ComponentLClickUp",
@@ -336,10 +342,10 @@ function TotoWarMod:overwriteOptionsForDebug()
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
 
     -- Set override values here
-    -- TotoWar.loggers.generic.logLevel = TotoWar.enums.logSeverity.warning
-    -- TotoWar.loggers.modsManager.logLevel = TotoWar.enums.logSeverity.warning
-    -- TotoWar.loggers.uiUtils.logLevel = TotoWar.enums.logSeverity.warning
-    -- TotoWar.loggers.utils.logLevel = TotoWar.enums.logSeverity.warning
+    -- TotoWar.loggers.generic.logLevel = TotoWar.enums.logSeverity.info
+    -- TotoWar.loggers.modsManager.logLevel = TotoWar.enums.logSeverity.info
+    -- TotoWar.loggers.uiUtils.logLevel = TotoWar.enums.logSeverity.info
+    -- TotoWar.loggers.utils.logLevel = TotoWar.enums.logSeverity.info
 
     TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
 end
