@@ -11,12 +11,6 @@ TotoWarCbacAiManager = {
 }
 TotoWarCbacAiManager.__index = TotoWarCbacAiManager
 
----Storage key prefix for the target army size of a lord.
-local _storageKeyLastAdjustmentTurnPrefix = "totowar_cbac_last_adjustment_turn_"
-
----Storage key prefix for the target army size of a lord.
-local _storageKeyTargetArmySizePrefix = "totowar_cbac_target_army_size_"
-
 ---Initializes a new instance.
 ---@return TotoWarCbacAiManager
 function TotoWarCbacAiManager.new()
@@ -69,7 +63,10 @@ function TotoWarCbacAiManager:addUnitToDisbandQueue(disbandedUnit)
         function() return TotoWar.utils:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
         function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end)
 
-    local lastAdjustmentTurn = cm:get_saved_value(_storageKeyLastAdjustmentTurnPrefix .. lordCqi)
+    ---@type integer | nil
+    local lastAdjustmentTurn = TotoWar.utils:getSavedValue(
+        TotoWar_Cbac_ModName,
+        string.format(TotoWarCbac.constants.storageKeyFormatArmyLastAdjustmentTurn, lordCqi))
 
     if lastAdjustmentTurn ~= cm:turn_number() then
         TotoWarCbac.loggers.aiManager:logDebug(
@@ -249,7 +246,7 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
     local heroesToRemoveAmount = #heroes -
-        math.floor((#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage / 100))
+        math.floor(#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage)
 
     if heroesToRemoveAmount == 0 then
         return 0
@@ -769,7 +766,10 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
 
     -- Storing the current turn as the last adjustment turn for that lord to be able to cancel the disbands that may happen just after the adjustment
     -- to avoid removing too many units from the army
-    cm:set_saved_value(_storageKeyLastAdjustmentTurnPrefix .. lord:cqi(), cm:turn_number())
+    TotoWar.utils:saveValue(
+        TotoWar_Cbac_ModName,
+        string.format(TotoWarCbac.constants.storageKeyFormatArmyLastAdjustmentTurn, lord:cqi()),
+        cm:turn_number())
 
     TotoWarCbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
@@ -831,11 +831,17 @@ end
 ---@param lordCqi integer Command queue index of the lord.
 ---@return integer
 function TotoWarCbacAiManager:getLordTargetArmySize(lordCqi)
-    local targetArmySize = cm:get_saved_value(_storageKeyTargetArmySizePrefix .. lordCqi)
+    ---@type integer | nil
+    local targetArmySize = TotoWar.utils:getSavedValue(
+        TotoWar_Cbac_ModName,
+        string.format(TotoWarCbac.constants.storageKeyFormatArmyTargetSize, lordCqi))
 
     if targetArmySize == nil then
         targetArmySize = math.random(12, 20)
-        cm:set_saved_value(_storageKeyTargetArmySizePrefix .. lordCqi, targetArmySize)
+        TotoWar.utils:saveValue(
+            TotoWar_Cbac_ModName,
+            string.format(TotoWarCbac.constants.storageKeyFormatArmyTargetSize, lordCqi),
+            targetArmySize)
     end
 
     return targetArmySize

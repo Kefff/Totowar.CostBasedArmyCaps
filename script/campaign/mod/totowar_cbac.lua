@@ -6,6 +6,6 @@ cm:add_first_tick_callback(
             ---@param modsManager TotoWarModsManager
             ---@return TotoWarCbacMod
             function(modsManager)
-                return TotoWarCbacMod:new()
+                return TotoWarCbacMod.new()
             end)
     end)

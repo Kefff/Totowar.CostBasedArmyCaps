@@ -2,7 +2,7 @@
 ---@class TotoWarModDefinition
 TotoWarModDefinition = {
     ---Function for initializing the mod.
-    ---@type fun(modsManager: TotoWarModsManager)
+    ---@type fun(modsManager: TotoWarModsManager): any
     initializeFunction = nil,
 
     ---Instance of the mod.

@@ -146,4 +146,17 @@ if mct then
     aiArmyArtilleryMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyArtilleryMaximumPercentage")
     cbacAiSection:assign_option(aiArmyArtilleryMaximumPercentageOption)
+
+    local aiArmyMaximumPercentageVariationOption = totoWarMod:add_new_option(
+        TotoWar_Cbac_OptionName_AiArmyMaximumPercentageVariation,
+        "slider")
+    aiArmyMaximumPercentageVariationOption:slider_set_min_max(0, 25)
+    aiArmyMaximumPercentageVariationOption:slider_set_step_size(5)
+    aiArmyMaximumPercentageVariationOption:set_default_value(
+        TotoWar_Cbac_OptionDefaultValue_AiArmyMaximumPercentageVariation)
+    aiArmyMaximumPercentageVariationOption:set_text(
+        "totowar_cbac_mct_option_caption_aiArmyMaximumPercentageVariation")
+    aiArmyMaximumPercentageVariationOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_aiArmyMaximumPercentageVariation")
+    cbacAiSection:assign_option(aiArmyMaximumPercentageVariationOption)
 end

@@ -193,23 +193,45 @@ function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryU
         return false
     end
 
-    local proportion = currentCount / totalUnitCount
+    ---@type integer | nil
+    local maximumPercentageVariation = TotoWar.utils:getSavedValue( -- Stored as an integer between 0 and 50
+        TotoWar_Cbac_ModName,
+        string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category))
+
+    if maximumPercentageVariation == nil then
+        maximumPercentageVariation = math.random(
+            -TotoWarCbac.options.aiArmyMaximumPercentageVariation,
+            TotoWarCbac.options.aiArmyMaximumPercentageVariation
+        )
+        maximumPercentageVariation = maximumPercentageVariation -- Rounded to the nearest multiple of 5
+            - (maximumPercentageVariation % 5 + (maximumPercentageVariation % 5 >= 2.5 and 5 or 0))
+
+        TotoWar.utils:saveValue(
+            TotoWar_Cbac_ModName,
+            string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category),
+            maximumPercentageVariation)
+    end
+
     ---@diagnostic disable-next-line: param-type-mismatch
-    local maxProp = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:get(category)
-    local isExcess = proportion > maxProp
+    local baseMaximumPercentage = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:get(category) -- Stored as an integer between 0 and 100
+    local realMaximumPercentage = baseMaximumPercentage * (1 + maximumPercentageVariation / 100)
+    local percentage = math.floor(currentCount / totalUnitCount * 100 + 0.5)                             -- Rounded to the nearest integer
+    local isExcess = percentage > realMaximumPercentage
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "checkUnitCategoryExcess(%s, %s, %s): COMPLETED => Is excess: %s | Proportion: %s | Max proportion: %s",
+        "checkUnitCategoryExcess(%s, %s, %s): COMPLETED => Is excess: %s | Proportion: %s | Max proportion: %s | Base proportion: %s | Proportion variation: %s",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return category end,
         ---@diagnostic disable-next-line: param-type-mismatch
         function() return categoryUnitCounts:get(category) end,
         function() return totalUnitCount end,
         function() return isExcess end,
-        function() return proportion end,
-        function() return maxProp end)
+        function() return percentage end,
+        function() return realMaximumPercentage end,
+        function() return baseMaximumPercentage end,
+        function() return maximumPercentageVariation end)
 
-    return proportion > maxProp
+    return isExcess
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.

@@ -261,3 +261,45 @@ function TotoWarUtils:isPlayerFaction(factionName)
 
     return isPlayerFactionLord
 end
+
+---Gets a value in the game state.
+---@param modName string Mod name.
+---@param key string Key of the value to save for the mod.
+---@returns boolean | integer | number | string | nil
+function TotoWarUtils:getSavedValue(modName, key)
+    TotoWar.loggers.utils:logDebug(
+        "getValue(%s, %s): STARTED",
+        function() return modName end,
+        function() return key end)
+
+    ---@type boolean | integer | number | string | nil
+    local value = cm:get_saved_value(string.format("%s_%s", modName, key))
+
+    TotoWar.loggers.utils:logDebug(
+        "getValue(%s, %s): COMPLETED => %s",
+        function() return modName end,
+        function() return key end,
+        function() return value end)
+
+    return value
+end
+
+---Saves a value in the game state.
+---@param modName string Mod name.
+---@param key string Key of the value to save for the mod.
+---@param value boolean | integer | number | string | nil Value to save for the mod.
+function TotoWarUtils:saveValue(modName, key, value)
+    TotoWar.loggers.utils:logDebug(
+        "saveValue(%s, %s, %s): STARTED",
+        function() return modName end,
+        function() return key end,
+        function() return value end)
+
+    cm:set_saved_value(string.format("%s_%s", modName, key), value)
+
+    TotoWar.loggers.utils:logDebug(
+        "saveValue(%s, %s, %s): COMPLETED",
+        function() return modName end,
+        function() return key end,
+        function() return value end)
+end
