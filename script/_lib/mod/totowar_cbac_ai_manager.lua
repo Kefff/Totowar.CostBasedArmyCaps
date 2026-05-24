@@ -112,6 +112,21 @@ function TotoWarCbacAiManager:addListeners()
 
     TotoWar.utils:addListener(
         "TotoWarCbacAiManager",
+        TotoWar.enums.gameEvents.characterTurnEnd,
+        ---@param context CharacterTurnEnd
+        function(context)
+            return
+                TotoWarCbac.options.aiArmySuppliesEnabled
+                and TotoWar.utils:isLordCharacter(context:character())
+                and not cm:is_local_players_turn()
+        end,
+        ---@param context CharacterTurnEnd
+        function(context)
+            self:onAiCharacterTurnEnd(context:character())
+        end)
+
+    TotoWar.utils:addListener(
+        "TotoWarCbacAiManager",
         TotoWar.enums.gameEvents.militaryForceCreated,
         function()
             return
@@ -246,7 +261,7 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost)
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
     local heroesToRemoveAmount = #heroes -
-        math.floor(#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage)
+        math.floor(#armySuppliesCost.unitArmySuppliesCosts * TotoWarCbac.options.aiArmyHeroMaximumPercentage / 100)
 
     if heroesToRemoveAmount == 0 then
         return 0
@@ -861,6 +876,23 @@ function TotoWarCbacAiManager:onAiArmyCreated(army)
         "onAiArmyCreated(%s from %s): COMPLETED",
         function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
         function() return TotoWar.utils:getFactionCaption(army:faction():name()) end)
+end
+
+---Reacts to the turn of a character ending.
+---@param character CHARACTER_SCRIPT_INTERFACE Character.
+function TotoWarCbacAiManager:onAiCharacterTurnEnd(character)
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "onAiCharacterTurnEnd(%s from %s): STARTED",
+        function() return TotoWar.utils:getCharacterCaption(character) end,
+        function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
+
+    -- Relaunching the army adjustment to remove heros that may have been (re)added after the army adjustement triggered when units are recruited
+    self:adjustAiArmy(character:cqi())
+
+    TotoWarCbac.loggers.aiManager:logDebug(
+        "onAiCharacterTurnEnd(%s from %s): COMPLETED",
+        function() return TotoWar.utils:getCharacterCaption(character) end,
+        function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
 end
 
 ---Reacts to a unit being converted by an AI army.
