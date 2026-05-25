@@ -11,7 +11,7 @@ local _armySuppliesUIComponentName = "totowar_cbac_army_supplies"
 local _armySuppliesDepletedWarningIconId = "totowar_alert"
 
 ---Path of the army supplies icon.
-local _armySuppliesIconPath = "ui/skins/default/merc.png"
+local _armySuppliesIconPath = "ui/totowar_cbac/icons/totowar_cbac_army_supplies.png"
 
 ---Height the global recruitment pool UI component should measure when displaying army supplies cost.
 local _globalRecruitmentPoolUIComponentTargetHeight = 239
