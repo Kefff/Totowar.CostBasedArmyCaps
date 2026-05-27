@@ -203,7 +203,7 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
 
     if not lord then
         -- This can happen sometimes for some reason
-        TotoWarCbac.loggers.aiManager:logError("adjustAiArmy(%s): LORD NOT FOUND", lordCqi)
+        TotoWarCbac.loggers.aiManager:logError("Lord with CQI \"%s\" not found", lordCqi)
 
         return
     end
@@ -678,7 +678,7 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(army, armySupplies
     -------------------------------------------------------------------------
     if bestCost < deficit then
         TotoWarCbac.loggers.aiManager:logWarning(
-            "adjustAiArmyCompositionAndUnits(%s from %s): FAILED => Deficit: %s | Removed cost: %s",
+            "Army composition of %s from %s cannot be adjusted (Deficit: %s | Removed cost: %s)",
             TotoWar.utils:getCharacterCaption(lord),
             TotoWar.utils:getFactionCaption(army:faction():name()),
             deficit,

@@ -178,6 +178,12 @@ function TotoWarUtils:getUnitCaption(unitKey)
     ---@type string
     local caption = common.get_context_value(TotoWar.enums.ccoContextTypeIds.mainUnitRecord, unitKey, "Name")
 
+    if caption == nil then
+        caption = ''
+
+        TotoWar.loggers.utils:logWarning("Caption found for unit \"%s\" not found", unitKey)
+    end
+
     TotoWar.loggers.utils:logDebug(
         "getUnitCaption(%s): COMPLETED => %s",
         function() return unitKey end,

@@ -349,7 +349,7 @@ function TotoWarCbacArmySuppliesCost:removeCharacter(characterCqi)
 
     if characterIndex == -1 then
         TotoWarCbac.loggers.armySuppliesCost:logError(
-            "TotoWarCbacArmySuppliesCost:removeCharacter(%s): NOT FOUND",
+            "Character \"%s\" not found",
             TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
 
         return
@@ -418,7 +418,7 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
     end
 
     TotoWarCbac.loggers.armySuppliesCost:logError(
-        "TotoWarCbacArmySuppliesCost:removeUnit(%s): NOT FOUND",
+        "Unit \"%s\" not found",
         TotoWar.utils:getUnitCaption(unitKey))
 end
 

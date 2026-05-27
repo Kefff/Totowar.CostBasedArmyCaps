@@ -78,7 +78,7 @@ function TotoWarUIUtils:getUIComponent(query)
     local uiComponent = self:findUIComponent(query)
 
     if not uiComponent then
-        TotoWar.loggers.modsManager:logError("Cannot find UI component %s", table.concat(query, "/"))
+        TotoWar.loggers.modsManager:logError("UI component \"%s\" not found", table.concat(query, "/"))
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -94,7 +94,7 @@ function TotoWarUIUtils:getUIComponentChild(parentUIComponent, query)
     local uiComponent = self:findUIComponentChild(parentUIComponent, query)
 
     if not uiComponent then
-        TotoWar.loggers.modsManager:logError("Cannot find UI component %s", table.concat(query, "/"))
+        TotoWar.loggers.modsManager:logError("UI component \"%s\" not found", table.concat(query, "/"))
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch

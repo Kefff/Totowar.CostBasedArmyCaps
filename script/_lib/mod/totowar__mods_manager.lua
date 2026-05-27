@@ -98,7 +98,7 @@ function TotoWarModsManager:registerMod(modName, initializeFunction)
     local mod = self:findMod(modName)
 
     if mod then
-        TotoWar.loggers.modsManager:logWarning("Mod \"%s\" is already registered. New registration has been ignored.",
+        TotoWar.loggers.modsManager:logWarning("Mod \"%s\" is already registered. New registration has been ignored",
             modName)
     else
         mod = TotoWarModDefinition.new(modName, initializeFunction)

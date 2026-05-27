@@ -50,7 +50,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
     if unitKey == nil then
         -- For some reason, some characters may have no CcoCampaignCharacter so we cannot obtain information on them
         TotoWarCbac.loggers.armySuppliesCost:logWarning(
-            "TotoWarCbacUnitArmySuppliesCost.newCharacter(%s): INVALID CHARACTER => No unit record found",
+            "Unit record found for character \"%s\" not found",
             TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
 
         return nil
@@ -67,7 +67,7 @@ function TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
         local transformedCost = math.abs(instance.armySuppliesCost)
 
         TotoWarCbac.loggers.armySuppliesCost:logWarning(
-            "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): INVALID PRICE => %s, transformed to %s",
+            "Invalid price found for unit \"%s\" (Price: %s | Used instead: %s)",
             TotoWar.utils:getUnitCaption(unitKey),
             instance.armySuppliesCost,
             transformedCost)
@@ -124,7 +124,7 @@ function TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         local transformedCost = math.abs(instance.armySuppliesCost)
 
         TotoWarCbac.loggers.armySuppliesCost:logWarning(
-            "TotoWarCbacUnitArmySuppliesCost.newUnit(%s): INVALID PRICE => %s, transformed to %s",
+            "Invalid price found for unit \"%s\" (Price: %s | Used instead: %s)",
             TotoWar.utils:getUnitCaption(unitKey),
             instance.armySuppliesCost,
             transformedCost)
