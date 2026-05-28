@@ -429,11 +429,33 @@ function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
     table.sort(
         self.unitArmySuppliesCosts,
         function(item1, item2)
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord then
+            -- For some reason, item1 or item2 can be null. Could not find the cause.
+            if (item1 ~= nil and item2 == nil) or (item1 == nil and item2 == nil) then
+                return true
+            elseif (item1 == nil and item2 ~= nil) then
+                return false
+            end
+
+            TotoWarCbac.loggers.armySuppliesCost:logDebug(
+                "TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost(): Item 1: %s, %s, %s | Item 2: %s, %s, %s",
+                ---@diagnostic disable-next-line: return-type-mismatch
+                function() return item1.unitCategory end,
+                function() return item1.armySuppliesCost end,
+                function() return TotoWar.utils:getUnitCaption(item1.unitKey) end,
+                ---@diagnostic disable-next-line: return-type-mismatch
+                function() return item2.unitCategory end,
+                function() return item2.armySuppliesCost end,
+                function() return TotoWar.utils:getUnitCaption(item2.unitKey) end)
+
+            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
+                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
+            then
                 return true
             end
 
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord then
+            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
+                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
+            then
                 return false
             end
 
@@ -508,7 +530,7 @@ function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
             local item1Caption = TotoWar.utils:getUnitCaption(item1.unitKey)
             local item2Caption = TotoWar.utils:getUnitCaption(item2.unitKey)
 
-            return item1Caption < item2Caption
+            return item1Caption <= item2Caption
         end)
 end
 
