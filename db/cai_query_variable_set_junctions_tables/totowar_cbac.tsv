@@ -1,4 +1,4 @@
 query_variable	query_variable_set	value
 #cai_query_variable_set_junctions_tables;0;db/cai_query_variable_set_junctions_tables/totowar_cbac		
-min	totowar_cbac_army_min_size	12
+min	totowar_cbac_army_min_size	13
 min_max_behaviour	totowar_cbac_army_min_size	bounds
