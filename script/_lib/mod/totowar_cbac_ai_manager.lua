@@ -852,7 +852,7 @@ function TotoWarCbacAiManager:getLordTargetArmySize(lordCqi)
         string.format(TotoWarCbac.constants.storageKeyFormatArmyTargetSize, lordCqi))
 
     if targetArmySize == nil then
-        targetArmySize = math.random(12, 20)
+        targetArmySize = math.random(13, 20)
         TotoWar.utils:saveValue(
             TotoWar_Cbac_ModName,
             string.format(TotoWarCbac.constants.storageKeyFormatArmyTargetSize, lordCqi),

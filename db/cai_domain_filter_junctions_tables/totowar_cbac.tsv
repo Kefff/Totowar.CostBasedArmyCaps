@@ -1,0 +1,3 @@
+domain	query	query_variables	invert
+#cai_domain_filter_junctions_tables;1;db/cai_domain_filter_junctions_tables/totowar_cbac			
+totowar_cbac_our_armies_without_min_army_size	resource_mobile_check_units	totowar_cbac_army_min_size	true

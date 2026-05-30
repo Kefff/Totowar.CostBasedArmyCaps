@@ -1,0 +1,4 @@
+key	domain_type	parent_domain_left	parent_domain_right	join_type	algorithm	algorithm_variables	modifier_function	domain_variables
+#cai_domains_tables;2;db/cai_domains_tables/totowar_cbac								
+totowar_cbac_our_faction_leader_army_without_min_army_size	resource_mobile	totowar_cbac_our_armies_without_min_army_size	our_faction_leader_army	intersection	pick_all			
+totowar_cbac_our_armies_without_min_army_size	resource_mobile	our_armies		union	pick_all			
