@@ -426,112 +426,50 @@ end
 ---
 ---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
 function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
+    local categoryPriority = {
+        [TotoWarCbac.enums.armyCompositionUnitTypes.lord] = 1,
+        [TotoWarCbac.enums.armyCompositionUnitTypes.hero] = 2,
+        [TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry] = 3,
+        [TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry] = 4,
+        [TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters] = 5,
+        [TotoWarCbac.enums.armyCompositionUnitTypes.artillery] = 6
+    }
+
     table.sort(
         self.unitArmySuppliesCosts,
         function(item1, item2)
             -- For some reason, item1 or item2 can be null. Could not find the cause.
-            if (item1 ~= nil and item2 == nil) or (item1 == nil and item2 == nil) then
-                return true
-            elseif (item1 == nil and item2 ~= nil) then
+            if item1 == nil then
                 return false
-            end
-
-            TotoWarCbac.loggers.armySuppliesCost:logDebug(
-                "TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost(): Item 1: %s, %s, %s | Item 2: %s, %s, %s",
-                ---@diagnostic disable-next-line: return-type-mismatch
-                function() return item1.unitCategory end,
-                function() return item1.armySuppliesCost end,
-                function() return TotoWar.utils:getUnitCaption(item1.unitKey) end,
-                ---@diagnostic disable-next-line: return-type-mismatch
-                function() return item2.unitCategory end,
-                function() return item2.armySuppliesCost end,
-                function() return TotoWar.utils:getUnitCaption(item2.unitKey) end)
-
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-            then
+            elseif item2 == nil then
                 return true
             end
 
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-            then
-                return false
+            local priority1 = categoryPriority[item1.unitCategory] or math.huge
+            local priority2 = categoryPriority[item2.unitCategory] or math.huge
+
+            -- Category sort
+            if priority1 ~= priority2 then
+                return priority1 < priority2
             end
 
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
-            then
-                return true
+            -- Cost sort
+            if item1.armySuppliesCost ~= item2.armySuppliesCost then
+                return item1.armySuppliesCost < item2.armySuppliesCost
             end
 
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
-            then
-                return false
+            -- Name sort
+            local caption1 = TotoWar.utils:getUnitCaption(item1.unitKey)
+            local caption2 = TotoWar.utils:getUnitCaption(item2.unitKey)
+
+            if caption1 ~= caption2 then
+                return caption1 < caption2
             end
 
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-            then
-                return true
-            end
-
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-            then
-                return false
-            end
-
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
-            then
-                return true
-            end
-
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry
-            then
-                return false
-            end
-
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
-            then
-                return true
-            end
-
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters
-            then
-                return false
-            end
-
-            if item1.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-                and item2.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-            then
-                return true
-            end
-
-            if item2.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-                and item1.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.artillery
-            then
-                return false
-            end
-
-            if item1.armySuppliesCost < item2.armySuppliesCost then
-                return true
-            end
-
-            if item2.armySuppliesCost < item1.armySuppliesCost then
-                return false
-            end
-
-            local item1Caption = TotoWar.utils:getUnitCaption(item1.unitKey)
-            local item2Caption = TotoWar.utils:getUnitCaption(item2.unitKey)
-
-            return item1Caption <= item2Caption
-        end)
+            -- In case of full equality, the method must return false to be considered a valid sort funtionc
+            return tostring(item1.unitKey) < tostring(item2.unitKey)
+        end
+    )
 end
 
 ---Gets the list of unit army supplies costs as a tooltip string.
