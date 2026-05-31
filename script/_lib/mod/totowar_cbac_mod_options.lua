@@ -1,20 +1,14 @@
 ---Name of the TotoWar Cost-Based Army Caps mod.
 TotoWar_Cbac_ModName = "totowar_cost_based_army_caps"
 
----Default value for the maximum percentage of artillery to target in AI armies.
-TotoWar_Cbac_OptionDefaultValue_AiArmyArtilleryMaximumPercentage = 20
-
 ---Default value for the maximum percentage of cavalry and monsters to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyCavalryAndMonstersMaximumPercentage = 50
 
 ---Name of the option for the maximum percentage of heroes in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyHeroMaximumPercentage = 15
 
----Default value for the variation applied to AI maximum percentages.
-TotoWar_Cbac_OptionDefaultValue_AiArmyMaximumPercentageVariation = 15
-
----Default value for the maximum percentage of melee infantry to target in AI armies.
-TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMaximumPercentage = 75
+---Default value for the minimum percentage of melee infantry to target in AI armies.
+TotoWar_Cbac_OptionDefaultValue_AiArmyMeleeInfantryMinimumPercentage = 40
 
 ---Default value for the maximum percentage of ranged infantry to target in AI armies.
 TotoWar_Cbac_OptionDefaultValue_AiArmyRangedInfantryMaximumPercentage = 50
@@ -29,6 +23,9 @@ TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesBonusAmountPerLevel = 50
 ---Default value for the option that enabled AI army supplies restrictions.
 TotoWar_Cbac_OptionDefaultValue_AiArmySuppliesEnabled = true
 
+---Default value for the maximum percentage of war machines to target in AI armies.
+TotoWar_Cbac_OptionDefaultValue_AiArmyWarMachinesMaximumPercentage = 20
+
 ---Default value for the amount of available army supplies in player armies.
 ---Sadly, it cannot be read from DB table (mp_budgets_table) because LUA scripts do not not have access to them.
 TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesAmount = 12400
@@ -42,23 +39,17 @@ TotoWar_Cbac_OptionDefaultValue_PlayerArmySuppliesEnabled = true
 ---Name of the option for the maximum percentage of heroes in AI armies.
 TotoWar_Cbac_OptionName_AiArmyHeroMaximumPercentage = "totowar_cbac_aiArmyHeroMaximumPercentage"
 
----Name of the option for the maximum percentage of artillery to target in AI armies.
-TotoWar_Cbac_OptionName_AiArmyArtilleryMaximumPercentage = "totowar_cbac_aiArmyArtilleryMaximumPercentage"
-
 ---Name of the option for the maximum percentage of cavalry and monsters to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyCavalryAndMonstersMaximumPercentage =
 "totowar_cbac_aiArmyCavalryAndMonstersMaximumPercentage"
 
----Name of the option for the maximum percentage of melee infantry to target in AI armies.
-TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMaximumPercentage =
-"totowar_cbac_aiArmyMeleeInfantryMaximumPercentage"
+---Name of the option for the minimum percentage of melee infantry to target in AI armies.
+TotoWar_Cbac_OptionName_AiArmyMeleeInfantryMinimumPercentage =
+"totowar_cbac_aiArmyMeleeInfantryMinimumPercentage"
 
 ---Name of the option for the maximum percentage of ranged infantry to target in AI armies.
 TotoWar_Cbac_OptionName_AiArmyRangedInfantryMaximumPercentage =
 "totowar_cbac_aiArmyRangedInfantryMaximumPercentage"
-
----Name of the option for the variation applied to AI maximum percentages.
-TotoWar_Cbac_OptionName_AiArmyMaximumPercentageVariation = "totowar_cbac_aiArmyMaximumPercentageVariation"
 
 ---Name of the option for the amount of army supplies in AI armies.
 TotoWar_Cbac_OptionName_AiArmySuppliesAmount = "totowar_cbac_aiArmySuppliesAmount"
@@ -68,6 +59,9 @@ TotoWar_Cbac_OptionName_AiArmySuppliesBonusAmountPerLevel = "totowar_cbac_aiArmy
 
 ---Name of option that enables army supplies restriction for AI armies.
 TotoWar_Cbac_OptionName_AiArmySuppliesEnabled = "totowar_cbac_aiArmySuppliesEnabled"
+
+---Name of the option for the maximum percentage of war machines to target in AI armies.
+TotoWar_Cbac_OptionName_AiArmyWarMachinesMaximumPercentage = "totowar_cbac_aiArmyWarMachinesMaximumPercentage"
 
 ---Name of the option for the amount of army supplies in player armies.
 TotoWar_Cbac_OptionName_PlayerArmySuppliesAmount = "totowar_cbac_playerArmySuppliesAmount"

@@ -175,8 +175,8 @@ function TotoWarCbacUnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey,
             unitKey,
             "UiUnitGroupContext.ParentGroup.Key")
 
-        if unitGroup:find('artillery') then
-            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.artillery
+        if unitGroup:find('artillery') or unitGroup:find('war_machines') then
+            armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.warMachines
         elseif unitGroup:find('infantry') then
             if unitGroup:find('missile') then
                 armyCompositionUnitType = TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry

@@ -1,8 +1,8 @@
 key	description	show_in_uied	can_player_set	unnamed colour group_1
 #ui_colours_tables;3;db/ui_colours_tables/totowar_cbac				
-totowar_cbac_unit_category_hero	Hero	true	false	B3FFA6
-totowar_cbac_unit_category_artillery	Artillery	true	false	FFA6B3
 totowar_cbac_unit_category_cavalryAndMonsters	Cavalry and monsters	true	false	F2A6FF
+totowar_cbac_unit_category_hero	Hero	true	false	B3FFA6
 totowar_cbac_unit_category_lord	Lord	true	false	FFF2A6
 totowar_cbac_unit_category_meleeInfantry	Melee infantry	true	false	A6B3FF
 totowar_cbac_unit_category_rangedInfantry	Ranged infantry	true	false	A6FFF2
+totowar_cbac_unit_category_warMachines	War machines	true	false	FFA6B3

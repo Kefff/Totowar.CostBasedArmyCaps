@@ -168,72 +168,6 @@ function TotoWarCbacArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMe
         function() return self.totalCost end)
 end
 
----Checks whether a unit category has a number of units that exceed its maximum allowed proportion in the army composition.
----@param category TotoWarCbac_Enums_ArmyCompositionUnitCategories Unit category.
----@param categoryUnitCounts TotoWarDictionary<string, integer> Unit counts per category.
----@param totalUnitCount integer Total number of units in the army.
----@return boolean
-function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "checkUnitCategoryExcess(%s, %s, %s): STARTED",
-        ---@diagnostic disable-next-line: return-type-mismatch
-        function() return category end,
-        ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) end,
-        function() return totalUnitCount end)
-
-    if totalUnitCount <= 0 then
-        return false
-    end
-
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local currentCount = categoryUnitCounts:get(category)
-
-    if currentCount <= 0 then
-        return false
-    end
-
-    ---@type integer | nil
-    local maximumPercentageVariation = TotoWar.utils:getSavedValue( -- Stored as an integer between 0 and 50
-        TotoWar_Cbac_ModName,
-        string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category))
-
-    if maximumPercentageVariation == nil then
-        maximumPercentageVariation = math.random(
-            -TotoWarCbac.options.aiArmyMaximumPercentageVariation,
-            TotoWarCbac.options.aiArmyMaximumPercentageVariation
-        )
-        maximumPercentageVariation = maximumPercentageVariation -- Rounded to the nearest multiple of 5
-            - (maximumPercentageVariation % 5 + (maximumPercentageVariation % 5 >= 2.5 and 5 or 0))
-
-        TotoWar.utils:saveValue(
-            TotoWar_Cbac_ModName,
-            string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category),
-            maximumPercentageVariation)
-    end
-
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local baseMaximumPercentage = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:get(category) -- Stored as an integer between 0 and 100
-    local realMaximumPercentage = baseMaximumPercentage * (1 + maximumPercentageVariation / 100)
-    local percentage = math.floor(currentCount / totalUnitCount * 100 + 0.5)                             -- Rounded to the nearest integer
-    local isExcess = percentage > realMaximumPercentage
-
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "checkUnitCategoryExcess(%s, %s, %s): COMPLETED => Is excess: %s | Proportion: %s | Max proportion: %s | Base proportion: %s | Proportion variation: %s",
-        ---@diagnostic disable-next-line: return-type-mismatch
-        function() return category end,
-        ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) end,
-        function() return totalUnitCount end,
-        function() return isExcess end,
-        function() return percentage end,
-        function() return realMaximumPercentage end,
-        function() return baseMaximumPercentage end,
-        function() return maximumPercentageVariation end)
-
-    return isExcess
-end
-
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): STARTED")
@@ -243,97 +177,6 @@ function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
     end
 
     TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
-end
-
----Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
----
----Lord and heroes are not taken into account.
----@return TotoWarDictionary<string, integer>
-function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("getUnitCategoryExcessCounts(): STARTED")
-
-    local totalUnitCount = 0
-    local orderedCategories = {
-        TotoWarCbac.enums.armyCompositionUnitTypes.artillery,
-        TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
-        TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
-        TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-    }
-
-    ---@type TotoWarDictionary<string, integer>
-    local categoryUnitCounts = TotoWarDictionary.new()
-
-    ---@type TotoWarDictionary<string, integer>
-    local categoryUnitExcessCounts = TotoWarDictionary.new()
-
-    -- Initialize counts for each category (excluding lord and heroes)
-    for key, armyCompositionUnitType in pairs(orderedCategories) do
-        categoryUnitCounts:set(armyCompositionUnitType, 0)
-    end
-
-    -- Count units per category (excluding lord and heroes)
-    for index, unit in ipairs(self.unitArmySuppliesCosts) do
-        if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-            and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
-        then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            categoryUnitCounts:set(unit.unitCategory, categoryUnitCounts:get(unit.unitCategory) + 1)
-            totalUnitCount = totalUnitCount + 1
-        end
-    end
-
-    if totalUnitCount > 0 then
-        -- Initialize excess counts
-        for _, category in ipairs(orderedCategories) do
-            categoryUnitExcessCounts:set(category, 0)
-        end
-
-        -- Iterate over each category, selecting at most 1 unit per category over the limit each cycle to remove until no category is above the limit anymore.
-        -- Units that are selected as excess are not taken into consideration in the ratio computation for the next iterations.
-        while true do
-            local hasRemoved = false
-
-            for _, category in ipairs(orderedCategories) do
-                ---@diagnostic disable-next-line: param-type-mismatch
-                if self:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount) then
-                    categoryUnitExcessCounts:set(category, categoryUnitExcessCounts:get(category) + 1)
-                    categoryUnitCounts:set(category, categoryUnitCounts:get(category) - 1)
-                    totalUnitCount = totalUnitCount - 1
-
-                    hasRemoved = true
-                end
-            end
-
-            if not hasRemoved then
-                break
-            end
-        end
-
-        -- Removing entries with 0 excess
-        for index, category in ipairs(orderedCategories) do
-            if categoryUnitExcessCounts:get(category) == 0 then
-                categoryUnitExcessCounts:remove(category)
-            end
-        end
-    end
-
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): COMPLETED => %s",
-        function()
-            local message = ''
-
-            for index, entry in ipairs(categoryUnitExcessCounts.entries) do
-                message = string.format("%s| %s: %s ", message, entry.key, entry.value)
-            end
-
-            if message == '' then
-                message = 'No excess'
-            end
-
-            return message
-        end)
-
-    return categoryUnitExcessCounts
 end
 
 ---Removes the character corresponding to a command queue index.
@@ -424,7 +267,7 @@ end
 
 ---Sorts army supplies costs by unit category, army supplies cost and name.
 ---
----Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
+---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, War machines
 function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
     local categoryPriority = {
         [TotoWarCbac.enums.armyCompositionUnitTypes.lord] = 1,
@@ -432,7 +275,7 @@ function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
         [TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry] = 3,
         [TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry] = 4,
         [TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters] = 5,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.artillery] = 6
+        [TotoWarCbac.enums.armyCompositionUnitTypes.warMachines] = 6
     }
 
     table.sort(
