@@ -65,8 +65,8 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
 
     ---@type integer | nil
     local lastAdjustmentTurn = TotoWar__Gameplay:getSavedValue(
-        TotoWar_Cbac_ModName,
-        string.format(TotoWar__Constant_StorageKeyFormatArmyLastAdjustmentTurn, lordCqi))
+        TotoWar_Cbac_Constant.modName,
+        string.format(TotoWar_Cbac_Constant.storageKeyFormatArmyLastAdjustmentTurn, lordCqi))
 
     if lastAdjustmentTurn ~= cm:turn_number() then
         TotoWar_Cbac.loggers.aiManager:logDebug(
@@ -713,8 +713,8 @@ function TotoWar_Cbac_AiManager:adjustAiArmyCompositionAndUnits(
     -- Storing the current turn as the last adjustment turn for that lord to be able to cancel the disbands that may happen just after the adjustment
     -- to avoid removing too many units from the army
     TotoWar__Gameplay:saveValue(
-        TotoWar_Cbac_ModName,
-        string.format(TotoWar__Constant_StorageKeyFormatArmyLastAdjustmentTurn, lord:cqi()),
+        TotoWar_Cbac_Constant.modName,
+        string.format(TotoWar_Cbac_Constant.storageKeyFormatArmyLastAdjustmentTurn, lord:cqi()),
         cm:turn_number())
 
     TotoWar_Cbac.loggers.aiManager:logDebug(
@@ -875,9 +875,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
     local categoryUnitCounts = TotoWar__Dictionary.new()
 
     local lordUnitAmount = TotoWar__Gameplay:getSavedValue(
-        TotoWar_Cbac_ModName,
+        TotoWar_Cbac_Constant.modName,
         string.format(
-            TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+            TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
             lord:cqi(),
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord))
 
@@ -889,17 +889,17 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines,
             TotoWar__Gameplay:getSavedValue(
-                TotoWar_Cbac_ModName,
+                TotoWar_Cbac_Constant.modName,
                 string.format(
-                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
                     TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines)))
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters,
             TotoWar__Gameplay:getSavedValue(
-                TotoWar_Cbac_ModName,
+                TotoWar_Cbac_Constant.modName,
                 string.format(
-                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
                     TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters)))
         categoryUnitCounts:set(
@@ -908,17 +908,17 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry,
             TotoWar__Gameplay:getSavedValue(
-                TotoWar_Cbac_ModName,
+                TotoWar_Cbac_Constant.modName,
                 string.format(
-                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
                     TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry)))
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry,
             TotoWar__Gameplay:getSavedValue(
-                TotoWar_Cbac_ModName,
+                TotoWar_Cbac_Constant.modName,
                 string.format(
-                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
                     TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry)))
 
@@ -993,9 +993,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines,
             warMachinesCount)
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines),
             warMachinesCount)
@@ -1004,9 +1004,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters,
             cavalryAndMonstersCount)
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters),
             cavalryAndMonstersCount)
@@ -1015,17 +1015,17 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero,
             heroCount)
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero),
             heroCount)
 
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord),
             lordCount)
@@ -1034,9 +1034,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry,
             meleeInfantryCount)
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry),
             meleeInfantryCount)
@@ -1045,9 +1045,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry,
             rangedInfantryCount)
         TotoWar__Gameplay:saveValue(
-            TotoWar_Cbac_ModName,
+            TotoWar_Cbac_Constant.modName,
             string.format(
-                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
+                TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry),
             rangedInfantryCount)

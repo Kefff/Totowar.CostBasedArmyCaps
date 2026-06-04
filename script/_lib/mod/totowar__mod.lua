@@ -23,7 +23,7 @@ TotoWar__Mod = {
     ---Options
     options = {
         ---Indicates whether debug messages are logged.
-        debugEnabled = TotoWar__OptionDefaultValue_DebugEnabled,
+        debugEnabled = TotoWar__Constant.optionDefaultValue_debugEnabled,
 
         ---Log file name.
         ---@type string
@@ -111,10 +111,10 @@ function TotoWar__Mod:loadMctOptions()
 
     TotoWar.loggers.generic:logInfo("TotoWar | Loading options")
 
-    local options = mct:get_mod_by_key(TotoWar__Constant_ModName)
+    local options = mct:get_mod_by_key(TotoWar__Constant.modName)
 
     TotoWar.options.debugEnabled = options
-        :get_option_by_key(TotoWar__OptionName_DebugEnabled)
+        :get_option_by_key(TotoWar__Constant.optionName_debugEnabled)
         :get_finalized_setting()
 
     -- Signaling option changes
