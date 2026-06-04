@@ -1,19 +1,19 @@
 ---Internal DP State used for the knapsack algorithm.
 ---
 ---Stores how many units were removed per category (in a fixed order).
----@class TotoWarCbacAiManagerAdjustmentState
+---@class TotoWar_Cbac_AiManagerAdjustmentState
 ---@field categories string[]
 ---@field maxPerCategory table<string, integer>
 ---@field counts table<string, integer>
-TotoWarCbacAiManagerAdjustmentState = {}
-TotoWarCbacAiManagerAdjustmentState.__index = TotoWarCbacAiManagerAdjustmentState
+TotoWar_Cbac_AiManagerAdjustmentState = {}
+TotoWar_Cbac_AiManagerAdjustmentState.__index = TotoWar_Cbac_AiManagerAdjustmentState
 
 ---@param categories string[]
 ---@param maxPerCategory table<string, integer>
----@return TotoWarCbacAiManagerAdjustmentState
-function TotoWarCbacAiManagerAdjustmentState.new(categories, maxPerCategory)
-    ---@type TotoWarCbacAiManagerAdjustmentState
-    local self = setmetatable({}, TotoWarCbacAiManagerAdjustmentState)
+---@return TotoWar_Cbac_AiManagerAdjustmentState
+function TotoWar_Cbac_AiManagerAdjustmentState.new(categories, maxPerCategory)
+    ---@type TotoWar_Cbac_AiManagerAdjustmentState
+    local self = setmetatable({}, TotoWar_Cbac_AiManagerAdjustmentState)
 
     self.categories = categories
     self.maxPerCategory = maxPerCategory
@@ -29,9 +29,9 @@ end
 ---@param key string
 ---@param categories string[]
 ---@param maxPerCategory table<string, integer>
----@return TotoWarCbacAiManagerAdjustmentState
-function TotoWarCbacAiManagerAdjustmentState.newFromKey(key, categories, maxPerCategory)
-    local state = TotoWarCbacAiManagerAdjustmentState.new(categories, maxPerCategory)
+---@return TotoWar_Cbac_AiManagerAdjustmentState
+function TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(key, categories, maxPerCategory)
+    local state = TotoWar_Cbac_AiManagerAdjustmentState.new(categories, maxPerCategory)
 
     if key == "" then
         return state
@@ -49,9 +49,9 @@ function TotoWarCbacAiManagerAdjustmentState.newFromKey(key, categories, maxPerC
     return state
 end
 
----@return TotoWarCbacAiManagerAdjustmentState
-function TotoWarCbacAiManagerAdjustmentState:clone()
-    local copy = TotoWarCbacAiManagerAdjustmentState.new(self.categories, self.maxPerCategory)
+---@return TotoWar_Cbac_AiManagerAdjustmentState
+function TotoWar_Cbac_AiManagerAdjustmentState:clone()
+    local copy = TotoWar_Cbac_AiManagerAdjustmentState.new(self.categories, self.maxPerCategory)
 
     for _, cat in ipairs(self.categories) do
         copy.counts[cat] = self.counts[cat]
@@ -62,7 +62,7 @@ end
 
 ---@param category string
 ---@return boolean
-function TotoWarCbacAiManagerAdjustmentState:canAdd(category)
+function TotoWar_Cbac_AiManagerAdjustmentState:canAdd(category)
     local maxAllowed = self.maxPerCategory[category]
     if maxAllowed == nil then
         return false
@@ -73,12 +73,12 @@ function TotoWarCbacAiManagerAdjustmentState:canAdd(category)
 end
 
 ---@param category string
-function TotoWarCbacAiManagerAdjustmentState:add(category)
+function TotoWar_Cbac_AiManagerAdjustmentState:add(category)
     self.counts[category] = (self.counts[category] or 0) + 1
 end
 
 ---@return string
-function TotoWarCbacAiManagerAdjustmentState:getKey()
+function TotoWar_Cbac_AiManagerAdjustmentState:getKey()
     if #self.categories == 0 then
         return ""
     end
@@ -92,7 +92,7 @@ function TotoWarCbacAiManagerAdjustmentState:getKey()
 end
 
 ---@return integer
-function TotoWarCbacAiManagerAdjustmentState:getSatisfiedScore()
+function TotoWar_Cbac_AiManagerAdjustmentState:getSatisfiedScore()
     local score = 0
     for _, cat in ipairs(self.categories) do
         score = score + (self.counts[cat] or 0)

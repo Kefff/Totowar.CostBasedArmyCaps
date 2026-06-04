@@ -1,37 +1,37 @@
 ---Manager in charge of managing the army supplies for the AI armies.
----@class TotoWarCbacAiManager
-TotoWarCbacAiManager = {
+---@class TotoWar_Cbac_AiManager
+TotoWar_Cbac_AiManager = {
     ---List of command queue interfaces of the lords for which we need to check and adjust the composition in order to comply with army supply restrictions.
     ---@type integer[]
     armyAdjustmentQueue = {},
 
     ---List of command queue interfaces of the lords for which we need to check whether disbanded units should be reinstated.
-    ---@type TotoWarDictionary<integer, TotoWarCbacUnitArmySuppliesCost[]>
-    disbandQueue = TotoWarDictionary.new()
+    ---@type TotoWar__Dictionary<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>
+    disbandQueue = TotoWar__Dictionary.new()
 }
-TotoWarCbacAiManager.__index = TotoWarCbacAiManager
+TotoWar_Cbac_AiManager.__index = TotoWar_Cbac_AiManager
 
 ---Initializes a new instance.
----@return TotoWarCbacAiManager
-function TotoWarCbacAiManager.new()
-    TotoWarCbac.loggers.aiManager:logDebug("TotoWarCbacAiManager.new(): STARTED")
+---@return TotoWar_Cbac_AiManager
+function TotoWar_Cbac_AiManager.new()
+    TotoWar_Cbac.loggers.aiManager:logDebug("TotoWar_Cbac_AiManager.new(): STARTED")
 
-    local instance = setmetatable({}, TotoWarCbacAiManager)
+    local instance = setmetatable({}, TotoWar_Cbac_AiManager)
 
-    TotoWarCbac.loggers.aiManager:logDebug("TotoWarCbacAiManager.new(): COMPLETED")
+    TotoWar_Cbac.loggers.aiManager:logDebug("TotoWar_Cbac_AiManager.new(): COMPLETED")
 
     return instance
 end
 
 ---Adds an army to the adjustment queue.
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
-function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
-    TotoWarCbac.loggers.aiManager:logDebug(
+function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(lordCqi)
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "addArmyToAdjustmentQueue(%s from %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
-        function() return TotoWar.utils:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
+        function() return TotoWar__Gameplay:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
 
-    if not TotoWarLinq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
+    if not TotoWar__Linq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
     then
         table.insert(self.armyAdjustmentQueue, lordCqi)
 
@@ -41,46 +41,46 @@ function TotoWarCbacAiManager:addArmyToAdjustmentQueue(lordCqi)
         cm:callback(
             function()
                 self:adjustAiArmy(lordCqi)
-                TotoWarLinq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
+                TotoWar__Linq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
             end,
             0.001)
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "addArmyToAdjustmentQueue(%s from %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
-        function() return TotoWar.utils:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
+        function() return TotoWar__Gameplay:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
 end
 
 ---Adds an army to the disband queue to check whether the unit should be reinstated if disbanded after the army has already been adjusted.
 ---@param disbandedUnit UNIT_SCRIPT_INTERFACE Disbanded unit.
-function TotoWarCbacAiManager:addUnitToDisbandQueue(disbandedUnit)
+function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
     local lordCqi = disbandedUnit:military_force():general_character():cqi()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "addUnitToDisbandQueue(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit:unit_key()) end)
 
     ---@type integer | nil
-    local lastAdjustmentTurn = TotoWar.utils:getSavedValue(
+    local lastAdjustmentTurn = TotoWar__Gameplay:getSavedValue(
         TotoWar_Cbac_ModName,
-        string.format(TotoWarCbac.constants.storageKeyFormatArmyLastAdjustmentTurn, lordCqi))
+        string.format(TotoWar__Constant_StorageKeyFormatArmyLastAdjustmentTurn, lordCqi))
 
     if lastAdjustmentTurn ~= cm:turn_number() then
-        TotoWarCbac.loggers.aiManager:logDebug(
+        TotoWar_Cbac.loggers.aiManager:logDebug(
             "addUnitToDisbandQueue(%s from %s, %s): DISBAND CONFIRMED => Current turn: %s | Last adjustment turn: %s",
-            function() return TotoWar.utils:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
-            function() return TotoWar.utils:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
-            function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
+            function() return TotoWar__Gameplay:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
+            function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit:unit_key()) end,
             function() return cm:turn_number() end,
             function() return lastAdjustmentTurn end)
 
         return
     end
 
-    local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(disbandedUnit:unit_key())
+    local unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(disbandedUnit:unit_key())
 
     if self.disbandQueue:exists(lordCqi) then
         local units = self.disbandQueue:get(lordCqi)
@@ -99,25 +99,25 @@ function TotoWarCbacAiManager:addUnitToDisbandQueue(disbandedUnit)
             0.001)
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "addUnitToDisbandQueue(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(disbandedUnit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(disbandedUnit:military_force():general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(disbandedUnit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit:unit_key()) end)
 end
 
 ---Adds listeners for events.
-function TotoWarCbacAiManager:addListeners()
-    TotoWarCbac.loggers.aiManager:logDebug("addListeners(): STARTED")
+function TotoWar_Cbac_AiManager:addListeners()
+    TotoWar_Cbac.loggers.aiManager:logDebug("addListeners(): STARTED")
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.characterTurnEnd,
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.characterTurnEnd,
         ---@param context CharacterTurnEnd
         function(context)
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
-                and TotoWar.utils:isLordCharacter(context:character())
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and TotoWar__Gameplay:isLordCharacter(context:character())
                 and not cm:is_local_players_turn()
         end,
         ---@param context CharacterTurnEnd
@@ -125,100 +125,100 @@ function TotoWarCbacAiManager:addListeners()
             self:onAiCharacterTurnEnd(context:character())
         end)
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.militaryForceCreated,
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.militaryForceCreated,
         function()
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
         end,
-        ---@param context TotoWarGameEventContext_MilitaryForceCreated
+        ---@param context TotoWar__GameEventContext_MilitaryForceCreated
         function(context)
             self:onAiArmyCreated(context:military_force_created())
         end)
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.unitConverted,
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.unitConverted,
         function()
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
         end,
-        ---@param context TotoWarGameEventContext_UnitConverted
+        ---@param context TotoWar__GameEventContext_UnitConverted
         function(context)
             self:onAiUnitConverted(context:unit(), context:converted_unit())
         end)
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.unitDisbanded,
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.unitDisbanded,
         function()
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
         end,
-        ---@param context TotoWarGameEventContext_UnitDisbanded
+        ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             self:onAiUnitDisbanded(context:unit())
         end)
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.unitTrained,
-        ---@param context TotoWarGameEventContext_UnitTrained
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.unitTrained,
+        ---@param context TotoWar__GameEventContext_UnitTrained
         function(context)
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
                 and context:unit():military_force()
-                and TotoWar.utils:canRecruitUnits(context:unit():military_force())
+                and TotoWar__Gameplay:canRecruitUnits(context:unit():military_force())
         end,
-        ---@param context TotoWarGameEventContext_UnitTrained
+        ---@param context TotoWar__GameEventContext_UnitTrained
         function(context)
             self:onAiUnitRecruited(context:unit())
         end)
 
-    TotoWar.utils:addListener(
-        "TotoWarCbacAiManager",
-        TotoWar.enums.gameEvents.unitUpgraded,
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_AiManager",
+        TotoWar__Enum_GameEvent.unitUpgraded,
         function()
             return
-                TotoWarCbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn()
         end,
-        ---@param context TotoWarGameEventContext_UnitUpgraded
+        ---@param context TotoWar__GameEventContext_UnitUpgraded
         function(context)
             self:onAiUnitUpgraded(context:unit())
         end)
 
-    TotoWarCbac.loggers.aiManager:logDebug("addListeners(): COMPLETED")
+    TotoWar_Cbac.loggers.aiManager:logDebug("addListeners(): COMPLETED")
 end
 
 ---Adjusts an AI army by removing excess heroes and units when its cost exceeds army supplies.
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
-function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
+function TotoWar_Cbac_AiManager:adjustAiArmy(lordCqi)
     local lord = cm:get_character_by_cqi(lordCqi)
 
     if not lord then
         -- This can happen sometimes for some reason
-        TotoWarCbac.loggers.aiManager:logError("Lord with CQI \"%s\" not found", lordCqi)
+        TotoWar_Cbac.loggers.aiManager:logError("Lord with CQI \"%s\" not found", lordCqi)
 
         return
     end
 
     local army = lord:military_force()
-    local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(true, army)
+    local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, army)
 
     if armySuppliesCost.availableSupplies >= 0 then
         return
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmy(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
 
@@ -231,18 +231,18 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
 
     -- Getting the target army composition and the unit categories that have excess units
     local targetArmyComposition = self:getTargetArmyComposition(army)
-    local targetArmySize = TotoWarLinq:sum(targetArmyComposition:getValues(), function(v) return v end)
+    local targetArmySize = TotoWar__Linq:sum(targetArmyComposition:getValues(), function(v) return v end)
     local unitCategoryExcessCounts = self:getUnitCategoryExcessCounts(armySuppliesCost, targetArmyComposition)
 
-    if unitCategoryExcessCounts:exists(TotoWarCbac.enums.armyCompositionUnitTypes.hero) then
+    if unitCategoryExcessCounts:exists(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero) then
         -- Removing excess of heroes
         self:adjustAiArmyHeroes(
             army,
             armySuppliesCost,
-            unitCategoryExcessCounts:get(TotoWarCbac.enums.armyCompositionUnitTypes.hero))
+            unitCategoryExcessCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero))
     end
 
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     local unitsToDiscard = {}
 
     -- Adjust composition and units simultaneously
@@ -253,10 +253,10 @@ function TotoWarCbacAiManager:adjustAiArmy(lordCqi)
         self:removeUnitFromAiArmy(army, unitToDiscard.unitKey, unitToDiscard.unitCqi)
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmy(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
 end
@@ -265,11 +265,11 @@ end
 ---
 ---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
 ---@param targetArmySize integer Target army size.
----@param unitCategoryExcessCounts TotoWarDictionary<string, integer> Excess count by unit category.
----@param unitsToDiscard TotoWarCbacUnitArmySuppliesCost[] List in which units to discard are stored. Updated if units are flagged as to be removed.
-function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
+---@param unitCategoryExcessCounts TotoWar__Dictionary<string, integer> Excess count by unit category.
+---@param unitsToDiscard TotoWar_Cbac_UnitArmySuppliesCost[] List in which units to discard are stored. Updated if units are flagged as to be removed.
+function TotoWar_Cbac_AiManager:adjustAiArmyCompositionAndUnits(
     army,
     armySuppliesCost,
     targetArmySize,
@@ -282,19 +282,19 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
 
     local lord = army:general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): STARTED => Total army supplies cost: %s | Available army supplies: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end)
 
-    local removableUnits = TotoWarLinq:where(
+    local removableUnits = TotoWar__Linq:where(
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc)
             return
-                uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-                and uasc.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
+                uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord
+                and uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero
         end)
 
     if #removableUnits == 0 then
@@ -305,10 +305,10 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
     local requiredRemovalsForSize = math.max(0, currentArmySize - targetArmySize)
     local deficit = -armySuppliesCost.availableSupplies
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): Army size: %s | Removable units: %s | Target army size: %s | Required removals for size: %s | Deficit: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return currentArmySize end,
         function() return #removableUnits end,
         function() return targetArmySize end,
@@ -333,17 +333,17 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
         end
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): Categories in excess: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function()
             if #categories == 0 then
                 return "none"
             end
 
             return table.concat(
-                TotoWarLinq:select(
+                TotoWar__Linq:select(
                     unitCategoryExcessCounts.entries,
                     function(c) return string.format("%s (%s)", c.key, c.value) end),
                 " | ")
@@ -354,10 +354,10 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
     -- - excessUnits (categories in excess)
     -- - otherUnits (everything else)
     -------------------------------------------------------------------------
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     local excessUnits = {}
 
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     local otherUnits = {}
 
     for _, u in ipairs(removableUnits) do
@@ -399,11 +399,11 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
     -- MAIN DP over excessUnits only
     -- DP[count][stateKey][removedCost] = pickedUnits
     -------------------------------------------------------------------------
-    ---@type table<integer, table<string, table<integer, TotoWarCbacUnitArmySuppliesCost[]>>>
+    ---@type table<integer, table<string, table<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>>>
     local DP = {}
     DP[0] = {}
 
-    local startState = TotoWarCbacAiManagerAdjustmentState.new(categories, maxPerCategory)
+    local startState = TotoWar_Cbac_AiManagerAdjustmentState.new(categories, maxPerCategory)
     local startKey = startState:getKey()
 
     DP[0][startKey] = {}
@@ -419,7 +419,8 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
                 DP[removedCount + 1] = DP[removedCount + 1] or {}
 
                 for stateKey, costTable in pairs(DP[removedCount]) do
-                    local baseState = TotoWarCbacAiManagerAdjustmentState.newFromKey(stateKey, categories, maxPerCategory)
+                    local baseState = TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(stateKey, categories,
+                        maxPerCategory)
 
                     ---@diagnostic disable-next-line: param-type-mismatch
                     if baseState:canAdd(unit.unitCategory) then
@@ -497,7 +498,7 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
         end
 
         for stateKey, costTable in pairs(DP[k]) do
-            local state = TotoWarCbacAiManagerAdjustmentState.newFromKey(stateKey, categories, maxPerCategory)
+            local state = TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(stateKey, categories, maxPerCategory)
             local satisfiedScore = state:getSatisfiedScore()
 
             for cost, picked in pairs(costTable) do
@@ -568,11 +569,11 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
     end
 
     for _, unitArmySuppliesCost in ipairs(bestPicked) do
-        TotoWarCbac.loggers.aiManager:logDebug(
+        TotoWar_Cbac.loggers.aiManager:logDebug(
             "adjustAiArmyCompositionAndUnits(%s from %s): UNIT TO DISCARD (CATEGORY EXCESS) => %s | Category: %s | Cost: %s",
-            function() return TotoWar.utils:getCharacterCaption(lord) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+            function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
             function() return unitArmySuppliesCost.unitCategory end,
             function() return unitArmySuppliesCost.armySuppliesCost end)
     end
@@ -585,7 +586,7 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
         pickedSet[u.unitCqi] = true
     end
 
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     local remaining = {}
 
     for _, u in ipairs(otherUnits) do
@@ -602,7 +603,7 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
             sumAll = sumAll + u.armySuppliesCost
         end
 
-        ---@type table<integer, { count: integer, picked: TotoWarCbacUnitArmySuppliesCost[] }>
+        ---@type table<integer, { count: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
         local DP2 = {}
         DP2[0] = { count = 0, picked = {} }
 
@@ -677,11 +678,11 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
             bestRemovalCount = bestRemovalCount + bestExtraCount
 
             for _, unitArmySuppliesCost in ipairs(bestExtraPicked) do
-                TotoWarCbac.loggers.aiManager:logDebug(
+                TotoWar_Cbac.loggers.aiManager:logDebug(
                     "adjustAiArmyCompositionAndUnits(%s from %s): UNIT TO DISCARD (EXTRA PICK) => %s | Category: %s | Cost: %s",
-                    function() return TotoWar.utils:getCharacterCaption(lord) end,
-                    function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-                    function() return TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey) end,
+                    function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+                    function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
+                    function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
                     ---@diagnostic disable-next-line: return-type-mismatch
                     function() return unitArmySuppliesCost.unitCategory end,
                     function() return unitArmySuppliesCost.armySuppliesCost end)
@@ -693,10 +694,10 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
     -- Final safety: ensure deficit is covered
     -------------------------------------------------------------------------
     if bestCost < deficit then
-        TotoWarCbac.loggers.aiManager:logWarning(
+        TotoWar_Cbac.loggers.aiManager:logWarning(
             "Army composition of %s from %s cannot be adjusted (Deficit: %s | Removed cost: %s)",
-            TotoWar.utils:getCharacterCaption(lord),
-            TotoWar.utils:getFactionCaption(army:faction():name()),
+            TotoWar__Gameplay:getCharacterCaption(lord),
+            TotoWar__Gameplay:getFactionCaption(army:faction():name()),
             deficit,
             bestCost)
     end
@@ -711,15 +712,15 @@ function TotoWarCbacAiManager:adjustAiArmyCompositionAndUnits(
 
     -- Storing the current turn as the last adjustment turn for that lord to be able to cancel the disbands that may happen just after the adjustment
     -- to avoid removing too many units from the army
-    TotoWar.utils:saveValue(
+    TotoWar__Gameplay:saveValue(
         TotoWar_Cbac_ModName,
-        string.format(TotoWarCbac.constants.storageKeyFormatArmyLastAdjustmentTurn, lord:cqi()),
+        string.format(TotoWar__Constant_StorageKeyFormatArmyLastAdjustmentTurn, lord:cqi()),
         cm:turn_number())
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyCompositionAndUnits(%s from %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end,
         function() return #armySuppliesCost.unitArmySuppliesCosts end)
@@ -729,12 +730,12 @@ end
 ---
 ---Duplicate hero types are removed first.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
 ---@param herosInExcess integer Amount of heroes that exceed the limit.
-function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
-    local heroes = TotoWarLinq:where(
+function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
+    local heroes = TotoWar__Linq:where(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero end)
+        function(uasc) return uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero end)
 
     if herosInExcess == 0 then
         return 0
@@ -742,10 +743,10 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosIn
 
     local lord = army:general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyHeroes(%s from %s, %s): STARTED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return herosInExcess end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end,
@@ -753,11 +754,11 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosIn
 
     while heroesToRemoveAmount > 0 do
         -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
-        ---@type TotoWarKeyValue<string, TotoWarCbacUnitArmySuppliesCost[]>
+        ---@type TotoWar__KeyValue<string, TotoWar_Cbac_UnitArmySuppliesCost[]>
         local heroUnitGroupWithMostHeroes = nil
 
         -- Grouping heroes by their base type to ignore their mount
-        local heroUnitGroups = TotoWarLinq:groupBy(heroes, function(a) return a.baseUnitKey end)
+        local heroUnitGroups = TotoWar__Linq:groupBy(heroes, function(a) return a.baseUnitKey end)
 
         for index, entry in ipairs(heroUnitGroups.entries) do
             if heroUnitGroupWithMostHeroes == nil or #entry.value >= #heroUnitGroupWithMostHeroes.value then
@@ -790,22 +791,22 @@ function TotoWarCbacAiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosIn
         armySuppliesCost:removeCharacter(heroToRemove.characterCqi)
         table.remove(
             heroes,
-            TotoWarLinq:findIndex(heroes, function(h) return h.characterCqi == heroToRemove.characterCqi end))
+            TotoWar__Linq:findIndex(heroes, function(h) return h.characterCqi == heroToRemove.characterCqi end))
         heroesToRemoveAmount = heroesToRemoveAmount - 1
 
-        TotoWarCbac.loggers.aiManager:logDebug(
+        TotoWar_Cbac.loggers.aiManager:logDebug(
             "adjustAiArmyHeroes(%s from %s, %s): REMOVED => %s (%s)",
-            function() return TotoWar.utils:getCharacterCaption(lord) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+            function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
             function() return herosInExcess end,
-            function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(heroToRemove.characterCqi)) end,
-            function() return TotoWar.utils:getUnitCaption(heroToRemove.unitKey) end)
+            function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(heroToRemove.characterCqi)) end,
+            function() return TotoWar__Gameplay:getUnitCaption(heroToRemove.unitKey) end)
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "adjustAiArmyHeroes(%s from %s, %s): COMPLETED => Total army supplies cost: %s | Available army supplies: %s | Army size: %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return herosInExcess end,
         function() return armySuppliesCost.totalCost end,
         function() return armySuppliesCost.availableSupplies end,
@@ -814,15 +815,15 @@ end
 
 ---Cancels the disband of a unit if the army it was in was already adjusted in order to comply with army supplies restrictions.
 ---@param lordCqi integer Command queue index of the lord whose army may have been adjusted.
-function TotoWarCbacAiManager:cancelDisbandIfAlreadyAdjusted(lordCqi)
+function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(lordCqi)
     local lord = cm:get_character_by_cqi(lordCqi)
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "cancelDisbandIfAlreadyAdjusted(%s from %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(lord:military_force():faction():name()) end)
 
-    local armySuppliesCost = TotoWarCbacArmySuppliesCost.newFromArmy(true, lord:military_force())
+    local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, lord:military_force())
     local disbandedUnits = self.disbandQueue:get(lordCqi)
 
     for index, disbandedUnit in ipairs(disbandedUnits) do
@@ -832,53 +833,53 @@ function TotoWarCbacAiManager:cancelDisbandIfAlreadyAdjusted(lordCqi)
                 disbandedUnit.unitKey)
             armySuppliesCost:addUnit(disbandedUnit.unitKey)
 
-            TotoWarCbac.loggers.aiManager:logDebug(
+            TotoWar_Cbac.loggers.aiManager:logDebug(
                 "cancelDisbandIfAlreadyAdjusted(%s from %s): DISBAND CANCELLED => %s | Unit cost: %s | Available supplies: %s",
-                function() return TotoWar.utils:getCharacterCaption(lord) end,
-                function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end,
-                function() return TotoWar.utils:getUnitCaption(disbandedUnit.unitKey) end,
+                function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+                function() return TotoWar__Gameplay:getFactionCaption(lord:military_force():faction():name()) end,
+                function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end,
                 function() return disbandedUnit.armySuppliesCost end,
                 function() return armySuppliesCost.availableSupplies end)
         else
             -- In theory, we should never be in this case because the army adjustment should have removed enough units to prevent it
-            TotoWarCbac.loggers.aiManager:logDebug(
+            TotoWar_Cbac.loggers.aiManager:logDebug(
                 "cancelDisbandIfAlreadyAdjusted(%s from %s): DISBAND CONFIRMED => Unit: %s | Unit cost: %s | Available supplies : %s",
-                function() return TotoWar.utils:getCharacterCaption(lord) end,
-                function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end,
-                function() return TotoWar.utils:getUnitCaption(disbandedUnit.unitKey) end,
+                function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+                function() return TotoWar__Gameplay:getFactionCaption(lord:military_force():faction():name()) end,
+                function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end,
                 function() return disbandedUnit.armySuppliesCost end,
                 function() return armySuppliesCost.availableSupplies end)
         end
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "cancelDisbandIfAlreadyAdjusted(%s from %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(lord:military_force():faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(lord:military_force():faction():name()) end)
 end
 
 ---Gets a target army composition by providing unit counts by category.
 ---
 ---If a target army composition has already been affected to an army, it is read from the game state.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@return TotoWarDictionary<string, integer>
-function TotoWarCbacAiManager:getTargetArmyComposition(army)
+---@return TotoWar__Dictionary<string, integer>
+function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
     local lord = army:general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "getTargetArmyComposition(%s from %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end)
 
-    ---@type TotoWarDictionary<string, integer>
-    local categoryUnitCounts = TotoWarDictionary.new()
+    ---@type TotoWar__Dictionary<string, integer>
+    local categoryUnitCounts = TotoWar__Dictionary.new()
 
-    local lordUnitAmount = TotoWar.utils:getSavedValue(
+    local lordUnitAmount = TotoWar__Gameplay:getSavedValue(
         TotoWar_Cbac_ModName,
         string.format(
-            TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+            TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
             lord:cqi(),
-            TotoWarCbac.enums.armyCompositionUnitTypes.lord))
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord))
 
     ---@type integer
     local armySize
@@ -886,77 +887,78 @@ function TotoWarCbacAiManager:getTargetArmyComposition(army)
     if lordUnitAmount ~= nil then
         -- Reading existing values from the game state
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.warMachines,
-            TotoWar.utils:getSavedValue(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines,
+            TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_ModName,
                 string.format(
-                    TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWarCbac.enums.armyCompositionUnitTypes.warMachines)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines)))
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
-            TotoWar.utils:getSavedValue(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters,
+            TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_ModName,
                 string.format(
-                    TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters)))
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.lord,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord,
             lordUnitAmount)
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry,
-            TotoWar.utils:getSavedValue(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry,
+            TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_ModName,
                 string.format(
-                    TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry)))
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
-            TotoWar.utils:getSavedValue(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry,
+            TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_ModName,
                 string.format(
-                    TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                    TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry)))
 
-        armySize = TotoWarLinq:sum(categoryUnitCounts:getValues(), function(v) return v end)
+        armySize = TotoWar__Linq:sum(categoryUnitCounts:getValues(), function(v) return v end)
     else
         -- Generating an army composition
         armySize = math.random(13, 20)
 
         local lordCount = 1
         local nonLordUnitCount = armySize - lordCount
-        local meleeInfantryPercentage = TotoWarCbac.options.aiArmyUnitCategoryPercentages:get(
-            TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry)
+        local meleeInfantryPercentage = TotoWar_Cbac.options.aiArmyUnitCategoryPercentages:get(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry)
         local remainingPercentage = 100 - meleeInfantryPercentage
 
         local heroPercentage = math.random(
             0,
             math.min(
-                TotoWarCbac.options.aiArmyUnitCategoryPercentages:get(TotoWarCbac.enums.armyCompositionUnitTypes.hero),
+                TotoWar_Cbac.options.aiArmyUnitCategoryPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie
+                    .hero),
                 remainingPercentage) / 5) * 5
         remainingPercentage = remainingPercentage - heroPercentage
 
         local warMachinesPercentage = math.random(
             0,
             math.min(
-                TotoWarCbac.options.aiArmyUnitCategoryPercentages:get(TotoWarCbac.enums.armyCompositionUnitTypes
+                TotoWar_Cbac.options.aiArmyUnitCategoryPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie
                     .cavalryAndMonsters), remainingPercentage) / 5) * 5
         remainingPercentage = remainingPercentage - warMachinesPercentage
 
         local rangedInfantryPercentage = math.random(
             0,
             math.min(
-                TotoWarCbac.options.aiArmyUnitCategoryPercentages:get(TotoWarCbac.enums.armyCompositionUnitTypes
+                TotoWar_Cbac.options.aiArmyUnitCategoryPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie
                     .rangedInfantry), remainingPercentage) / 5) * 5
         remainingPercentage = remainingPercentage - rangedInfantryPercentage
 
         local cavalryAndMonstersPercentage = math.random(
             0,
             math.min(
-                TotoWarCbac.options.aiArmyUnitCategoryPercentages:get(TotoWarCbac.enums.armyCompositionUnitTypes
+                TotoWar_Cbac.options.aiArmyUnitCategoryPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie
                     .cavalryAndMonsters)) / 5) * 5
         remainingPercentage = remainingPercentage - cavalryAndMonstersPercentage
 
@@ -964,7 +966,7 @@ function TotoWarCbacAiManager:getTargetArmyComposition(army)
         meleeInfantryPercentage = meleeInfantryPercentage + remainingPercentage
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.lord,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord,
             lordCount)
 
         local cavalryAndMonstersCount = math.ceil(nonLordUnitCount * cavalryAndMonstersPercentage / 100)
@@ -988,73 +990,73 @@ function TotoWarCbacAiManager:getTargetArmyComposition(army)
         end
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.warMachines,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines,
             warMachinesCount)
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.warMachines),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines),
             warMachinesCount)
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters,
             cavalryAndMonstersCount)
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters),
             cavalryAndMonstersCount)
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.hero,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero,
             heroCount)
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.hero),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero),
             heroCount)
 
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.lord),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord),
             lordCount)
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry,
             meleeInfantryCount)
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry),
             meleeInfantryCount)
 
         categoryUnitCounts:set(
-            TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry,
             rangedInfantryCount)
-        TotoWar.utils:saveValue(
+        TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_ModName,
             string.format(
-                TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryAmount,
+                TotoWar__Constant_StorageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry),
             rangedInfantryCount)
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "getTargetArmyComposition(%s from %s): COMPLETED => Target army size: %s | %s",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return armySize end,
         function()
             local composition = ""
@@ -1076,19 +1078,19 @@ end
 ---Gets the number of units for each unit category composing army supplies costs that exceed the target unit counts.
 ---
 ---Lord and heroes are not taken into account.
----@param armySuppliesCost TotoWarCbacArmySuppliesCost Army supplies cost.
----@param targetCategoryCounts TotoWarDictionary<string, integer> Target unit count per category.
----@return TotoWarDictionary<string, integer>
-function TotoWarCbacAiManager:getUnitCategoryExcessCounts(armySuppliesCost, targetCategoryCounts)
-    TotoWarCbac.loggers.aiManager:logDebug("getUnitCategoryExcessCounts(): STARTED")
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost.
+---@param targetCategoryCounts TotoWar__Dictionary<string, integer> Target unit count per category.
+---@return TotoWar__Dictionary<string, integer>
+function TotoWar_Cbac_AiManager:getUnitCategoryExcessCounts(armySuppliesCost, targetCategoryCounts)
+    TotoWar_Cbac.loggers.aiManager:logDebug("getUnitCategoryExcessCounts(): STARTED")
 
     local totalUnitCount = 0
 
-    ---@type TotoWarDictionary<string, integer>
-    local categoryCounts = TotoWarDictionary.new()
+    ---@type TotoWar__Dictionary<string, integer>
+    local categoryCounts = TotoWar__Dictionary.new()
 
-    ---@type TotoWarDictionary<string, integer>
-    local excessCategoryCounts = TotoWarDictionary.new()
+    ---@type TotoWar__Dictionary<string, integer>
+    local excessCategoryCounts = TotoWar__Dictionary.new()
 
     -- Count units per category
     for index, unit in ipairs(armySuppliesCost) do
@@ -1107,11 +1109,11 @@ function TotoWarCbacAiManager:getUnitCategoryExcessCounts(armySuppliesCost, targ
         end
     end
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "getUnitCategoryExcessCounts(): COMPLETED => %s",
         function()
             local message = table.concat(
-                TotoWarLinq:select(
+                TotoWar__Linq:select(
                     excessCategoryCounts.entries,
                     function(e) return string.format("%s: %s", e.key, e.value) end),
                 " | ")
@@ -1128,129 +1130,129 @@ end
 
 ---Reacts to an army being created by an AI faction.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
-function TotoWarCbacAiManager:onAiArmyCreated(army)
-    TotoWarCbac.loggers.aiManager:logDebug(
+function TotoWar_Cbac_AiManager:onAiArmyCreated(army)
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiArmyCreated(%s from %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end)
 
     -- Adjusting the composition for armies spawned with units already included
     self:adjustAiArmy(army:general_character():cqi())
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiArmyCreated(%s from %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end)
 end
 
 ---Reacts to the turn of a character ending.
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
-function TotoWarCbacAiManager:onAiCharacterTurnEnd(character)
-    TotoWarCbac.loggers.aiManager:logDebug(
+function TotoWar_Cbac_AiManager:onAiCharacterTurnEnd(character)
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiCharacterTurnEnd(%s from %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(character) end,
-        function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(character) end,
+        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end)
 
     -- Relaunching the army adjustment to remove heros that may have been (re)added after the army adjustement triggered when units are recruited
     self:adjustAiArmy(character:cqi())
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiCharacterTurnEnd(%s from %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(character) end,
-        function() return TotoWar.utils:getFactionCaption(character:faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(character) end,
+        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end)
 end
 
 ---Reacts to a unit being converted by an AI army.
 ---@param originalUnit UNIT_SCRIPT_INTERFACE Unit.
 ---@param newUnit UNIT_SCRIPT_INTERFACE Unit.
-function TotoWarCbacAiManager:onAiUnitConverted(originalUnit, newUnit)
+function TotoWar_Cbac_AiManager:onAiUnitConverted(originalUnit, newUnit)
     local lord = newUnit:military_force():general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitConverted(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(newUnit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(originalUnit:unit_key()) end,
-        function() return TotoWar.utils:getUnitCaption(newUnit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(newUnit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(originalUnit:unit_key()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(newUnit:unit_key()) end)
 
     -- This is just to log how AI converts units and how it impacts the mod
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitConverted(%s from %s, %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(newUnit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(originalUnit:unit_key()) end,
-        function() return TotoWar.utils:getUnitCaption(newUnit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(newUnit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(originalUnit:unit_key()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(newUnit:unit_key()) end)
 end
 
 ---Reacts to a unit being disbanded by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
-function TotoWarCbacAiManager:onAiUnitDisbanded(unit)
-    TotoWarCbac.loggers.aiManager:logDebug(
+function TotoWar_Cbac_AiManager:onAiUnitDisbanded(unit)
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 
     self:addUnitToDisbandQueue(unit)
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitDisbanded(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(unit:military_force():general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(unit:military_force():general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Reacts to a unit being recruited by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
-function TotoWarCbacAiManager:onAiUnitRecruited(unit)
+function TotoWar_Cbac_AiManager:onAiUnitRecruited(unit)
     local lord = unit:military_force():general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitRecruited(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 
     self:addArmyToAdjustmentQueue(lord:cqi())
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitRecruited(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Reacts to a unit being upgraded by an AI army.
 ---@param unit UNIT_SCRIPT_INTERFACE Unit.
-function TotoWarCbacAiManager:onAiUnitUpgraded(unit)
+function TotoWar_Cbac_AiManager:onAiUnitUpgraded(unit)
     local lord = unit:military_force():general_character()
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitUpgraded(%s from %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 
     self:addArmyToAdjustmentQueue(lord:cqi())
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "onAiUnitUpgraded(%s from %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(lord) end,
-        function() return TotoWar.utils:getFactionCaption(unit:military_force():faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unit:unit_key()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+        function() return TotoWar__Gameplay:getFactionCaption(unit:military_force():faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Removes a unit from an AI army and reimburses the AI faction of the cost of the unit.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param unitKey string Key of the unit to remove.
 ---@param unitCqi integer Command queue index of the unit to remove.
-function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
-    TotoWarCbac.loggers.aiManager:logDebug(
+function TotoWar_Cbac_AiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "removeUnitFromAiArmy(%s from %s, %s, %s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         function() return unitCqi end)
 
     local unitRealCost = cco("CcoCampaignUnit", unitCqi):Call("Cost")
@@ -1258,11 +1260,11 @@ function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
     if unitRealCost ~= nil and unitRealCost > 0 then
         cm:treasury_mod(army:faction():name(), unitRealCost)
 
-        TotoWarCbac.loggers.aiManager:logDebug(
+        TotoWar_Cbac.loggers.aiManager:logDebug(
             "removeUnitFromAiArmy(%s from %s, %s, %s): REIMBURSE => %s | New treasury: %s",
-            function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-            function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-            function() return TotoWar.utils:getUnitCaption(unitKey) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(army:general_character()) end,
+            function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
+            function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
             function() return unitCqi end,
             function() return unitRealCost end,
             function() return army:faction():treasury() end)
@@ -1270,10 +1272,10 @@ function TotoWarCbacAiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
 
     cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
 
-    TotoWarCbac.loggers.aiManager:logDebug(
+    TotoWar_Cbac.loggers.aiManager:logDebug(
         "removeUnitFromAiArmy(%s from %s, %s, %s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(army:general_character()) end,
-        function() return TotoWar.utils:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(army:general_character()) end,
+        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         function() return unitCqi end)
 end

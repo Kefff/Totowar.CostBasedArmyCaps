@@ -1,25 +1,7 @@
 ---Utility tools for TotoWar mods.
----@class TotoWarUtils
-TotoWarUtils = {
-    ---Player faction name.
-    ---@type string
-    playerFactionName = nil
-}
-TotoWarUtils.__index = TotoWarUtils
-
----Initializes a new instance.
----@return TotoWarUtils
-function TotoWarUtils.new()
-    TotoWar.loggers.utils:logDebug("TotoWarUtils.new(): STARTED")
-
-    local instance = setmetatable({}, TotoWarUtils)
-
-    instance.playerFactionName = cm:get_local_faction_name()
-
-    TotoWar.loggers.utils:logDebug("TotoWarUtils.new(): COMPLETED")
-
-    return instance
-end
+---@class TotoWar__Gameplay
+TotoWar__Gameplay = {}
+TotoWar__Gameplay.__index = TotoWar__Gameplay
 
 ---Adds a listener.
 ---@param listenerNamePrefix string Prefix added to the event to name the listener.
@@ -27,7 +9,7 @@ end
 ---@param conditionFunction boolean | fun(eventParameter: any): boolean Function for checking whether the callback should be called when the event is triggered. Takes a context as an argument. Return a boolean. Can be `true` instead of a function to always trigger the callback function.
 ---@param callbackFunction fun(eventParameter: any) Function to execute when the event is triggered and the condition function returns `true`.
 ---@param isPermanent boolean? Indicates whether the listener is permanent or it should be removed immediately after the event is triggered.
-function TotoWarUtils:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
+function TotoWar__Gameplay:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
     if isPermanent == nil then
         isPermanent = true
     end
@@ -55,7 +37,7 @@ end
 ---Indicates whether an army can recruit units.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
 ---@return boolean
-function TotoWarUtils:canRecruitUnits(army)
+function TotoWar__Gameplay:canRecruitUnits(army)
     TotoWar.loggers.utils:logDebug(
         "canRecruitUnits(%s): STARTED",
         function()
@@ -88,7 +70,7 @@ end
 
 ---Gets the caption of a character.
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
-function TotoWarUtils:getCharacterCaption(character)
+function TotoWar__Gameplay:getCharacterCaption(character)
     TotoWar.loggers.utils:logDebug(
         "getCharacterCaption(%s): STARTED",
         function() return character:cqi() end)
@@ -110,7 +92,7 @@ end
 
 ---Gets the caption of a faction.
 ---@param factionName string Faction name.
-function TotoWarUtils:getFactionCaption(factionName)
+function TotoWar__Gameplay:getFactionCaption(factionName)
     TotoWar.loggers.utils:logDebug(
         "getFactionCaption(%s): STARTED",
         function() return factionName end)
@@ -127,7 +109,7 @@ end
 
 ---Get the Mod Configuration Tool if it is installed.
 ---@return any
-function TotoWarUtils:getMct()
+function TotoWar__Gameplay:getMct()
     TotoWar.loggers.utils:logDebug("getMct(): STARTED")
 
     local mct = core:get_static_object("mod_configuration_tool")
@@ -149,7 +131,7 @@ end
 ---@param dictionary { [string]: T[] } Dictionary to sort.
 ---@param predicate fun(item1: T, item2: T): boolean Predicate.
 ---@return string[]
-function TotoWarUtils:getSortedDictionaryKeys(dictionary, predicate)
+function TotoWar__Gameplay:getSortedDictionaryKeys(dictionary, predicate)
     TotoWar.loggers.utils:logDebug("getSorterDictionaryKeys(): STARTED")
 
     local keys = {}
@@ -170,13 +152,13 @@ end
 ---Gets the caption of a unit.
 ---@param unitKey string Unit key.
 ---@return string
-function TotoWarUtils:getUnitCaption(unitKey)
+function TotoWar__Gameplay:getUnitCaption(unitKey)
     TotoWar.loggers.utils:logDebug(
         "getUnitCaption(%s): STARTED",
         function() return unitKey end)
 
     ---@type string
-    local caption = common.get_context_value(TotoWar.enums.ccoContextTypeIds.mainUnitRecord, unitKey, "Name")
+    local caption = common.get_context_value(TotoWar__Enum_CcoContextTypeIds.mainUnitRecord, unitKey, "Name")
 
     if caption == nil then
         caption = ''
@@ -195,7 +177,7 @@ end
 ---Indicates whether a character is a lord.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
-function TotoWarUtils:isLordCharacter(character)
+function TotoWar__Gameplay:isLordCharacter(character)
     TotoWar.loggers.utils:logDebug(
         "isLordCharacter(%s): STARTED",
         function() return self:getCharacterCaption(character) end)
@@ -215,7 +197,7 @@ end
 ---Indicates whether a character is a lord.
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return boolean
-function TotoWarUtils:isLordUnit(characterCqi)
+function TotoWar__Gameplay:isLordUnit(characterCqi)
     TotoWar.loggers.utils:logDebug(
         "isLordUnit(%s): STARTED",
         function() return characterCqi end)
@@ -224,7 +206,7 @@ function TotoWarUtils:isLordUnit(characterCqi)
 
     -- Directly searching for the character corresponding to the CQI
     isLord = common.get_context_value(
-        TotoWar.enums.ccoContextTypeIds.campaignCharacter,
+        TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "IsArmy")
 
@@ -232,7 +214,7 @@ function TotoWarUtils:isLordUnit(characterCqi)
         -- If the character is not found, it means we have the CQI of a unit
         -- so we need to search for the character context through the unit context
         isLord = common.get_context_value(
-            TotoWar.enums.ccoContextTypeIds.campaignUnit,
+            TotoWar__Enum_CcoContextTypeIds.campaignUnit,
             tostring(characterCqi),
             "CharacterContext.IsArmy")
 
@@ -253,12 +235,12 @@ end
 ---Indicates whether a faction is the faction of the player.
 ---@param factionName string Faction name.
 ---@return boolean
-function TotoWarUtils:isPlayerFaction(factionName)
+function TotoWar__Gameplay:isPlayerFaction(factionName)
     TotoWar.loggers.utils:logDebug(
         "isPlayerFaction(%s): STARTED",
         function() return self:getFactionCaption(factionName) end)
 
-    local isPlayerFactionLord = factionName == self.playerFactionName
+    local isPlayerFactionLord = factionName == cm:get_local_faction_name()
 
     TotoWar.loggers.utils:logDebug(
         "isPlayerFaction(%s): COMPLETED => %s",
@@ -272,7 +254,7 @@ end
 ---@param modName string Mod name.
 ---@param key string Key of the value to save for the mod.
 ---@returns boolean | integer | number | string | nil
-function TotoWarUtils:getSavedValue(modName, key)
+function TotoWar__Gameplay:getSavedValue(modName, key)
     TotoWar.loggers.utils:logDebug(
         "getValue(%s, %s): STARTED",
         function() return modName end,
@@ -294,7 +276,7 @@ end
 ---@param modName string Mod name.
 ---@param key string Key of the value to save for the mod.
 ---@param value boolean | integer | number | string | nil Value to save for the mod.
-function TotoWarUtils:saveValue(modName, key, value)
+function TotoWar__Gameplay:saveValue(modName, key, value)
     TotoWar.loggers.utils:logDebug(
         "saveValue(%s, %s, %s): STARTED",
         function() return modName end,

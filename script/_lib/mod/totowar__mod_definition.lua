@@ -1,8 +1,8 @@
 ---TotoWar mod definition.
----@class TotoWarModDefinition
-TotoWarModDefinition = {
+---@class TotoWar__ModDefinition
+TotoWar__ModDefinition = {
     ---Function for initializing the mod.
-    ---@type fun(modsManager: TotoWarModsManager): any
+    ---@type fun(modsManager: TotoWar__ModsManager): any
     initializeFunction = nil,
 
     ---Instance of the mod.
@@ -13,24 +13,24 @@ TotoWarModDefinition = {
     ---@type string
     name = nil
 }
-TotoWarModDefinition.__index = TotoWarModDefinition
+TotoWar__ModDefinition.__index = TotoWar__ModDefinition
 
 ---Initializes a new instance.
 ---@param name string Name of the mod.
----@param initializationFunction fun(modsManager: TotoWarModsManager) Function for initializing the mod.
----@return TotoWarModDefinition
-function TotoWarModDefinition.new(name, initializationFunction)
+---@param initializationFunction fun(modsManager: TotoWar__ModsManager) Function for initializing the mod.
+---@return TotoWar__ModDefinition
+function TotoWar__ModDefinition.new(name, initializationFunction)
     TotoWar.loggers.generic:logDebug(
-        "TotoWarModDefinition.new(%s): STARTED",
+        "TotoWar__ModDefinition.new(%s): STARTED",
         function() return name end)
 
-    local instance = setmetatable({}, TotoWarModDefinition)
+    local instance = setmetatable({}, TotoWar__ModDefinition)
 
     instance.initializeFunction = initializationFunction
     instance.name = name
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWarModDefinition.new(%s): COMPLETED",
+        "TotoWar__ModDefinition.new(%s): COMPLETED",
         function() return name end)
 
     return instance
