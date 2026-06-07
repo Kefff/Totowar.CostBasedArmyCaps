@@ -12,7 +12,7 @@ default:set(
     TotoWar_Cbac_Constant.optionDefaultValue_aiArmyHeroMaximumPercentage)
 default:set(
     TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry,
-    TotoWar_Cbac_Constant.optionDefaultValue_aiArmyMeleeInfantryMinimumPercentage)
+    TotoWar_Cbac_Constant.optionDefaultValue_aiArmyMeleeInfantryMaximumPercentage)
 default:set(
     TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry,
     TotoWar_Cbac_Constant.optionDefaultValue_aiArmyRangedInfantryMaximumPercentage)
@@ -67,6 +67,7 @@ woodElves:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines, 0)
 
 ---Army compositions to target based on the faction.
 ---
+---Those are the maximum percentage of each unit category an AI army can contain.
 ---Most faction use the default composition, but some cultures or factions can have a specific composition to target when they do not have access to some unit types.
 ---@type TotoWar__Dictionary<TotoWar__Enum_Faction, TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategory, integer>>
 TotoWar_Cbac_ArmyCompositionTarget = TotoWar__Dictionary.new()

@@ -82,19 +82,6 @@ if mct then
         "totowar_cbac_mct_option_tooltip_aiArmySuppliesBonusAmountPerLevel")
     cbacAiSection:assign_option(aiArmySuppliesBonusAmountPerLevelOption)
 
-    local aiArmyMeleeInfantryMinimumPercentageOption = mctMod:add_new_option(
-        TotoWar_Cbac_Constant.optionName_aiArmyMeleeInfantryMinimumPercentage,
-        "slider")
-    aiArmyMeleeInfantryMinimumPercentageOption:slider_set_min_max(0, 100)
-    aiArmyMeleeInfantryMinimumPercentageOption:slider_set_step_size(5)
-    aiArmyMeleeInfantryMinimumPercentageOption:set_default_value(
-        TotoWar_Cbac_Constant.optionDefaultValue_aiArmyMeleeInfantryMinimumPercentage)
-    aiArmyMeleeInfantryMinimumPercentageOption:set_text(
-        "totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMinimumPercentage")
-    aiArmyMeleeInfantryMinimumPercentageOption:set_tooltip_text(
-        "totowar_cbac_mct_option_tooltip_aiArmyMeleeInfantryMinimumPercentage")
-    cbacAiSection:assign_option(aiArmyMeleeInfantryMinimumPercentageOption)
-
     local aiArmyHeroMaximumPercentageOption = mctMod:add_new_option(
         TotoWar_Cbac_Constant.optionName_aiArmyHeroMaximumPercentage,
         "slider")
@@ -107,6 +94,19 @@ if mct then
     aiArmyHeroMaximumPercentageOption:set_tooltip_text(
         "totowar_cbac_mct_option_tooltip_aiArmyHeroMaximumPercentage")
     cbacAiSection:assign_option(aiArmyHeroMaximumPercentageOption)
+
+    local aiArmyMeleeInfantryMaximumPercentageOption = mctMod:add_new_option(
+        TotoWar_Cbac_Constant.optionName_aiArmyMeleeInfantryMaximumPercentage,
+        "slider")
+    aiArmyMeleeInfantryMaximumPercentageOption:slider_set_min_max(0, 100)
+    aiArmyMeleeInfantryMaximumPercentageOption:slider_set_step_size(5)
+    aiArmyMeleeInfantryMaximumPercentageOption:set_default_value(
+        TotoWar_Cbac_Constant.optionDefaultValue_aiArmyMeleeInfantryMaximumPercentage)
+    aiArmyMeleeInfantryMaximumPercentageOption:set_text(
+        "totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage")
+    aiArmyMeleeInfantryMaximumPercentageOption:set_tooltip_text(
+        "totowar_cbac_mct_option_tooltip_aiArmyMeleeInfantryMaximumPercentage")
+    cbacAiSection:assign_option(aiArmyMeleeInfantryMaximumPercentageOption)
 
     local aiArmyRangedInfantryMaximumPercentageOption = mctMod:add_new_option(
         TotoWar_Cbac_Constant.optionName_aiArmyRangedInfantryMaximumPercentage,

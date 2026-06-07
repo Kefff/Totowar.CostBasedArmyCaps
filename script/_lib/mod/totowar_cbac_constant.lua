@@ -4,8 +4,14 @@ TotoWar_Cbac_Constant = {
     ---Maximum size of an army to target for adjustments.
     maximumTargetArmySize = 20,
 
+    ---Maximum percentage a unite category can occupy in AI armies.
+    maximumUnitCategoryTargetPercentage = 75,
+
     ---Minimum size of an army to target for adjustments.
     minimumTargetArmySize = 13,
+
+    ---Ratio applied to the maximum percentage of a unit category to get the minimum percentage this unit category can occupy in AI armies.
+    minimumUnitCategoryPercentageRatio = 0.15,
 
     ---Name of the TotoWar Cost-Based Army Caps mod.
     modName = "totowar_cost_based_army_caps",
@@ -16,8 +22,8 @@ TotoWar_Cbac_Constant = {
     ---Name of the option for the maximum percentage of heroes in AI armies.
     optionDefaultValue_aiArmyHeroMaximumPercentage = 15,
 
-    ---Default value for the minimum percentage of melee infantry to target in AI armies.
-    optionDefaultValue_aiArmyMeleeInfantryMinimumPercentage = 40,
+    ---Default value for the maximum percentage of melee infantry to target in AI armies.
+    optionDefaultValue_aiArmyMeleeInfantryMaximumPercentage = 75,
 
     ---Default value for the maximum percentage of ranged infantry to target in AI armies.
     optionDefaultValue_aiArmyRangedInfantryMaximumPercentage = 50,
@@ -52,9 +58,9 @@ TotoWar_Cbac_Constant = {
     optionName_aiArmyCavalryAndMonstersMaximumPercentage =
     "totowar_cbac_aiArmyCavalryAndMonstersMaximumPercentage",
 
-    ---Name of the option for the minimum percentage of melee infantry to target in AI armies.
-    optionName_aiArmyMeleeInfantryMinimumPercentage =
-    "totowar_cbac_aiArmyMeleeInfantryMinimumPercentage",
+    ---Name of the option for the maximum percentage of melee infantry to target in AI armies.
+    optionName_aiArmyMeleeInfantryMaximumPercentage =
+    "totowar_cbac_aiArmyMeleeInfantryMaximumPercentage",
 
     ---Name of the option for the maximum percentage of ranged infantry to target in AI armies.
     optionName_aiArmyRangedInfantryMaximumPercentage =

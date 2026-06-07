@@ -752,7 +752,7 @@ function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, heros
         function() return armySuppliesCost.availableSupplies end,
         function() return #armySuppliesCost.unitArmySuppliesCosts end)
 
-    while heroesToRemoveAmount > 0 do
+    while herosInExcess > 0 do
         -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
         ---@type TotoWar__KeyValue<string, TotoWar_Cbac_UnitArmySuppliesCost[]>
         local heroUnitGroupWithMostHeroes = nil
@@ -792,7 +792,7 @@ function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, heros
         table.remove(
             heroes,
             TotoWar__Linq:findIndex(heroes, function(h) return h.characterCqi == heroToRemove.characterCqi end))
-        heroesToRemoveAmount = heroesToRemoveAmount - 1
+        herosInExcess = herosInExcess - 1
 
         TotoWar_Cbac.loggers.aiManager:logDebug(
             "adjustAiArmyHeroes(%s from %s, %s): REMOVED => %s (%s)",
@@ -906,16 +906,22 @@ function TotoWar_Cbac_AiManager:getTargetArmyCompositionUnitCategoryMaximumPerce
     local difference = defaultTotal - realTotal
 
     if difference ~= 0 then
+        -- Distributing the difference in percentages to other unit categories (up to a maximum of 75%)
         local unitCategoriesToUpdate = TotoWar__Linq:where(
             defaultTargetComposition:getKeys(),
             function(k)
-                return not TotoWar__Linq:any(overrides, function(o) return o == k end)
+                return k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord  -- We do not want to allow more lords
+                    and k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero -- We do not want to allow more heroes
+                    and not TotoWar__Linq:any(overrides, function(o) return o == k end)
             end)
-        local differencePerUnitCategory = math.floor(difference / #unitCategoriesToUpdate / 5 + 0.5) * 5
+        local percentageToAddPerUnitCategory =
+            math.floor(difference / #unitCategoriesToUpdate / 5 + 0.5) * 5 -- Multiple of 5
 
         for index, unitCategory in ipairs(unitCategoriesToUpdate) do
-            local updatedValue = result:get(unitCategory) + differencePerUnitCategory
-            result:set(unitCategory, updatedValue)
+            local updatedPercentage = result:get(unitCategory) + percentageToAddPerUnitCategory
+            result:set(
+                unitCategory,
+                math.min(updatedPercentage, TotoWar_Cbac_Constant.maximumUnitCategoryTargetPercentage))
         end
     end
 
@@ -961,7 +967,20 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
     local armySize
 
     if lordUnitAmount ~= nil then
+        TotoWar_Cbac.loggers.aiManager:logDebug(
+            "getTargetArmyComposition(%s from %s): READING EXISTING COMPOSITION",
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+            function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end)
+
         -- Reading existing values from the game state
+        categoryUnitCounts:set(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero,
+            TotoWar__Gameplay:getSavedValue(
+                TotoWar_Cbac_Constant.modName,
+                string.format(
+                    TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
+                    lord:cqi(),
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)))
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines,
             TotoWar__Gameplay:getSavedValue(
@@ -1000,71 +1019,133 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
 
         armySize = TotoWar__Linq:sum(categoryUnitCounts:getValues(), function(v) return v end)
     else
-        -- Generating an army composition
+        TotoWar_Cbac.loggers.aiManager:logDebug(
+            "getTargetArmyComposition(%s from %s): GENERATING NEW COMPOSITION",
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
+            function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end)
+
+        -- Generating an army target composition
         local maximumPercentages = self:getTargetArmyCompositionUnitCategoryMaximumPercentages(army:faction())
-        local cavalryAndMonstersMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
-            .cavalryAndMonsters)
+
+        local cavalryAndMonstersMaximumPercentage = maximumPercentages:get(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters)
         local heroMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
-        local meleeInfantryMinimumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
-            .meleeInfantry)
-        local rangedInfantryMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
-            .rangedInfantry)
-        local warMachinesMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
-            .warMachines)
+        local meleeInfantryMaximumPercentage = maximumPercentages:get(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
+        local rangedInfantryMaximumPercentage = maximumPercentages:get(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry)
+        local warMachinesMaximumPercentage = maximumPercentages:get(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)
 
         armySize = math.random(TotoWar_Cbac_Constant.minimumTargetArmySize, TotoWar_Cbac_Constant.maximumTargetArmySize)
 
         local lordCount = 1
         local nonLordUnitCount = armySize - lordCount
-        local meleeInfantryPercentage = meleeInfantryMinimumPercentage
-        local remainingPercentage = 100 - meleeInfantryPercentage
-
-        local heroPercentage = math.random(
-            0,
-            math.min(heroMaximumPercentage, remainingPercentage) / 5) * 5
-        remainingPercentage = remainingPercentage - heroPercentage
-
-        local warMachinesPercentage = math.random(
-            0,
-            math.min(warMachinesMaximumPercentage, remainingPercentage) / 5) * 5
-        remainingPercentage = remainingPercentage - warMachinesPercentage
-
-        local rangedInfantryPercentage = math.random(
-            0,
-            math.min(rangedInfantryMaximumPercentage, remainingPercentage) / 5) * 5
-        remainingPercentage = remainingPercentage - rangedInfantryPercentage
 
         local cavalryAndMonstersPercentage = math.random(
-            0,
-            math.min(cavalryAndMonstersMaximumPercentage, remainingPercentage) / 5) * 5
-        remainingPercentage = remainingPercentage - cavalryAndMonstersPercentage
+            cavalryAndMonstersMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
+            cavalryAndMonstersMaximumPercentage)
+        cavalryAndMonstersPercentage = math.floor(cavalryAndMonstersPercentage / 5 + 0.5) * 5 -- Multiple of 5
+
+        local heroPercentage = math.random(
+            heroMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
+            heroMaximumPercentage)
+        heroPercentage = math.floor(heroPercentage / 5 + 0.5) * 5 -- Multiple of 5
+
+        local meleeInfantryPercentage = math.random(
+            meleeInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
+            meleeInfantryMaximumPercentage)
+        meleeInfantryPercentage = math.floor(meleeInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
+
+        local rangedInfantryPercentage = math.random(
+            rangedInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
+            rangedInfantryMaximumPercentage)
+        rangedInfantryPercentage = math.floor(rangedInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
+
+        local warMachinesPercentage = math.random(
+            warMachinesMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
+            warMachinesMaximumPercentage)
+        warMachinesPercentage = math.floor(warMachinesPercentage / 5 + 0.5) * 5 -- Multiple of 5
+
+        local percentagesTotal =
+            cavalryAndMonstersPercentage
+            + heroPercentage
+            + meleeInfantryPercentage
+            + rangedInfantryPercentage
+            + warMachinesPercentage
+
+        if percentagesTotal > 100 then
+            -- Adjusting percentages with a ratio to be based on 100
+            local ratio = 100 / percentagesTotal
+            cavalryAndMonstersPercentage = math.floor(cavalryAndMonstersPercentage * ratio / 5 + 0.5) * 5
+            heroPercentage = math.floor(heroPercentage * ratio / 5 + 0.5) * 5
+            meleeInfantryPercentage = math.floor(meleeInfantryPercentage * ratio / 5 + 0.5) * 5
+            rangedInfantryPercentage = math.floor(rangedInfantryPercentage * ratio / 5 + 0.5) * 5
+            warMachinesPercentage = math.floor(warMachinesPercentage * ratio / 5 + 0.5) * 5
+
+            percentagesTotal =
+                cavalryAndMonstersPercentage
+                + heroPercentage
+                + meleeInfantryPercentage
+                + rangedInfantryPercentage
+                + warMachinesPercentage
+        end
 
         -- Filling the remaining percentage with melee infantry
-        meleeInfantryPercentage = meleeInfantryPercentage + remainingPercentage
+        meleeInfantryPercentage = meleeInfantryPercentage + 100 - percentagesTotal
 
-        categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
-            lordCount)
+        -- Making sure the melee percentage is the highest
+        ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategory, integer>
+        local percentages = TotoWar__Dictionary.new()
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters, cavalryAndMonstersPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero, heroPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry, meleeInfantryPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry, rangedInfantryPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines, warMachinesPercentage)
+
+        table.sort(
+            percentages.entries,
+            function(a, b) return a.value > b.value end)
+        local highestPercentageEntry = percentages.entries[1]
+
+        if highestPercentageEntry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry then
+            local highestPercentage = highestPercentageEntry.value
+            local meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
+
+            percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry, highestPercentage)
+            percentages:set(highestPercentageEntry.key, meleeInfantryPercentage)
+        end
+
+        cavalryAndMonstersPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters)
+        heroPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
+        meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
+        rangedInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry)
+        warMachinesPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)
 
         TotoWar_Cbac.loggers.aiManager:logDebug(
-            "getTargetArmyComposition(%s from %s): PERCENTAGES => %s",
+            "getTargetArmyComposition(%s from %s): TARGET PERCENTAGES => %s",
             function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
             function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
             function()
                 return string.format(
-                    "hero: %s%% | warMachines: %s%% | rangedInfantry: %s%% | cavalryAndMonsters: %s%% | meleeInfantry: %s%%",
-                    heroPercentage,
-                    warMachinesPercentage,
-                    rangedInfantryPercentage,
+                    "cavalryAndMonsters: %s%% | hero: %s%% | meleeInfantry: %s%% | rangedInfantry: %s%% | warMachines: %s%%",
                     cavalryAndMonstersPercentage,
-                    meleeInfantryPercentage)
+                    heroPercentage,
+                    meleeInfantryPercentage,
+                    rangedInfantryPercentage,
+                    warMachinesPercentage)
             end)
 
-        local cavalryAndMonstersCount = math.ceil(nonLordUnitCount * cavalryAndMonstersPercentage / 100)
-        local heroCount = math.floor(nonLordUnitCount * heroPercentage / 100) -- Floor for heroes to avoid having too many
-        local meleeInfantryCount = math.ceil(nonLordUnitCount * meleeInfantryPercentage / 100)
-        local rangedInfantryCount = math.ceil(nonLordUnitCount * rangedInfantryPercentage / 100)
-        local warMachinesCount = math.ceil(nonLordUnitCount * warMachinesPercentage / 100)
+        categoryUnitCounts:set(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
+            lordCount)
+        local cavalryAndMonstersCount = TotoWar__Number:roundToNearestInteger(
+            nonLordUnitCount * cavalryAndMonstersPercentage / 100)
+        local heroCount = TotoWar__Number:roundToNearestInteger(nonLordUnitCount * heroPercentage / 100)
+        local meleeInfantryCount = TotoWar__Number:roundToNearestInteger(nonLordUnitCount * meleeInfantryPercentage / 100)
+        local rangedInfantryCount = TotoWar__Number:roundToNearestInteger(
+            nonLordUnitCount * rangedInfantryPercentage / 100)
+        local warMachinesCount = TotoWar__Number:roundToNearestInteger(nonLordUnitCount * warMachinesPercentage / 100)
 
         -- Fix rounding errors
         local assignedUnits =
@@ -1184,18 +1265,26 @@ function TotoWar_Cbac_AiManager:getUnitCategoryExcessCounts(armySuppliesCost, ta
     local excessCategoryCounts = TotoWar__Dictionary.new()
 
     -- Count units per category
-    for index, unit in ipairs(armySuppliesCost) do
+    for index, unitArmySuppliesCost in ipairs(armySuppliesCost.unitArmySuppliesCosts) do
+        local current = 0
+
+        if categoryCounts:exists(unitArmySuppliesCost.unitCategory) then
+            current = categoryCounts:get(unitArmySuppliesCost.unitCategory)
+        end
+
         ---@diagnostic disable-next-line: param-type-mismatch
-        categoryCounts:set(unit.unitCategory, categoryCounts:get(unit.unitCategory) + 1)
+        categoryCounts:set(unitArmySuppliesCost.unitCategory, current + 1)
         totalUnitCount = totalUnitCount + 1
     end
 
     if totalUnitCount > 0 then
         for _, entry in ipairs(categoryCounts.entries) do
-            local excess = entry.value - targetCategoryCounts:get(entry.key)
+            if entry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry then -- Melee infantry cannot be in excess
+                local excess = entry.value - targetCategoryCounts:get(entry.key)
 
-            if excess > 0 then
-                excessCategoryCounts:set(entry.key, excess)
+                if excess > 0 then
+                    excessCategoryCounts:set(entry.key, excess)
+                end
             end
         end
     end
