@@ -67,7 +67,14 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return TotoWar_Cbac_ArmySuppliesCost
 function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
-    local instance = TotoWar_Cbac_ArmySuppliesCost.new(isAi, army:general_character():rank())
+    local rank = 1
+
+    if army:general_character() ~= nil then
+        -- For some reason, army:general_character() can be null
+        rank = army:general_character():rank()
+    end
+
+    local instance = TotoWar_Cbac_ArmySuppliesCost.new(isAi, rank)
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_ArmySuppliesCost:newFromArmy(%s, %s): STARTED",

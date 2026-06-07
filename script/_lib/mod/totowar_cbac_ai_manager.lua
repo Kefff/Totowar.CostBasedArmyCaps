@@ -1039,8 +1039,8 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
 
         armySize = math.random(TotoWar_Cbac_Constant.minimumTargetArmySize, TotoWar_Cbac_Constant.maximumTargetArmySize)
 
-        local lordCount = 1
-        local nonLordUnitCount = armySize - lordCount
+        lordUnitAmount = 1
+        local nonLordUnitCount = armySize - lordUnitAmount
 
         local cavalryAndMonstersPercentage = math.random(
             cavalryAndMonstersMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
@@ -1136,9 +1136,6 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
                     warMachinesPercentage)
             end)
 
-        categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
-            lordCount)
         local cavalryAndMonstersCount = TotoWar__Number:roundToNearestInteger(
             nonLordUnitCount * cavalryAndMonstersPercentage / 100)
         local heroCount = TotoWar__Number:roundToNearestInteger(nonLordUnitCount * heroPercentage / 100)
@@ -1194,13 +1191,16 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero),
             heroCount)
 
+        categoryUnitCounts:set(
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
+            lordUnitAmount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord),
-            lordCount)
+            lordUnitAmount)
 
         categoryUnitCounts:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry,
