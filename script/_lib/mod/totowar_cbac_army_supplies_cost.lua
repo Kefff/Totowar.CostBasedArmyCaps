@@ -92,8 +92,8 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
             function(uasc)
                 -- We avoid adding the lord and heroes twice
                 return uasc.unitCqi == unitCqi
-                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord
-                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero)
+                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
             end)
 
         if not isAlreadyAddedCharacter then
@@ -270,12 +270,12 @@ end
 ---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, War machines
 function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
     local categoryPriority = {
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord] = 1,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero] = 2,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.meleeInfantry] = 3,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.rangedInfantry] = 4,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.cavalryAndMonsters] = 5,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.warMachines] = 6
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord] = 1,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero] = 2,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry] = 3,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry] = 4,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters] = 5,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines] = 6
     }
 
     table.sort(
@@ -372,8 +372,8 @@ function TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArm
     ---@type string
     local tooltipText
 
-    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.lord
-        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie.hero
+    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
     then
         local character = cm:get_character_by_cqi(unitArmySuppliesCost.characterCqi)
 

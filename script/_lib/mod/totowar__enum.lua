@@ -73,6 +73,37 @@ TotoWar__Enum_GameEvent = {
     unitUpgraded = "UnitUpgraded"
 }
 
+---Cultures.
+---@class TotoWar__Enum_Faction
+TotoWar__Enum_Culture = {
+    beastmen = "wh_dlc03_bst_beastmen",
+    bretonnia = "wh_main_brt_bretonnia",
+    cathay = "wh3_main_cth_cathay",
+    chaos = "wh_main_chs_chaos",
+    chaosDwarfs = "wh3_dlc23_chd_chaos_dwarfs",
+    daemons = "wh3_main_dae_daemons",
+    darkElves = "wh2_main_def_dark_elves",
+    dwarfs = "wh_main_dwf_dwarfs",
+    empire = "wh_main_emp_empire",
+    greenskins = "wh_main_grn_greenskins",
+    highElves = "wh2_main_hef_high_elves",
+    khorne = "wh3_main_kho_khorne",
+    kislev = "wh3_main_ksl_kislev",
+    kislevPrologue = "wh3_main_pro_ksl_kislev",
+    lizardmen = "wh2_main_lzd_lizardmen",
+    norsca = "wh_dlc08_nor_norsca",
+    nurgle = "wh3_main_nur_nurgle",
+    ogreKingdoms = "wh3_main_ogr_ogre_kingdoms",
+    rogue = "wh2_main_rogue",
+    skaven = "wh2_main_skv_skaven",
+    slaanesh = "wh3_main_sla_slaanesh",
+    tombKings = "wh2_dlc09_tmb_tomb_kings",
+    tzeench = "wh3_main_tze_tzeentch",
+    vampireCoast = "wh2_dlc11_cst_vampire_coast",
+    vampireCounts = "wh_main_vmp_vampire_counts",
+    woodElves = "wh_dlc05_wef_wood_elves"
+}
+
 ---Log severities.
 ---@class TotoWar__Enum_LogSeverity
 TotoWar__Enum_LogSeverity = {

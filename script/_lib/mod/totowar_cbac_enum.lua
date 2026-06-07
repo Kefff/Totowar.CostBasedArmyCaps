@@ -1,6 +1,6 @@
 ---Unit categories composing an army.
----@class TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie
-TotoWar_Cbac_Enum_ArmyCompositionUnitCategorie = {
+---@class TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
+TotoWar_Cbac_Enum_ArmyCompositionUnitCategory = {
     cavalryAndMonsters = "cavalryAndMonsters",
     hero = "hero",
     lord = "lord",

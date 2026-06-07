@@ -1,6 +1,12 @@
 ---Constants of the TotoWar Cost-Based Army Caps mod.
 ---@class TotoWar_Cbac_Constant
 TotoWar_Cbac_Constant = {
+    ---Maximum size of an army to target for adjustments.
+    maximumTargetArmySize = 20,
+
+    ---Minimum size of an army to target for adjustments.
+    minimumTargetArmySize = 13,
+
     ---Name of the TotoWar Cost-Based Army Caps mod.
     modName = "totowar_cost_based_army_caps",
 

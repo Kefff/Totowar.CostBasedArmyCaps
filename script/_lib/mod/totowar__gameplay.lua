@@ -90,6 +90,23 @@ function TotoWar__Gameplay:getCharacterCaption(character)
     return caption
 end
 
+---Gets the caption of a culture.
+---@param cultureName string Culture name.
+function TotoWar__Gameplay:getCultureCaption(cultureName)
+    TotoWar.loggers.utils:logDebug(
+        "getCultureCaption(%s): STARTED",
+        function() return cultureName end)
+
+    local caption = common.get_localised_string("cultures_name_" .. cultureName)
+
+    TotoWar.loggers.utils:logDebug(
+        "getCultureCaption(%s): COMPLETED => %s",
+        function() return cultureName end,
+        function() return caption end)
+
+    return caption
+end
+
 ---Gets the caption of a faction.
 ---@param factionName string Faction name.
 function TotoWar__Gameplay:getFactionCaption(factionName)
