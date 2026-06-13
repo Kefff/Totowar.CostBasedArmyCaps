@@ -123,7 +123,7 @@ end
 function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_ArmySuppliesCost:addCharacter(%s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 
     local unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
@@ -136,7 +136,7 @@ function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_ArmySuppliesCost:addCharacter(%s): COMPLETED => %s",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end,
         function() return self.totalCost end)
 end
 
@@ -191,16 +191,21 @@ end
 function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_ArmySuppliesCost:removeCharacter(%s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 
     local characterIndex = TotoWar__Linq:findIndex(
         self.unitArmySuppliesCosts,
         function(uasc) return uasc.characterCqi == characterCqi end)
 
     if characterIndex == -1 then
-        TotoWar_Cbac.loggers.armySuppliesCost:logError(
-            "Character \"%s\" not found",
-            TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
+        local characterCaption = tostring(characterCqi)
+        local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+        if character ~= nil then
+            characterCaption = TotoWar__Gameplay:getCharacterCaption(character)
+        end
+
+        TotoWar_Cbac.loggers.armySuppliesCost:logError("Character \"%s\" not found in ", characterCaption)
 
         return
     end
@@ -212,7 +217,7 @@ function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_ArmySuppliesCost:removeCharacter(%s): COMPLETED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 end
 
 ---Removes a unit from the army supplies cost.
@@ -382,7 +387,12 @@ function TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArm
     if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
         or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
     then
-        local character = cm:get_character_by_cqi(unitArmySuppliesCost.characterCqi)
+        local character = TotoWar__Gameplay:getCharacter(unitArmySuppliesCost.characterCqi)
+
+        if character == nil then
+            -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
+            return ''
+        end
 
         if character:has_military_force() then
             tooltipText = string.format(

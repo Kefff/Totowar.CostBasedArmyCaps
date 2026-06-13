@@ -76,11 +76,11 @@ end
 ---If the child UI component is not found, throws an error.
 ---@param parentUIComponent UIC Parent UI component
 ---@param query string[] Query to the UI component from the parent UI component.
----@return UIC
+---@return UIC | nil
 function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
     local uiComponent = self:findUIComponentChild(parentUIComponent, query)
 
-    if not uiComponent then
+    if uiComponent == nil then
         TotoWar.loggers.uiUtils:logError("UI component \"%s\" not found", table.concat(query, "/"))
     end
 

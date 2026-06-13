@@ -494,12 +494,9 @@ function TotoWar_Cbac_UIManager:updateAlliedRecruitmentPool()
         TotoWar__UI.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool)
 
     local unitListQuery = { "listview", "list_clip", "allied_unit_list" }
+    local unitListUIComponent = TotoWar__UI:getUIComponentChild(alliedRecruitmentPoolUIComponent, unitListQuery)
 
-    local unitListUIComponent = TotoWar__UI:getUIComponentChild(
-        alliedRecruitmentPoolUIComponent,
-        unitListQuery)
-
-    if unitListUIComponent then
+    if unitListUIComponent ~= nil then
         self:updateRecruitableUnitCardList(unitListUIComponent)
 
         if alliedRecruitmentPoolUIComponent:Height() < _alliedRecruitmentPoolUIComponentTargetHeight then
@@ -620,25 +617,23 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
         unitCardUIComponent,
         { "external_holder", _armySuppliesUIComponentName })
 
-    if not armySuppliesCostUIComponent then
-        local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(
-            unitCardUIComponent,
-            { "external_holder" })
+    if armySuppliesCostUIComponent == nil then
+        local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, { "external_holder" })
 
-        armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(
-            externalHolderUIComponent)
-        armySuppliesCostUIComponent:SetDockingPoint(
-            TotoWar__Enum_DockingPoints.bottomMiddle)
-        armySuppliesCostUIComponent:SetTooltipText(
-            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
+        if externalHolderUIComponent ~= nil then
+            armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(externalHolderUIComponent)
+            armySuppliesCostUIComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.bottomMiddle)
+            armySuppliesCostUIComponent:SetTooltipText(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
 
-        -- Resizing the container to have enough space to display the new component
-        TotoWar__UI:resizeUIComponent(unitCardUIComponent, 0, armySuppliesCostUIComponent:Height())
-        TotoWar__UI:resizeUIComponent(externalHolderUIComponent, 0, armySuppliesCostUIComponent:Height())
+            -- Resizing the container to have enough space to display the new component
+            TotoWar__UI:resizeUIComponent(unitCardUIComponent, 0, armySuppliesCostUIComponent:Height())
+            TotoWar__UI:resizeUIComponent(externalHolderUIComponent, 0, armySuppliesCostUIComponent:Height())
 
-        -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
-        TotoWar__UI:offsetChildUIComponents(externalHolderUIComponent, 0, -armySuppliesCostUIComponent:Height())
-        armySuppliesCostUIComponent:SetDockOffset(0, 0) -- Cancelling the offset of the army supplies cost component itself
+            -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
+            TotoWar__UI:offsetChildUIComponents(externalHolderUIComponent, 0, -armySuppliesCostUIComponent:Height())
+            armySuppliesCostUIComponent:SetDockOffset(0, 0) -- Cancelling the offset of the army supplies cost component itself
+        end
     end
 
     local unitBaseCostText = tostring(unitBaseCost)
@@ -659,7 +654,9 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
         unitCardUIComponent:SetDisabled(false)
     end
 
-    armySuppliesCostUIComponent:SetText(unitBaseCostText, "")
+    if armySuppliesCostUIComponent ~= nil then
+        armySuppliesCostUIComponent:SetText(unitBaseCostText, "")
+    end
 
     TotoWar_Cbac.loggers.uiManager:logDebug(
         "updateRecruitableUnitCard(%s): COMPLETED => (%s, %s)",
@@ -713,11 +710,14 @@ function TotoWar_Cbac_UIManager:updateUnitExchangePool(unitExchangePoolUICompone
         function() return unitExchangePoolUIComponent:Id() end)
 
     local parent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "panel_smoke_t" })
-    local armySuppliesCostText = self:getArmySuppliesCostText(armySuppliesCost)
-    self:createOrUpdateArmySuppliesUIComponent(
-        parent,
-        armySuppliesCostText,
-        armySuppliesCost:toArmySuppliesCostTooltipText())
+
+    if parent ~= nil then
+        local armySuppliesCostText = self:getArmySuppliesCostText(armySuppliesCost)
+        self:createOrUpdateArmySuppliesUIComponent(
+            parent,
+            armySuppliesCostText,
+            armySuppliesCost:toArmySuppliesCostTooltipText())
+    end
 
     TotoWar_Cbac.loggers.uiManager:logDebug(
         "updateUnitExchangePool(%s): COMPLETED",
@@ -731,8 +731,8 @@ function TotoWar_Cbac_UIManager:updateUnitsPanel()
     local unitsPanelIconListUIComponent = TotoWar__UI:getUIComponent(
         TotoWar__UI.uiComponentQueries.unitsPanelIconList)
 
-    local armySuppliesCostText = self:getArmySuppliesCostText(TotoWar_Cbac.playerManager
-        .selectedLordArmySuppliesCost)
+    local armySuppliesCostText = self:getArmySuppliesCostText(
+        TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost)
     local armySuppliesCostTooltip =
         TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()
     self:createOrUpdateArmySuppliesUIComponent(

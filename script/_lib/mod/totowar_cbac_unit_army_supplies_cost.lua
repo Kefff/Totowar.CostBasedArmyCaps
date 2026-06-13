@@ -38,7 +38,7 @@ TotoWar_Cbac_UnitArmySuppliesCost.__index = TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(%s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
 
@@ -51,7 +51,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         -- For some reason, some characters may have no CcoCampaignCharacter so we cannot obtain information on them
         TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
             "Unit record found for character \"%s\" not found",
-            TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
+            TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)))
 
         return nil
     end
@@ -96,7 +96,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end,
         function() return instance.baseUnitKey end,
         function() return instance.armySuppliesCost end)
 

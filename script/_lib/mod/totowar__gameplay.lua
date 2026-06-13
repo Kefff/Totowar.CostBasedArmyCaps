@@ -68,6 +68,30 @@ function TotoWar__Gameplay:canRecruitUnits(army)
     return canRecruitUnits
 end
 
+---Gets a character.
+---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
+---@return CHARACTER_SCRIPT_INTERFACE|nil
+function TotoWar__Gameplay:getCharacter(characterCqi)
+    TotoWar.loggers.utils:logDebug(
+        "getCharacterCaption(%s): STARTED",
+        function() return characterCqi end)
+
+    local character = cm:get_character_by_cqi(characterCqi)
+
+    if character == nil then
+        TotoWar.loggers.utils:logWarning(
+            "getCharacterCaption(%s): NOT FOUND",
+            characterCqi)
+    else
+        TotoWar.loggers.utils:logDebug(
+            "getCharacterCaption(%s): COMPLETED => %s",
+            function() return characterCqi end,
+            function() return self:getCharacterCaption(character) end)
+    end
+
+    return character
+end
+
 ---Gets the caption of a character.
 ---@param character CHARACTER_SCRIPT_INTERFACE Character.
 function TotoWar__Gameplay:getCharacterCaption(character)
@@ -138,32 +162,6 @@ function TotoWar__Gameplay:getMct()
     TotoWar.loggers.utils:logDebug("getMct(): COMPLETED")
 
     return mct
-end
-
----Gets the keys of dictionary sorted in an order based on a predicate.
----
----This is because a dictionary cannot directly be sorted because when using pair() to iterate on a table,
----keys are in a random order in LUA.
----@generic T
----@param dictionary { [string]: T[] } Dictionary to sort.
----@param predicate fun(item1: T, item2: T): boolean Predicate.
----@return string[]
-function TotoWar__Gameplay:getSortedDictionaryKeys(dictionary, predicate)
-    TotoWar.loggers.utils:logDebug("getSorterDictionaryKeys(): STARTED")
-
-    local keys = {}
-
-    for key in pairs(dictionary) do
-        table.insert(keys, key)
-    end
-
-    table.sort(keys, function(key1, key2)
-        return predicate(dictionary[key1], dictionary[key2])
-    end)
-
-    TotoWar.loggers.utils:logDebug("getSorterDictionaryKeys(): COMPLETED")
-
-    return keys
 end
 
 ---Gets the caption of a unit.

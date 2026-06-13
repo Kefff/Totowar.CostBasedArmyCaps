@@ -310,16 +310,17 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
             break
         end
 
-        local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-            unitCardUIComponent,
-            { "card_image_holder" })
-        local unitContext = TotoWar__UI:getUIComponentCCO(
-            cardImageHolderUIComponent,
-            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+        local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
 
-        ---@type string
-        local unitKey = unitContext:Call("Key")
-        self.selectedLordArmySuppliesCost:addUnit(unitKey)
+        if cardImageHolderUIComponent ~= nil then
+            local unitContext = TotoWar__UI:getUIComponentCCO(
+                cardImageHolderUIComponent,
+                TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+            ---@type string
+            local unitKey = unitContext:Call("Key")
+            self.selectedLordArmySuppliesCost:addUnit(unitKey)
+        end
     end
 
     self.isInitializingArmySuppliesCost = false
@@ -640,25 +641,25 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCost(
     unitExchangePoolUIComponent,
     unitExchangePoolArmySuppliesCost,
     otherUnitExchangePoolArmySuppliesCost)
-    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(
-        unitExchangePoolUIComponent,
-        { "units" })
+    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
 
-    for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
-        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
-        local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent,
-            { "card_image_holder" })
-        local unitContext = TotoWar__UI:getUIComponentCCO(
-            cardImageHolderUIComponent,
-            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+    if unitExchangePoolUnitListUIComponent ~= nil then
+        for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+            local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
+            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent,
+                { "card_image_holder" })
+            local unitContext = TotoWar__UI:getUIComponentCCO(
+                cardImageHolderUIComponent,
+                TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
-        ---@type string
-        local unitKey = unitContext:Call("Key")
+            ---@type string
+            local unitKey = unitContext:Call("Key")
 
-        if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
-            otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
-        else
-            unitExchangePoolArmySuppliesCost:addUnit(unitKey)
+            if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
+                otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
+            else
+                unitExchangePoolArmySuppliesCost:addUnit(unitKey)
+            end
         end
     end
 end

@@ -28,8 +28,8 @@ end
 function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(lordCqi)
     TotoWar_Cbac.loggers.aiManager:logDebug(
         "addArmyToAdjustmentQueue(%s from %s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
-        function() return TotoWar__Gameplay:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(lordCqi)) end,
+        function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getCharacter(lordCqi):faction():name()) end)
 
     if not TotoWar__Linq:any(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
     then
@@ -48,8 +48,8 @@ function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(lordCqi)
 
     TotoWar_Cbac.loggers.aiManager:logDebug(
         "addArmyToAdjustmentQueue(%s from %s): COMPLETED",
-        function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(lordCqi)) end,
-        function() return TotoWar__Gameplay:getFactionCaption(cm:get_character_by_cqi(lordCqi):faction():name()) end)
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(lordCqi)) end,
+        function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getCharacter(lordCqi):faction():name()) end)
 end
 
 ---Adds an army to the disband queue to check whether the unit should be reinstated if disbanded after the army has already been adjusted.
@@ -199,12 +199,10 @@ end
 ---Adjusts an AI army by removing excess heroes and units when its cost exceeds army supplies.
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
 function TotoWar_Cbac_AiManager:adjustAiArmy(lordCqi)
-    local lord = cm:get_character_by_cqi(lordCqi)
+    local lord = TotoWar__Gameplay:getCharacter(lordCqi)
 
-    if not lord then
-        -- This can happen sometimes for some reason
-        TotoWar_Cbac.loggers.aiManager:logError("Lord with CQI \"%s\" not found", lordCqi)
-
+    if lord == nil then
+        -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
         return
     end
 
@@ -799,7 +797,9 @@ function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, heros
             function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
             function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
             function() return herosInExcess end,
-            function() return TotoWar__Gameplay:getCharacterCaption(cm:get_character_by_cqi(heroToRemove.characterCqi)) end,
+            function()
+                return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(heroToRemove.characterCqi))
+            end,
             function() return TotoWar__Gameplay:getUnitCaption(heroToRemove.unitKey) end)
     end
 
@@ -816,7 +816,12 @@ end
 ---Cancels the disband of a unit if the army it was in was already adjusted in order to comply with army supplies restrictions.
 ---@param lordCqi integer Command queue index of the lord whose army may have been adjusted.
 function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(lordCqi)
-    local lord = cm:get_character_by_cqi(lordCqi)
+    local lord = TotoWar__Gameplay:getCharacter(lordCqi)
+
+    if lord == nil then
+        -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
+        return
+    end
 
     TotoWar_Cbac.loggers.aiManager:logDebug(
         "cancelDisbandIfAlreadyAdjusted(%s from %s): STARTED",
