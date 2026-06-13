@@ -1,15 +1,15 @@
 ---Represents an utility class for managing enumerations.
----@class TotoWarLinq
-TotoWarLinq = {}
-TotoWarLinq.__index = TotoWarLinq
+---@class TotoWar__Linq
+TotoWar__Linq = {}
+TotoWar__Linq.__index = TotoWar__Linq
 
 ---Indicates whether all elements of a list match a predicate.
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
-function TotoWarLinq:all(list, predicate)
-    local nonMatchingElement = TotoWarLinq:firstOrDefault(list, function(e) return not predicate(e) end)
+function TotoWar__Linq:all(list, predicate)
+    local nonMatchingElement = TotoWar__Linq:firstOrDefault(list, function(e) return not predicate(e) end)
     local allMatch = nonMatchingElement == nil
 
     return allMatch
@@ -20,8 +20,8 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return boolean
-function TotoWarLinq:any(list, predicate)
-    local exists = TotoWarLinq:firstOrDefault(list, predicate) ~= nil
+function TotoWar__Linq:any(list, predicate)
+    local exists = TotoWar__Linq:firstOrDefault(list, predicate) ~= nil
 
     return exists
 end
@@ -31,7 +31,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return number
-function TotoWarLinq:findIndex(list, predicate)
+function TotoWar__Linq:findIndex(list, predicate)
     for index, item in ipairs(list) do
         local predicateResult = predicate(item)
 
@@ -48,7 +48,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T | nil
-function TotoWarLinq:firstOrDefault(list, predicate)
+function TotoWar__Linq:firstOrDefault(list, predicate)
     for index, item in ipairs(list) do
         local predicateResult = predicate(item)
 
@@ -64,9 +64,9 @@ end
 ---@generic T, Y
 ---@param list T[] List.
 ---@param predicate fun(item: T): Y Predicate.
----@return TotoWarDictionary<Y, T[]>
-function TotoWarLinq:groupBy(list, predicate)
-    local groups = TotoWarDictionary.new()
+---@return TotoWar__Dictionary<Y, T[]>
+function TotoWar__Linq:groupBy(list, predicate)
+    local groups = TotoWar__Dictionary.new()
 
     for index, item in ipairs(list) do
         local key = predicate(item)
@@ -88,7 +88,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T
-function TotoWarLinq:lastOrDefault(list, predicate)
+function TotoWar__Linq:lastOrDefault(list, predicate)
     for i = #list, 1, -1 do
         local item = list[i]
         local predicateResult = predicate(item)
@@ -105,9 +105,9 @@ end
 ---@generic T
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
-function TotoWarLinq:remove(list, predicate)
+function TotoWar__Linq:remove(list, predicate)
     while true do
-        local index = TotoWarLinq:findIndex(list, predicate)
+        local index = TotoWar__Linq:findIndex(list, predicate)
 
         if index == -1 then
             return
@@ -122,7 +122,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): Y Predicate.
 ---@return Y[]
-function TotoWarLinq:select(list, predicate)
+function TotoWar__Linq:select(list, predicate)
     ---@diagnostic disable-next-line: undefined-doc-name
     ---@type Y[]
     local result = {}
@@ -139,7 +139,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): number Predicate.
 ---@return number
-function TotoWarLinq:sum(list, predicate)
+function TotoWar__Linq:sum(list, predicate)
     ---@type number
     local result = 0
 
@@ -155,7 +155,7 @@ end
 ---@param list T[] List.
 ---@param predicate fun(item: T): boolean Predicate.
 ---@return T[]
-function TotoWarLinq:where(list, predicate)
+function TotoWar__Linq:where(list, predicate)
     local filteredTable = {}
 
     for index, item in ipairs(list) do

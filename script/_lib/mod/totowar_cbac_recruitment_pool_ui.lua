@@ -1,6 +1,6 @@
 ---UI of a recruitment pool in a recruitment panel.
----@class TotoWarCbacRecruitmentPoolUI
-TotoWarCbacRecruitmentPoolUI = {
+---@class TotoWar_Cbac_RecruitmentPoolUI
+TotoWar_Cbac_RecruitmentPoolUI = {
     ---Indicates whether the recruitment pool UI component has been resized to be able to display army supplies cost under each unit price.
     isResized = false,
 
@@ -24,18 +24,18 @@ TotoWarCbacRecruitmentPoolUI = {
     ---@type string
     updateMode = nil
 }
-TotoWarCbacRecruitmentPoolUI.__index = TotoWarCbacRecruitmentPoolUI
+TotoWar_Cbac_RecruitmentPoolUI.__index = TotoWar_Cbac_RecruitmentPoolUI
 
----Initializes a new instance of TotoWarCbacRecruitmentPoolUI.
+---Initializes a new instance of TotoWar_Cbac_RecruitmentPoolUI.
 ---@param name string Name.
 ---@param panelName string Name of the panel in which the recruitment pool is displayed.
 ---@param uiComponentQuery string[] Query for finding the corresponding  UI component.
 ---@param updateUIFunction fun() Function to call to updated the recruitment pool UI.
----@return TotoWarCbacRecruitmentPoolUI
-function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, updateUIFunction)
-    TotoWarCbac.loggers.generic:logDebug("TotoWarCbacRecruitmentPoolUI.new(): STARTED")
+---@return TotoWar_Cbac_RecruitmentPoolUI
+function TotoWar_Cbac_RecruitmentPoolUI.new(name, panelName, uiComponentQuery, updateUIFunction)
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_RecruitmentPoolUI.new(): STARTED")
 
-    local instance = setmetatable({}, TotoWarCbacRecruitmentPoolUI)
+    local instance = setmetatable({}, TotoWar_Cbac_RecruitmentPoolUI)
 
     instance.isResized = false
     instance.name = name
@@ -43,7 +43,7 @@ function TotoWarCbacRecruitmentPoolUI.new(name, panelName, uiComponentQuery, upd
     instance.uiComponentQuery = uiComponentQuery
     instance.updateUIFunction = updateUIFunction
 
-    TotoWarCbac.loggers.generic:logDebug("TotoWarCbacRecruitmentPoolUI.new(): COMPLETED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_RecruitmentPoolUI.new(): COMPLETED")
 
     return instance
 end

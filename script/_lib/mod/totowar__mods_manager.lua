@@ -1,30 +1,30 @@
 ---Manager for other TotoWar mods.
----@class TotoWarModsManager
-TotoWarModsManager = {
+---@class TotoWar__ModsManager
+TotoWar__ModsManager = {
     ---List of registered TotoWar mods.
-    ---@type TotoWarModDefinition[]
+    ---@type TotoWar__ModDefinition[]
     mods = nil
 }
-TotoWarModsManager.__index = TotoWarModsManager
+TotoWar__ModsManager.__index = TotoWar__ModsManager
 
 ---Initializes a new instance.
----@return TotoWarModsManager
-function TotoWarModsManager.new()
-    TotoWar.loggers.modsManager:logDebug("TotoWarModsManager.new(): STARTED")
+---@return TotoWar__ModsManager
+function TotoWar__ModsManager.new()
+    TotoWar.loggers.modsManager:logDebug("TotoWar__ModsManager.new(): STARTED")
 
-    local instance = setmetatable({}, TotoWarModsManager)
+    local instance = setmetatable({}, TotoWar__ModsManager)
 
     instance.mods = {}
 
-    TotoWar.loggers.modsManager:logDebug("TotoWarModsManager.new(): COMPLETED")
+    TotoWar.loggers.modsManager:logDebug("TotoWar__ModsManager.new(): COMPLETED")
 
     return instance
 end
 
 ---Finds a registered mod.
 ---@param modName string Mod name.
----@return TotoWarModDefinition | nil
-function TotoWarModsManager:findMod(modName)
+---@return TotoWar__ModDefinition | nil
+function TotoWar__ModsManager:findMod(modName)
     TotoWar.loggers.modsManager:logDebug(
         "findMod(\"%s\"): STARTED",
         function() return modName end)
@@ -49,8 +49,8 @@ end
 ---Gets a registered mod.
 ---Logs an error when the mod is not found.
 ---@param modName string Mod name.
----@return TotoWarModDefinition
-function TotoWarModsManager:getMod(modName)
+---@return TotoWar__ModDefinition
+function TotoWar__ModsManager:getMod(modName)
     TotoWar.loggers.modsManager:logDebug(
         "getMod(\"%s\"): STARTED",
         function() return modName end)
@@ -70,7 +70,7 @@ function TotoWarModsManager:getMod(modName)
 end
 
 ---Initializes registered mods.
-function TotoWarModsManager:initializeMods()
+function TotoWar__ModsManager:initializeMods()
     TotoWar.loggers.modsManager:logDebug("initializeMods: STARTED")
 
     local count = 0
@@ -89,8 +89,8 @@ end
 
 ---Registers a TotoWar Mod.
 ---@param modName string Mods name.
----@param initializeFunction fun(modsManager: TotoWarModsManager): any Function for initializing the mod.
-function TotoWarModsManager:registerMod(modName, initializeFunction)
+---@param initializeFunction fun(modsManager: TotoWar__ModsManager): any Function for initializing the mod.
+function TotoWar__ModsManager:registerMod(modName, initializeFunction)
     TotoWar.loggers.modsManager:logDebug(
         "registerMod(\"%s\"): STARTED",
         function() return modName end)
@@ -101,7 +101,7 @@ function TotoWarModsManager:registerMod(modName, initializeFunction)
         TotoWar.loggers.modsManager:logWarning("Mod \"%s\" is already registered. New registration has been ignored",
             modName)
     else
-        mod = TotoWarModDefinition.new(modName, initializeFunction)
+        mod = TotoWar__ModDefinition.new(modName, initializeFunction)
         table.insert(self.mods, mod)
 
         TotoWar.loggers.modsManager:logInfo("Mod \"%s\" registered", modName)

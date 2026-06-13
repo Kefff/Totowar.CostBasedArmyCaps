@@ -1,6 +1,6 @@
 ---Army supplies cost of the units in an army.
----@class TotoWarCbacArmySuppliesCost
-TotoWarCbacArmySuppliesCost = {
+---@class TotoWar_Cbac_ArmySuppliesCost
+TotoWar_Cbac_ArmySuppliesCost = {
     ---Army supplies available to recruit additional units.
     ---@type integer
     availableSupplies = nil,
@@ -11,7 +11,7 @@ TotoWarCbacArmySuppliesCost = {
 
     ---Army supplies cost of each mercenary unit in the recruitment pool.
     ---Mercenary units are identified by their index in this table.
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     inRecruitmentMercenaryUnits = nil,
 
     ---Total army supplies available for all units.
@@ -23,28 +23,28 @@ TotoWarCbacArmySuppliesCost = {
     totalCost = nil,
 
     ---Army supplies cost of each unit type present in the army.
-    ---@type TotoWarCbacUnitArmySuppliesCost[]
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
     unitArmySuppliesCosts = nil,
 }
-TotoWarCbacArmySuppliesCost.__index = TotoWarCbacArmySuppliesCost
+TotoWar_Cbac_ArmySuppliesCost.__index = TotoWar_Cbac_ArmySuppliesCost
 
----Initializes a new instance of TotoWarCbacArmySuppliesCost.
+---Initializes a new instance of TotoWar_Cbac_ArmySuppliesCost.
 ---@param isAi boolean Indicates whether the army belongs to AI.
 ---@param lordLevel integer Level of the lord leading the army.
----@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.new(isAi, lordLevel)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("TotoWarCbacArmySuppliesCost.new(): STARTED")
+---@return TotoWar_Cbac_ArmySuppliesCost
+function TotoWar_Cbac_ArmySuppliesCost.new(isAi, lordLevel)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("TotoWar_Cbac_ArmySuppliesCost.new(): STARTED")
 
-    local instance = setmetatable({}, TotoWarCbacArmySuppliesCost)
+    local instance = setmetatable({}, TotoWar_Cbac_ArmySuppliesCost)
 
     local levelBonus = 0
 
     if isAi then
-        levelBonus = (lordLevel - 1) * TotoWarCbac.options.aiArmySuppliesBonusAmountPerLevel
-        instance.totalArmySupplies = TotoWarCbac.options.aiArmySuppliesAmount + levelBonus
+        levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.aiArmySuppliesBonusAmountPerLevel
+        instance.totalArmySupplies = TotoWar_Cbac.options.aiArmySuppliesAmount + levelBonus
     else
-        levelBonus = (lordLevel - 1) * TotoWarCbac.options.playerArmySuppliesBonusAmountPerLevel
-        instance.totalArmySupplies = TotoWarCbac.options.playerArmySuppliesAmount + levelBonus
+        levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.playerArmySuppliesBonusAmountPerLevel
+        instance.totalArmySupplies = TotoWar_Cbac.options.playerArmySuppliesAmount + levelBonus
     end
 
     instance.availableSupplies = instance.totalArmySupplies
@@ -53,8 +53,8 @@ function TotoWarCbacArmySuppliesCost.new(isAi, lordLevel)
     instance.totalCost = 0
     instance.unitArmySuppliesCosts = {}
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost.new(): COMPLETED => Lord level: %s | Bonus army supplies: %s | Total army supplies: %s",
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost.new(): COMPLETED => Lord level: %s | Bonus army supplies: %s | Total army supplies: %s",
         function() return instance.lordLevel end,
         function() return levelBonus end,
         function() return instance.totalArmySupplies end)
@@ -62,15 +62,22 @@ function TotoWarCbacArmySuppliesCost.new(isAi, lordLevel)
     return instance
 end
 
----Initializes a new instance of TotoWarCbacArmySuppliesCost from an army.
+---Initializes a new instance of TotoWar_Cbac_ArmySuppliesCost from an army.
 ---@param isAi boolean Indicates whether the army belongs to AI.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@return TotoWarCbacArmySuppliesCost
-function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
-    local instance = TotoWarCbacArmySuppliesCost.new(isAi, army:general_character():rank())
+---@return TotoWar_Cbac_ArmySuppliesCost
+function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
+    local rank = 1
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): STARTED",
+    if army:general_character() ~= nil then
+        -- For some reason, army:general_character() can be null
+        rank = army:general_character():rank()
+    end
+
+    local instance = TotoWar_Cbac_ArmySuppliesCost.new(isAi, rank)
+
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:newFromArmy(%s, %s): STARTED",
         function() return isAi end,
         function() return army:unit_list():num_items() end)
 
@@ -87,13 +94,13 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
         local unit = units:item_at(i)
         local unitCqi = unit:command_queue_index()
 
-        local isAlreadyAddedCharacter = TotoWarLinq:any(
+        local isAlreadyAddedCharacter = TotoWar__Linq:any(
             instance.unitArmySuppliesCosts,
             function(uasc)
                 -- We avoid adding the lord and heroes twice
                 return uasc.unitCqi == unitCqi
-                    and (uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
-                        or uasc.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero)
+                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
             end)
 
         if not isAlreadyAddedCharacter then
@@ -101,8 +108,8 @@ function TotoWarCbacArmySuppliesCost.newFromArmy(isAi, army)
         end
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:newFromArmy(%s, %s): COMPLETED => %s | %s",
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:newFromArmy(%s, %s): COMPLETED => %s | %s",
         function() return isAi end,
         function() return army:unit_list():num_items() end,
         function() return instance.totalCost end,
@@ -113,12 +120,12 @@ end
 
 ---Adds a unit to the army supplies cost.
 ---@param characterCqi integer Command queue index of the character.
-function TotoWarCbacArmySuppliesCost:addCharacter(characterCqi)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:addCharacter(%s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:addCharacter(%s): STARTED",
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 
-    local unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newCharacter(characterCqi)
+    local unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if unitArmySuppliesCost ~= nil then
         table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
@@ -127,9 +134,9 @@ function TotoWarCbacArmySuppliesCost:addCharacter(characterCqi)
         self.availableSupplies = self.totalArmySupplies - self.totalCost
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:addCharacter(%s): COMPLETED => %s",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end,
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:addCharacter(%s): COMPLETED => %s",
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end,
         function() return self.totalCost end)
 end
 
@@ -137,220 +144,68 @@ end
 ---@param unitKey string Unit key.
 ---@param unitCqi integer | nil Unit command queue index if we are able to get one.
 ---@param isInRecruitmentMercenary boolean | nil Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
-function TotoWarCbacArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary)
+function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary)
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:addUnit(%s, %s): STARTED",
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:addUnit(%s, %s): STARTED",
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         function() return isInRecruitmentMercenary end)
 
-    ---@type TotoWarCbacUnitArmySuppliesCost
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost
     local unitArmySuppliesCost
 
     if isInRecruitmentMercenary then
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
+        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         table.insert(self.inRecruitmentMercenaryUnits, unitArmySuppliesCost)
     else
-        unitArmySuppliesCost = TotoWarCbacUnitArmySuppliesCost.newUnit(unitKey, unitCqi)
+        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
     end
 
     self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
     self.availableSupplies = self.totalArmySupplies - self.totalCost
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:addUnit(%s, %s): COMPLETED => %s",
-        function() return TotoWar.utils:getUnitCaption(unitKey) end,
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:addUnit(%s, %s): COMPLETED => %s",
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         function() return isInRecruitmentMercenary end,
         function() return self.totalCost end)
 end
 
----Checks whether a unit category has a number of units that exceed its maximum allowed proportion in the army composition.
----@param category TotoWarCbac_Enums_ArmyCompositionUnitCategories Unit category.
----@param categoryUnitCounts TotoWarDictionary<string, integer> Unit counts per category.
----@param totalUnitCount integer Total number of units in the army.
----@return boolean
-function TotoWarCbacArmySuppliesCost:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "checkUnitCategoryExcess(%s, %s, %s): STARTED",
-        ---@diagnostic disable-next-line: return-type-mismatch
-        function() return category end,
-        ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) end,
-        function() return totalUnitCount end)
-
-    if totalUnitCount <= 0 then
-        return false
-    end
-
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local currentCount = categoryUnitCounts:get(category)
-
-    if currentCount <= 0 then
-        return false
-    end
-
-    ---@type integer | nil
-    local maximumPercentageVariation = TotoWar.utils:getSavedValue( -- Stored as an integer between 0 and 50
-        TotoWar_Cbac_ModName,
-        string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category))
-
-    if maximumPercentageVariation == nil then
-        maximumPercentageVariation = math.random(
-            -TotoWarCbac.options.aiArmyMaximumPercentageVariation,
-            TotoWarCbac.options.aiArmyMaximumPercentageVariation
-        )
-        maximumPercentageVariation = maximumPercentageVariation -- Rounded to the nearest multiple of 5
-            - (maximumPercentageVariation % 5 + (maximumPercentageVariation % 5 >= 2.5 and 5 or 0))
-
-        TotoWar.utils:saveValue(
-            TotoWar_Cbac_ModName,
-            string.format(TotoWarCbac.constants.storageKeyFormatArmyUnitCategoryRandomness, self.lordLevel, category),
-            maximumPercentageVariation)
-    end
-
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local baseMaximumPercentage = TotoWarCbac.options.aiArmyUnitCategoryMaximumPercentages:get(category) -- Stored as an integer between 0 and 100
-    local realMaximumPercentage = baseMaximumPercentage * (1 + maximumPercentageVariation / 100)
-    local percentage = math.floor(currentCount / totalUnitCount * 100 + 0.5)                             -- Rounded to the nearest integer
-    local isExcess = percentage > realMaximumPercentage
-
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "checkUnitCategoryExcess(%s, %s, %s): COMPLETED => Is excess: %s | Proportion: %s | Max proportion: %s | Base proportion: %s | Proportion variation: %s",
-        ---@diagnostic disable-next-line: return-type-mismatch
-        function() return category end,
-        ---@diagnostic disable-next-line: param-type-mismatch
-        function() return categoryUnitCounts:get(category) end,
-        function() return totalUnitCount end,
-        function() return isExcess end,
-        function() return percentage end,
-        function() return realMaximumPercentage end,
-        function() return baseMaximumPercentage end,
-        function() return maximumPercentageVariation end)
-
-    return isExcess
-end
-
 ---Clears the list of in-recruitment mercenary units supply costs.
-function TotoWarCbacArmySuppliesCost:clearMercenaryRecruitment()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): STARTED")
+function TotoWar_Cbac_ArmySuppliesCost:clearMercenaryRecruitment()
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): STARTED")
 
     for i = 1, #self.inRecruitmentMercenaryUnits, 1 do
-        self:removeUnit(TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
+        self:removeUnit(TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard:sub(2) .. "0")
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
-end
-
----Gets the number of units for each unit category composing army supplies costs that exceed the configured maximum proportion.
----
----Lord and heroes are not taken into account.
----@return TotoWarDictionary<string, integer>
-function TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("getUnitCategoryExcessCounts(): STARTED")
-
-    local totalUnitCount = 0
-    local orderedCategories = {
-        TotoWarCbac.enums.armyCompositionUnitTypes.artillery,
-        TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters,
-        TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry,
-        TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry
-    }
-
-    ---@type TotoWarDictionary<string, integer>
-    local categoryUnitCounts = TotoWarDictionary.new()
-
-    ---@type TotoWarDictionary<string, integer>
-    local categoryUnitExcessCounts = TotoWarDictionary.new()
-
-    -- Initialize counts for each category (excluding lord and heroes)
-    for key, armyCompositionUnitType in pairs(orderedCategories) do
-        categoryUnitCounts:set(armyCompositionUnitType, 0)
-    end
-
-    -- Count units per category (excluding lord and heroes)
-    for index, unit in ipairs(self.unitArmySuppliesCosts) do
-        if unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.lord
-            and unit.unitCategory ~= TotoWarCbac.enums.armyCompositionUnitTypes.hero
-        then
-            ---@diagnostic disable-next-line: param-type-mismatch
-            categoryUnitCounts:set(unit.unitCategory, categoryUnitCounts:get(unit.unitCategory) + 1)
-            totalUnitCount = totalUnitCount + 1
-        end
-    end
-
-    if totalUnitCount > 0 then
-        -- Initialize excess counts
-        for _, category in ipairs(orderedCategories) do
-            categoryUnitExcessCounts:set(category, 0)
-        end
-
-        -- Iterate over each category, selecting at most 1 unit per category over the limit each cycle to remove until no category is above the limit anymore.
-        -- Units that are selected as excess are not taken into consideration in the ratio computation for the next iterations.
-        while true do
-            local hasRemoved = false
-
-            for _, category in ipairs(orderedCategories) do
-                ---@diagnostic disable-next-line: param-type-mismatch
-                if self:checkUnitCategoryExcess(category, categoryUnitCounts, totalUnitCount) then
-                    categoryUnitExcessCounts:set(category, categoryUnitExcessCounts:get(category) + 1)
-                    categoryUnitCounts:set(category, categoryUnitCounts:get(category) - 1)
-                    totalUnitCount = totalUnitCount - 1
-
-                    hasRemoved = true
-                end
-            end
-
-            if not hasRemoved then
-                break
-            end
-        end
-
-        -- Removing entries with 0 excess
-        for index, category in ipairs(orderedCategories) do
-            if categoryUnitExcessCounts:get(category) == 0 then
-                categoryUnitExcessCounts:remove(category)
-            end
-        end
-    end
-
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:getUnitCategoryExcessCounts(): COMPLETED => %s",
-        function()
-            local message = ''
-
-            for index, entry in ipairs(categoryUnitExcessCounts.entries) do
-                message = string.format("%s| %s: %s ", message, entry.key, entry.value)
-            end
-
-            if message == '' then
-                message = 'No excess'
-            end
-
-            return message
-        end)
-
-    return categoryUnitExcessCounts
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Removes the character corresponding to a command queue index.
 ---@param characterCqi integer Character command queue index.
-function TotoWarCbacArmySuppliesCost:removeCharacter(characterCqi)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:removeCharacter(%s): STARTED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:removeCharacter(%s): STARTED",
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 
-    local characterIndex = TotoWarLinq:findIndex(
+    local characterIndex = TotoWar__Linq:findIndex(
         self.unitArmySuppliesCosts,
         function(uasc) return uasc.characterCqi == characterCqi end)
 
     if characterIndex == -1 then
-        TotoWarCbac.loggers.armySuppliesCost:logError(
-            "Character \"%s\" not found",
-            TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)))
+        local characterCaption = tostring(characterCqi)
+        local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+        if character ~= nil then
+            characterCaption = TotoWar__Gameplay:getCharacterCaption(character)
+        end
+
+        TotoWar_Cbac.loggers.armySuppliesCost:logError("Character \"%s\" not found in ", characterCaption)
 
         return
     end
@@ -360,9 +215,9 @@ function TotoWarCbacArmySuppliesCost:removeCharacter(characterCqi)
     self.availableSupplies = self.totalArmySupplies - self.totalCost
     table.remove(self.unitArmySuppliesCosts, characterIndex)
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:removeCharacter(%s): COMPLETED",
-        function() return TotoWar.utils:getCharacterCaption(cm:get_character_by_cqi(characterCqi)) end)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:removeCharacter(%s): COMPLETED",
+        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
 end
 
 ---Removes a unit from the army supplies cost.
@@ -372,17 +227,17 @@ end
 ---position of the unit in the recruitment queue before calling `removeUnit`.
 ---@param unitKey string Unit key.
 ---@return string | nil
-function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:removeUnit(%s): STARTED",
-        function() return TotoWar.utils:getUnitCaption(unitKey) end)
+function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:removeUnit(%s): STARTED",
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     local isInRecruitmentMercenaryUnit = string.match(
         unitKey,
-        TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard)
+        TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard)
 
     if isInRecruitmentMercenaryUnit then
-        local positionInRecruitmentQueuePattern = TotoWar.enums.uiPatterns.inRecruitmentMercenaryUnitCard .. "(%d+)$"
+        local positionInRecruitmentQueuePattern = TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard .. "(%d+)$"
         -- Position starts at 0 in the recruitment queue, but LUA table indexes start at 1
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
         local unit = self.inRecruitmentMercenaryUnits[index]
@@ -391,9 +246,9 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         self.availableSupplies = self.totalArmySupplies - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
 
-        TotoWarCbac.loggers.armySuppliesCost:logDebug(
-            "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-            function() return TotoWar.utils:getUnitCaption(unitKey) end,
+        TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+            "TotoWar_Cbac_ArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
+            function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
             function() return self.totalCost end)
 
         return unit.unitKey;
@@ -407,9 +262,9 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
                 self.availableSupplies = self.totalArmySupplies - self.totalCost
                 table.remove(self.unitArmySuppliesCosts, i)
 
-                TotoWarCbac.loggers.armySuppliesCost:logDebug(
-                    "TotoWarCbacArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
-                    function() return TotoWar.utils:getUnitCaption(unitKey) end,
+                TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+                    "TotoWar_Cbac_ArmySuppliesCost:removeUnit(%s): COMPLETED => %s",
+                    function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
                     function() return self.totalCost end)
 
                 return unitKey;
@@ -417,22 +272,22 @@ function TotoWarCbacArmySuppliesCost:removeUnit(unitKey)
         end
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logError(
+    TotoWar_Cbac.loggers.armySuppliesCost:logError(
         "Unit \"%s\" not found",
-        TotoWar.utils:getUnitCaption(unitKey))
+        TotoWar__Gameplay:getUnitCaption(unitKey))
 end
 
 ---Sorts army supplies costs by unit category, army supplies cost and name.
 ---
----Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, Artillery
-function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
+---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, War machines
+function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
     local categoryPriority = {
-        [TotoWarCbac.enums.armyCompositionUnitTypes.lord] = 1,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.hero] = 2,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.meleeInfantry] = 3,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.rangedInfantry] = 4,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.cavalryAndMonsters] = 5,
-        [TotoWarCbac.enums.armyCompositionUnitTypes.artillery] = 6
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord] = 1,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero] = 2,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry] = 3,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry] = 4,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters] = 5,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines] = 6
     }
 
     table.sort(
@@ -459,8 +314,8 @@ function TotoWarCbacArmySuppliesCost:sortUnitArmySuppliesCost()
             end
 
             -- Name sort
-            local caption1 = TotoWar.utils:getUnitCaption(item1.unitKey)
-            local caption2 = TotoWar.utils:getUnitCaption(item2.unitKey)
+            local caption1 = TotoWar__Gameplay:getUnitCaption(item1.unitKey)
+            local caption2 = TotoWar__Gameplay:getUnitCaption(item2.unitKey)
 
             if caption1 ~= caption2 then
                 return caption1 < caption2
@@ -474,8 +329,8 @@ end
 
 ---Gets the list of unit army supplies costs as a tooltip string.
 ---@return string
-function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("toTooltipText(): STARTED")
+function TotoWar_Cbac_ArmySuppliesCost:toArmySuppliesCostTooltipText()
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("toTooltipText(): STARTED")
 
     local unitsArmySuppliesCostTooltipText = ""
 
@@ -514,49 +369,54 @@ function TotoWarCbacArmySuppliesCost:toArmySuppliesCostTooltipText()
         depletedArmySuppliesWarning,
         unitsArmySuppliesCostTooltipText)
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug("toTooltipText(): COMPLETED")
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("toTooltipText(): COMPLETED")
 
     return tooltipText
 end
 
 ---Gets the unit army supplies cost for a unit as a tooltip string.
----@param unitArmySuppliesCost TotoWarCbacUnitArmySuppliesCost Army supplies cost of the unit.
+---@param unitArmySuppliesCost TotoWar_Cbac_UnitArmySuppliesCost Army supplies cost of the unit.
 ---@return string
-function TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
+function TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText: STARTED")
 
     ---@type string
     local tooltipText
 
-    if unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.lord
-        or unitArmySuppliesCost.unitCategory == TotoWarCbac.enums.armyCompositionUnitTypes.hero
+    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
     then
-        local character = cm:get_character_by_cqi(unitArmySuppliesCost.characterCqi)
+        local character = TotoWar__Gameplay:getCharacter(unitArmySuppliesCost.characterCqi)
+
+        if character == nil then
+            -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
+            return ''
+        end
 
         if character:has_military_force() then
             tooltipText = string.format(
                 common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfLord"),
-                TotoWar.utils:getCharacterCaption(character),
-                TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+                TotoWar__Gameplay:getCharacterCaption(character),
+                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
                 unitArmySuppliesCost.armySuppliesCost)
         else
             tooltipText = string.format(
                 common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfHero"),
-                TotoWar.utils:getCharacterCaption(character),
-                TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+                TotoWar__Gameplay:getCharacterCaption(character),
+                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
                 unitArmySuppliesCost.armySuppliesCost)
         end
     else
         tooltipText = string.format(
             common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
             'totowar_cbac_unit_category_' .. unitArmySuppliesCost.unitCategory,
-            TotoWar.utils:getUnitCaption(unitArmySuppliesCost.unitKey),
+            TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
             unitArmySuppliesCost.armySuppliesCost)
     end
 
-    TotoWarCbac.loggers.armySuppliesCost:logDebug(
-        "TotoWarCbacArmySuppliesCost:toUnitArmySuppliesCostTooltipText: COMPLETED")
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText: COMPLETED")
 
     return tooltipText
 end
