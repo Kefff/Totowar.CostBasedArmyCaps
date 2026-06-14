@@ -24,7 +24,7 @@ This roughly allows the recruitment of two more elite units at level 50 compared
 ## Restrictions applied to player armies
 Two restrictions are applied to player armies:
 - if the `Army Supplies` cost of a unit exceeds the remaining `Army Supplies` of an army, it cannot be recruited
-- if the `Army Supplies` of an army are depleted, the army cannot move
+- if the `Army Supplies` of an army are depleted, the army cannot move  
 To be able to move again, you can remove heroes, disband units, or transfer them to another army.
 
 ## Restrictions applied to AI armies
