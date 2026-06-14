@@ -78,10 +78,12 @@ function TotoWar__Gameplay:getCharacter(characterCqi)
 
     local character = cm:get_character_by_cqi(characterCqi)
 
-    if character == nil then
+    if not character then
         TotoWar.loggers.utils:logWarning(
             "getCharacterCaption(%s): NOT FOUND",
             characterCqi)
+
+        return nil
     else
         TotoWar.loggers.utils:logDebug(
             "getCharacterCaption(%s): COMPLETED => %s",
