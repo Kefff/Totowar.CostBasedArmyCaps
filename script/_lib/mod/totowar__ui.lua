@@ -60,7 +60,7 @@ end
 ---Gets a UI component from the root.
 ---If the UI component is not found, throws an error.
 ---@param query string[] Query to the UI component from the root.
----@return UIC
+---@return UIC | nil
 function TotoWar__UI:getUIComponent(query)
     local uiComponent = self:findUIComponent(query)
 
