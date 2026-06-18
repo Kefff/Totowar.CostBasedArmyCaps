@@ -1,4 +1,4 @@
----Constants of the TotoWar Cost-Based Army Caps mod.
+---Constants of the TotoWar: Army Caps mod.
 ---@class TotoWar_Cbac_Constant
 TotoWar_Cbac_Constant = {
     ---Maximum size of an army to target for adjustments.
@@ -13,7 +13,7 @@ TotoWar_Cbac_Constant = {
     ---Ratio applied to the maximum percentage of a unit category to get the minimum percentage this unit category can occupy in AI armies.
     minimumUnitCategoryPercentageRatio = 0.15,
 
-    ---Name of the TotoWar Cost-Based Army Caps mod.
+    ---Name of the TotoWar: Army Caps mod.
     modName = "totowar_cost_based_army_caps",
 
     ---Default value for the maximum percentage of cavalry and monsters to target in AI armies.

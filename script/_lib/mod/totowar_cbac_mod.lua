@@ -1,4 +1,4 @@
----TotoWar mod for managing cost-Based army caps.
+---TotoWar mod for managing army caps.
 ---@class TotoWar_Cbac_Mod
 TotoWar_Cbac_Mod = {
     ---Manager for AI army supplies.
@@ -56,7 +56,7 @@ TotoWar_Cbac_Mod = {
 }
 TotoWar_Cbac_Mod.__index = TotoWar_Cbac_Mod
 
----TotoWar Cost-Based Army Cost mod instance.
+---TotoWar: Army Cost mod instance.
 ---@type TotoWar_Cbac_Mod
 TotoWar_Cbac = nil
 
@@ -74,7 +74,7 @@ function TotoWar_Cbac_Mod.new()
     TotoWar_Cbac:addListeners()
     TotoWar_Cbac:loadMctOptions()
 
-    TotoWar_Cbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Mod initialized")
+    TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Mod initialized")
     TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod.new(): COMPLETED")
 
     return TotoWar_Cbac
@@ -127,7 +127,7 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         return
     end
 
-    TotoWar_Cbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Loading options")
+    TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Loading options")
 
     local options = mct:get_mod_by_key(TotoWar__Constant.modName)
 
@@ -174,7 +174,7 @@ function TotoWar_Cbac_Mod:loadMctOptions()
     -- Signaling option changes
     core:trigger_event(TotoWar_Cbac_Enum_ModEvent.optionsUpdated)
 
-    TotoWar_Cbac.loggers.generic:logInfo("TotoWar - Cost-Based Army Caps | Options loaded")
+    TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Options loaded")
 end
 
 ---Reacts to MCT options being updated.

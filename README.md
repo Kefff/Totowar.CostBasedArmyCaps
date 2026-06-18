@@ -1,9 +1,9 @@
-# TotoWar: Cost-Based Army Caps
+# TotoWar: Army Caps
 
-`TotoWar: Cost-Based Army Caps` is a mod that caps player and AI campaign armies using a new resource called `Army Supplies`, similar to the budget in skirmish battles.  
-In addition to its normal price, each unit has an `Army Supplies` cost, which is deducted from the army's `Army Supplies`.  
-This prevents elite doomstacks and keeps low-tier units relevant during the late game.  
-The mod also affects AI army compositions to avoid elite or monster-only armies.
+`TotoWar: Army Caps` is a mod that caps player and AI campaign armies using an additional resource called `Army Supplies`, similar to the budget in skirmish battles.  
+In addition to its normal price, each unit has an `Army Supplies` cost, which is deducted from the army's available `Army Supplies`.  
+Thanks to this system, the mod **prevents elite doomstacks** and **keeps low-tier units relevant during the late game**.  
+It also affects AI army compositions and tends to produce **more diversified AI armies**.
 
 ## Inspiration
 This mod is heavily inspired by other great mods (and their derivatives) that add restrictions and lore-friendly caps to improve army compositions:
@@ -32,31 +32,33 @@ By default, AI armies have the same `Army Supplies` budget as the player.
 The mod has no impact on an AI army as long as its `Army Supplies` budget is not exceeded.  
 When this happens, the following occurs:
 
-A target army size (between 13 and 20) and a maximum amount of each unit category are randomly generated for the army:
-- Maximum amount of cavalry and monsters (up to 50% by default)
-- Maximum amount of heroes (up to 15% by default)
-- Maximum amount of melee infantry (up to 75% by default)
-- Maximum amount of ranged infantry (up to 50% by default)
-- Maximum amount of war machines (up to 20% by default)
+A target army size (between `13` and `20`) and a maximum amount of each unit category are randomly generated for the army:
+- Maximum amount of cavalry and monsters (up to `50%` by default)
+- Maximum amount of heroes (up to `15%` by default)
+- Maximum amount of melee infantry (up to `75%` by default)
+- Maximum amount of ranged infantry (up to `50%` by default)
+- Maximum amount of war machines (up to `20%` by default)
 
-If the faction does not have access to some unit categories, the maximum amount of other unit categories is increased, up to a maximum of 75%.  
+If the faction does not have access to some unit categories, the maximum amount of other unit categories is increased, up to a maximum of `75%`.  
 Each AI army has different randomly generated target values.
 
 This determines how the mod chooses to remove units from the army to match the available `Army Supplies` budget, which makes AI army compositions more varied.  
-Armies with a lower target size will tend to use elite troops, while armies with a higher target size will tend to use more lower-tier units.
+Armies with a lower target size will tend to include elite troops, while armies with a higher target size will tend to include more lower-tier units.
+Some armies will tend to include more war machines than others, some will tend to include more ranged units than other.
 
-However, keep in mind that the mod does not influence which units the AI decides to recruit.  
+However, keep in mind that **the mod does not influence which units the AI decides to recruit**.  
 It only removes heroes and units in an attempt to match the `Army Supplies` budget, target army size, and to ensure units of different types stay under their maximum amount.
 
-## Impact on quest battles
-Since army compositions are weaker than usual due to the mod restrictions, quest battles are much more difficult.
+## Impact on sieges and quest battles
+Since army compositions are weaker than usual due to the mod restrictions, **sieges and quest battles are much more difficult**.  
+This may force you to really siege settlements for some turns or use multiple armies for a frontal assault.  
 
-If you struggle, you can work around the restrictions by recruiting or transferring additional or better units to your army (which will prevent it from moving).  
+If you struggle with quest battles, you can work around the restrictions by recruiting or transferring additional or better units to your army (which will prevent it from moving).  
 Then, use the quest `Teleport` button to start the battle.  
 Afterward, you can disband or transfer units back to another army to be able to move again.
 
-## Adding the mod to an ongoing campaign
-While it is best to start a new campaign with the mod, you can still play an ongoing campaign with it.  
+## Using the mod with an ongoing campaign
+While it is best to start a new campaign, you can still play an ongoing campaign with the mod activated.  
 Bear in mind that you will have to adjust the composition of all your armies to match the `Army Supplies` budget to be able to move them.  
 The composition of AI armies will be adjusted on the following turn.
 
@@ -73,7 +75,7 @@ It has not been developed with multiplayer in mind, nor has it been tested in a 
 ## Compatibility with other mods
 The mod should be compatible with mods that add units, provided the added units have a skirmish battle price.
 
-However, **the mod will conflict with mods that impose caps**, such as DrunkFlamingo's [Tabletop Caps](https://steamcommunity.com/sharedfiles/filedetails/?id=2789896406) or Wolfy's [Cost-based Army Caps](https://steamcommunity.com/sharedfiles/filedetails/?id=2843367951) (and their derivatives).  
+However, the mod will **conflict with mods that impose caps**, such as DrunkFlamingo's [Tabletop Caps](https://steamcommunity.com/sharedfiles/filedetails/?id=2789896406) or Wolfy's [Cost-based Army Caps](https://steamcommunity.com/sharedfiles/filedetails/?id=2843367951) (and their derivatives).  
 
 Overhaul mods like Venris' [SFO: Grimhammer](https://steamcommunity.com/sharedfiles/filedetails/?id=2792731173) or [Radious Total War Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=2791750313) **are very likely incompatible**.  
 I have not made any test with them.

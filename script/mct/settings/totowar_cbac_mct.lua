@@ -7,7 +7,7 @@ local mct = get_mct()
 if mct then
     local mctMod = mct:get_mod_by_key(TotoWar__Constant.modName)
 
-    local totoWarCbacModPage = mctMod:create_settings_page("TotoWar Cost-Based Army Caps - Options", 1) -- For some reason the key used to identify the page is displayed to the user, but using a localised text does not work
+    local totoWarCbacModPage = mctMod:create_settings_page("TotoWar: Army Caps - Options", 1) -- For some reason the key used to identify the page is displayed to the user, but using a localised text does not work
 
     -- Player section
     local cbacPlayerSection = mctMod:add_new_section(
