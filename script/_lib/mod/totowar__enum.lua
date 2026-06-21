@@ -11,12 +11,6 @@ TotoWar__Enum_CcoContextTypeIds = {
     mainUnitRecord = "CcoMainUnitRecord"
 }
 
----Colors.
----@class TotoWar__Enum_CharacterTypes
-TotoWar__Enum_CharacterTypes = {
-    lord = "lord"
-}
-
 ---Events triggered by the game.
 ---@class TotoWar__Enum_GameEvent
 TotoWar__Enum_GameEvent = {

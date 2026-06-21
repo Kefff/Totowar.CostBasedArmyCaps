@@ -717,7 +717,11 @@ function TotoWar_Cbac_PlayerManager:updatedSelectedLordMovement()
         for i = 0, selectedLordArmyCharacters:num_items() - 1, 1 do
             local character = selectedLordArmyCharacters:item_at(i)
 
-            if character:character_type_key() ~= TotoWar__Enum_CharacterTypes.lord then
+            if not TotoWar__Gameplay:isLordCharacter(character) then
+                TotoWar_Cbac.loggers.playerManager:logDebug(
+                    "updatedSelectedLordMovement(): REACTIVATING MOVEMENT FOR HERO => %s",
+                    function() return TotoWar__Gameplay:getCharacterCaption(character) end)
+
                 cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
             end
         end
