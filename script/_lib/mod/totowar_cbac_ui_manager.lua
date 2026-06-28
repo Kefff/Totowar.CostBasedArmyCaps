@@ -327,6 +327,57 @@ function TotoWar_Cbac_UIManager:getArmySuppliesCostText(armySuppliesCost)
     return armySuppliesCostText
 end
 
+---Gets the lord of a unit exchange pool UI component.
+---@param unitExchangePoolUIComponent UIC Unit exchange pool UI component that contains the army units.
+---@return CHARACTER_SCRIPT_INTERFACE | nil
+function TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePoolUIComponent)
+    TotoWar_Cbac.loggers.uiManager:logDebug("getUnitExchangeLord(): STARTED")
+
+    ---@type CHARACTER_SCRIPT_INTERFACE | nil
+    local character = nil
+    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
+
+    if unitExchangePoolUnitListUIComponent ~= nil then
+        for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+            ---@type UIC | false
+            local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
+
+            if unitCardUIComponent then
+                local objectContextId = unitCardUIComponent:GetContextObjectId(
+                    TotoWar__Enum_CcoContextTypeIds.campaignUnit)
+                local characterCqi = common.get_context_value(
+                    TotoWar__Enum_CcoContextTypeIds.campaignUnit,
+                    objectContextId,
+                    "CharacterContext.CQI")
+
+                if characterCqi ~= nil then
+                    character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+                    if character ~= nil and TotoWar__Gameplay:isLordCharacter(character) then
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    if character == nil then
+        TotoWar_Cbac.loggers.uiManager:logError("Unable to find a lord in a unit exchange pool")
+    end
+
+    TotoWar_Cbac.loggers.uiManager:logDebug(
+        "getUnitExchangeLord(): COMPLETED => %s",
+        function()
+            if character ~= nil then
+                return TotoWar__Gameplay:getCharacterCaption(character)
+            else
+                return "NOT FOUND"
+            end
+        end)
+
+    return character
+end
+
 ---Hides the army supplies cost UI component.
 function TotoWar_Cbac_UIManager:hideArmySuppliesCostUIComponent()
     TotoWar_Cbac.loggers.uiManager:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
@@ -396,6 +447,15 @@ function TotoWar_Cbac_UIManager:onOptionsUpdated()
     TotoWar_Cbac.loggers.uiManager:logDebug("onOptionsUpdated(): COMPLETED")
 end
 
+---Reacts to the another faction character being selected.
+function TotoWar_Cbac_UIManager:onOtherFactionCharacterSelected()
+    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
+
+    self:hideArmySuppliesCostUIComponent()
+
+    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
+end
+
 ---Reacts to the recruitment panel being closed.
 function TotoWar_Cbac_UIManager:onRecruitmentPanelClosed()
     TotoWar_Cbac.loggers.uiManager:logDebug("onRecruitmentPanelClosed(): STARTED")
@@ -452,6 +512,21 @@ function TotoWar_Cbac_UIManager:onSelectedLordArmySuppliesCostChanged()
     TotoWar_Cbac.loggers.uiManager:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
 end
 
+---Reacts to the army supplies cost of armies exchanging units changing.
+function TotoWar_Cbac_UIManager:onUnitExchangeSuppliesCostChanged()
+    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
+
+    local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitExchangePool1)
+    self:updateUnitExchangePool(unitExchangePool1UIComponent, TotoWar_Cbac.playerManager.unitExchangeArmySuppliesCost1)
+
+    local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitExchangePool2)
+    self:updateUnitExchangePool(unitExchangePool2UIComponent, TotoWar_Cbac.playerManager.unitExchangeArmySuppliesCost2)
+
+    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
+end
+
 ---Resets flags that indicate UI changes have been made to display army supply costs.
 function TotoWar_Cbac_UIManager:resetUIChangeFlags()
     TotoWar_Cbac.loggers.uiManager:logDebug("resetUIChangeFlags(): STARTED")
@@ -460,30 +535,6 @@ function TotoWar_Cbac_UIManager:resetUIChangeFlags()
     self.lastOpenedRecruitmentPools = {}
 
     TotoWar_Cbac.loggers.uiManager:logDebug("resetUIChangeFlags(): COMPLETED")
-end
-
----Reacts to the another faction character being selected.
-function TotoWar_Cbac_UIManager:onOtherFactionCharacterSelected()
-    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
-
-    self:hideArmySuppliesCostUIComponent()
-
-    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
-end
-
----Reacts to the army supplies cost of armies exchanging units changing.
-function TotoWar_Cbac_UIManager:onUnitExchangeSuppliesCostChanged()
-    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): STARTED")
-
-    local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries
-        .unitExchangePool1)
-    self:updateUnitExchangePool(unitExchangePool1UIComponent, TotoWar_Cbac.playerManager.unitExchangeArmySuppliesCost1)
-
-    local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries
-        .unitExchangePool2)
-    self:updateUnitExchangePool(unitExchangePool2UIComponent, TotoWar_Cbac.playerManager.unitExchangeArmySuppliesCost2)
-
-    TotoWar_Cbac.loggers.uiManager:logDebug("onUnitExchangeSuppliesCostChanged(): COMPLETED")
 end
 
 ---Updates the allied recruitment pool.
@@ -710,6 +761,42 @@ function TotoWar_Cbac_UIManager:updateRecruitmentPools(recruitmentPools)
     end
 
     TotoWar_Cbac.loggers.uiManager:logDebug("updateRecruitmentPools(): COMPLETED")
+end
+
+---Updates unit exchange army supplies cost of two unit exchange pools base on which unit cards
+---are selected in one of the pools.
+---@param unitExchangePoolUIComponent UIC Current unit exchange pool.
+---@param unitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the current unit exchange pool.
+---@param otherUnitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the other unit exchange pool.
+function TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
+    unitExchangePoolUIComponent,
+    unitExchangePoolArmySuppliesCost,
+    otherUnitExchangePoolArmySuppliesCost)
+    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
+
+    if unitExchangePoolUnitListUIComponent ~= nil then
+        for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+            local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
+            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
+                unitCardUIComponent,
+                { "card_image_holder" })
+
+            if cardImageHolderUIComponent ~= nil then
+                local unitContext = TotoWar__UI:getUIComponentCCO(
+                    cardImageHolderUIComponent,
+                    TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+                ---@type string
+                local unitKey = unitContext:Call("Key")
+
+                if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
+                    otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                else
+                    unitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                end
+            end
+        end
+    end
 end
 
 ---Updates the army supplies cost of a unit exchange pool.

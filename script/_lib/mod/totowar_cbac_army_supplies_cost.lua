@@ -33,29 +33,36 @@ TotoWar_Cbac_ArmySuppliesCost.__index = TotoWar_Cbac_ArmySuppliesCost
 ---@param lordLevel integer Level of the lord leading the army.
 ---@return TotoWar_Cbac_ArmySuppliesCost
 function TotoWar_Cbac_ArmySuppliesCost.new(isAi, lordLevel)
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("TotoWar_Cbac_ArmySuppliesCost.new(): STARTED")
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
+        "TotoWar_Cbac_ArmySuppliesCost.new(%s, %s): STARTED",
+        function() return isAi end,
+        function() return lordLevel end)
 
     local instance = setmetatable({}, TotoWar_Cbac_ArmySuppliesCost)
 
+    local baseArmySupplies = 0
     local levelBonus = 0
 
     if isAi then
+        baseArmySupplies = TotoWar_Cbac.options.aiArmySuppliesAmount
         levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.aiArmySuppliesBonusAmountPerLevel
-        instance.totalArmySupplies = TotoWar_Cbac.options.aiArmySuppliesAmount + levelBonus
     else
+        baseArmySupplies = TotoWar_Cbac.options.playerArmySuppliesAmount
         levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.playerArmySuppliesBonusAmountPerLevel
-        instance.totalArmySupplies = TotoWar_Cbac.options.playerArmySuppliesAmount + levelBonus
     end
 
     instance.availableSupplies = instance.totalArmySupplies
     instance.lordLevel = lordLevel
     instance.inRecruitmentMercenaryUnits = {}
+    instance.totalArmySupplies = baseArmySupplies + levelBonus
     instance.totalCost = 0
     instance.unitArmySuppliesCosts = {}
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_ArmySuppliesCost.new(): COMPLETED => Lord level: %s | Bonus army supplies: %s | Total army supplies: %s",
-        function() return instance.lordLevel end,
+        "TotoWar_Cbac_ArmySuppliesCost.new(%s, %s): COMPLETED => Base armmy supplies: %s | Bonus army supplies: %s | Total army supplies: %s",
+        function() return isAi end,
+        function() return lordLevel end,
+        function() return baseArmySupplies end,
         function() return levelBonus end,
         function() return instance.totalArmySupplies end)
 

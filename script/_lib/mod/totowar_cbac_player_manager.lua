@@ -637,59 +637,36 @@ function TotoWar_Cbac_PlayerManager:onUnitRemovedFromRecruitment(unitKey)
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 end
 
----Updates unit exchange army supplies cost of two unit exchange pools base on which unit cards
----are selected in one of the pools.
----@param unitExchangePoolUIComponent UIC Current unit exchange pool.
----@param unitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the current unit exchange pool.
----@param otherUnitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the other unit exchange pool.
-function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCost(
-    unitExchangePoolUIComponent,
-    unitExchangePoolArmySuppliesCost,
-    otherUnitExchangePoolArmySuppliesCost)
-    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
-
-    if unitExchangePoolUnitListUIComponent ~= nil then
-        for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
-            local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
-            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-                unitCardUIComponent,
-                { "card_image_holder" })
-
-            if cardImageHolderUIComponent ~= nil then
-                local unitContext = TotoWar__UI:getUIComponentCCO(
-                    cardImageHolderUIComponent,
-                    TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
-
-                ---@type string
-                local unitKey = unitContext:Call("Key")
-
-                if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
-                    otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
-                else
-                    unitExchangePoolArmySuppliesCost:addUnit(unitKey)
-                end
-            end
-        end
-    end
-end
-
 ---Updates unit exchange army supplies costs.
 function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
-    self.unitExchangeArmySuppliesCost1 = TotoWar_Cbac_ArmySuppliesCost.new(false, self.selectedLord:rank())
-    self.unitExchangeArmySuppliesCost2 = TotoWar_Cbac_ArmySuppliesCost.new(false, self.selectedLord:rank())
+    local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitExchangePool1)
+    local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitExchangePool2)
 
-    local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries
-        .unitExchangePool1)
-    self:updateUnitExchangeArmySuppliesCost(
+    local lord1 = TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePool1UIComponent)
+    local lord1Rank = 1
+    local lord2 = TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePool2UIComponent)
+    local lord2Rank = 1
+
+    if lord1 ~= nil then
+        lord1Rank = lord1:rank()
+    end
+
+    if lord2 ~= nil then
+        lord2Rank = lord2:rank()
+    end
+
+    self.unitExchangeArmySuppliesCost1 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord1Rank)
+    TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
         unitExchangePool1UIComponent,
         self.unitExchangeArmySuppliesCost1,
         self.unitExchangeArmySuppliesCost2)
 
-    local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries
-        .unitExchangePool2)
-    self:updateUnitExchangeArmySuppliesCost(
+    self.unitExchangeArmySuppliesCost2 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord2Rank)
+    TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
         unitExchangePool2UIComponent,
         self.unitExchangeArmySuppliesCost2,
         self.unitExchangeArmySuppliesCost1)
