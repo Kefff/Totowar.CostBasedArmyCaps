@@ -776,23 +776,44 @@ function TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
 
     if unitExchangePoolUnitListUIComponent ~= nil then
         for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+            ---@type UIC | false
             local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
-            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-                unitCardUIComponent,
-                { "card_image_holder" })
 
-            if cardImageHolderUIComponent ~= nil then
-                local unitContext = TotoWar__UI:getUIComponentCCO(
-                    cardImageHolderUIComponent,
-                    TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+            if unitCardUIComponent then
+                local objectContextId = unitCardUIComponent:GetContextObjectId(
+                    TotoWar__Enum_CcoContextTypeIds.campaignUnit)
+                local characterCqi = common.get_context_value(
+                    TotoWar__Enum_CcoContextTypeIds.campaignUnit,
+                    objectContextId,
+                    "CharacterContext.CQI")
 
-                ---@type string
-                local unitKey = unitContext:Call("Key")
-
-                if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
-                    otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                if characterCqi ~= nil then
+                    -- Adding a character
+                    if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
+                        otherUnitExchangePoolArmySuppliesCost:addCharacter(characterCqi)
+                    else
+                        unitExchangePoolArmySuppliesCost:addCharacter(characterCqi)
+                    end
                 else
-                    unitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                    -- Adding a unit
+                    local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
+                        unitCardUIComponent,
+                        { "card_image_holder" })
+
+                    if cardImageHolderUIComponent ~= nil then
+                        local unitContext = TotoWar__UI:getUIComponentCCO(
+                            cardImageHolderUIComponent,
+                            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+                        ---@type string
+                        local unitKey = unitContext:Call("Key")
+
+                        if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
+                            otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                        else
+                            unitExchangePoolArmySuppliesCost:addUnit(unitKey)
+                        end
+                    end
                 end
             end
         end
