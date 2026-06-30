@@ -116,7 +116,7 @@ TotoWar__Enum_ModEvents = {
     ---Event triggered when options are updated.
     ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
     ---have been updated by reading values from the Mod Configuration Tool.
-    optionsUpdated = "TotoWar_OptionsUpdated"
+    optionsUpdated = "TotoWar__OptionsUpdated"
 }
 
 ---UI component states.

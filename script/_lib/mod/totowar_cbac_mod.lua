@@ -85,7 +85,7 @@ function TotoWar_Cbac_Mod:addListeners()
     TotoWar_Cbac.loggers.generic:logDebug("addListeners(): STARTED")
 
     TotoWar__Gameplay:addListener(
-        "TotoWarCbac",
+        "TotoWar_Cbac",
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
         true,
         function()
@@ -110,11 +110,11 @@ end
 
 ---Initializes loggers.
 function TotoWar_Cbac_Mod:initializeLoggers()
-    TotoWar_Cbac.loggers.aiManager = TotoWar__Logger.new("TotoWarCbac_AiManager")
-    TotoWar_Cbac.loggers.armySuppliesCost = TotoWar__Logger.new("TotoWarCbac_ArmySuppliesCost")
-    TotoWar_Cbac.loggers.generic = TotoWar__Logger.new("TotoWarCbac_Generic")
-    TotoWar_Cbac.loggers.playerManager = TotoWar__Logger.new("TotoWarCbac_PlayerManager")
-    TotoWar_Cbac.loggers.uiManager = TotoWar__Logger.new("TotoWarCbac_UIManager")
+    TotoWar_Cbac.loggers.aiManager = TotoWar__Logger.new("TotoWar_Cbac_AiManager")
+    TotoWar_Cbac.loggers.armySuppliesCost = TotoWar__Logger.new("TotoWar_Cbac_ArmySuppliesCost")
+    TotoWar_Cbac.loggers.generic = TotoWar__Logger.new("TotoWar_Cbac_Generic")
+    TotoWar_Cbac.loggers.playerManager = TotoWar__Logger.new("TotoWar_Cbac_PlayerManager")
+    TotoWar_Cbac.loggers.uiManager = TotoWar__Logger.new("TotoWar_Cbac_UIManager")
 
     TotoWar_Cbac.loggers.generic:logDebug("initializeLoggers(): COMPLETED")
 end

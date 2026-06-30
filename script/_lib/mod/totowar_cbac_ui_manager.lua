@@ -102,7 +102,7 @@ function TotoWar_Cbac_UIManager:addListeners()
         "TotoWar_Cbac_UIManager",
         TotoWar__Enum_GameEvent.characterDeselected,
         function()
-            -- We do not check the TotoWarCbac.playerArmySuppliesEnabled option because when this option
+            -- We do not check the TotoWar_Cbac.options.playerArmySuppliesEnabled option because when this option
             -- is disabled, we deselect everything and we want onCharacterDeselected to be executed
             -- to reset UI elements.
             return cm:is_local_players_turn()

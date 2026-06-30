@@ -4,7 +4,7 @@ TotoWar_Cbac_PlayerManager = {
     ---Indicates whether the army supplies cost is being initialized.
     ---When it is the case, methods that update UI elements (such as when a panel is opened)
     ---should not execute because the UI will be updated when the
-    ---TotoWarCbac_SelectedLordArmySuppliesCostChanged event is triggered at the end ot the
+    ---TotoWar_Cbac_SelectedLordArmySuppliesCostChanged event is triggered at the end ot the
     ---supplies cost initialization.
     isInitializingArmySuppliesCost = false,
 
@@ -49,7 +49,7 @@ function TotoWar_Cbac_PlayerManager:addListeners()
         "TotoWar_Cbac_PlayerManager",
         TotoWar__Enum_GameEvent.characterDeselected,
         function()
-            -- We do not check the TotoWarCbac.options.playerArmySuppliesEnabled option because when this option
+            -- We do not check the TotoWar_Cbac.options.playerArmySuppliesEnabled option because when this option
             -- is disabled, we deselect everything and we want onCharacterDeselected to be executed
             -- to reset army movement. This avoids having the last selected army unable to move after
             -- disabling the option.
@@ -73,7 +73,7 @@ function TotoWar_Cbac_PlayerManager:addListeners()
         end)
 
     TotoWar__Gameplay:addListener(
-        "TotoWarCbacPlayerManager_InRecruitmentMercenaryUnitCard",
+        "TotoWar_Cbac_PlayerManager_InRecruitmentMercenaryUnitCard",
         TotoWar__Enum_GameEvent.componentLeftClick,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
@@ -377,7 +377,7 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
             --- initializing the army supplies cost because we need to get the cost of the
             --- units being recruited
             TotoWar__Gameplay:addListener(
-                "TotoWarCbacPlayerManager_UnitsPanel",
+                "TotoWar_Cbac_PlayerManager_UnitsPanel",
                 TotoWar__Enum_GameEvent.panelOpened,
                 ---@param context TotoWar__GameEventContext_PanelOpenedOrClosed
                 function(context)

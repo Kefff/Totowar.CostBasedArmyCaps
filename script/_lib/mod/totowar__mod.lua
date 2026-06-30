@@ -93,10 +93,10 @@ function TotoWar__Mod:initializeLoggers()
         file:close()
     end
 
-    TotoWar.loggers.generic = TotoWar__Logger.new("TotoWar_Generic")
-    TotoWar.loggers.modsManager = TotoWar__Logger.new("TotoWar_ModsManager")
-    TotoWar.loggers.uiUtils = TotoWar__Logger.new("TotoWar_UIUtils")
-    TotoWar.loggers.utils = TotoWar__Logger.new("TotoWar_Utils")
+    TotoWar.loggers.generic = TotoWar__Logger.new("TotoWar__Generic")
+    TotoWar.loggers.modsManager = TotoWar__Logger.new("TotoWar__ModsManager")
+    TotoWar.loggers.uiUtils = TotoWar__Logger.new("TotoWar__UIUtils")
+    TotoWar.loggers.utils = TotoWar__Logger.new("TotoWar__Utils")
 
     TotoWar.loggers.generic:logDebug("initializeLoggers(): COMPLETED")
 end
