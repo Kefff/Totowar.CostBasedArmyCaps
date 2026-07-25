@@ -88,7 +88,7 @@ function TotoWar_Cbac_PlayerManager:addListeners()
         end)
 
     TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_PlayerManager",
+        "TotoWar_Cbac_PlayerManager_RecruitableMercenaryUniCard",
         TotoWar__Enum_GameEvent.componentLeftClick,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
@@ -101,6 +101,50 @@ function TotoWar_Cbac_PlayerManager:addListeners()
         function(context)
             local uiComponent = UIComponent(context.component)
             self:onRecruitableMercenaryUniCardClick(context.string, uiComponent)
+        end)
+
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_PlayerManager_WarbandUpgradeUnitToUpgradeCard",
+        TotoWar__Enum_GameEvent.componentLeftClick,
+        ---@param context TotoWar__GameEventContext_ComponentLeftClick
+        function(context)
+            -- Click on a unit card while the warband upgrades panel is open
+
+            -- For some reason, when multiple unit cards are selected using CTRL + Click, this event is triggered for each selected unit card, not juste the one clicked.
+            local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
+                TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
+
+            return
+                TotoWar_Cbac.options.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
+                and context.string:match(TotoWar__Enum_Patterns.standardUnitCard)
+                and warbandUpgradesUIComponent ~= nil
+        end,
+        function()
+            self:onWarbandUpgradeChanged()
+        end)
+
+    TotoWar__Gameplay:addListener(
+        "TotoWar_Cbac_PlayerManager_WarbandUpgradeUpgradedUnitCard",
+        TotoWar__Enum_GameEvent.componentLeftClick,
+        ---@param context TotoWar__GameEventContext_ComponentLeftClick
+        function(context)
+            -- Click on a a warband upgrade
+
+            -- The Warband Upgrade screen is not considered a panel so we cannot know when it is opened.
+            -- However, we can check when clicking on an element whether it is a Warband Upgrade to update the Warband Upgrade cost in the Warband Upgrade panel.
+            -- For some reason, when a warband upgrade is selected, clicking on a unit card in the unit list triggers the click event for the selected warband upgrade.
+            -- So onWarbandUpgradeSelected may be called multiples times instead of just once.
+            return
+                TotoWar_Cbac.options.playerArmySuppliesEnabled
+                and cm:is_local_players_turn()
+                and TotoWar__String:startsWith(context.string, "CcoMainUnitRecord")
+                and TotoWar__UI:isUIComponentChildOf(
+                    UIComponent(context.component),
+                    { "warband_upgrades" })
+        end,
+        function()
+            self:onWarbandUpgradeChanged()
         end)
 
     TotoWar__Gameplay:addListener(
@@ -299,30 +343,29 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
     -- Adding units being recruited in the lord army
     local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
 
-    if unitsUIComponent ~= nil then
-        -- Adding units from the recruitment queue
-        for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
-            -- Iterating from the last unit card since units being recruited are at the end
-            local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
+    -- Adding units from the recruitment queue
+    for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
+        -- Iterating from the last unit card since units being recruited are at the end
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
 
-            if not unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentStandardUnitCard)
-            then
-                -- Stopping the iteration as soon as we encounter a unit that is not being recruited
-                break
-            end
+        if not unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentStandardUnitCard)
+        then
+            -- Stopping the iteration as soon as we encounter a unit that is not being recruited
+            break
+        end
 
-            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent,
-                { "card_image_holder" })
+        local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
+            unitCardUIComponent,
+            { "card_image_holder" })
 
-            if cardImageHolderUIComponent ~= nil then
-                local unitContext = TotoWar__UI:getUIComponentCCO(
-                    cardImageHolderUIComponent,
-                    TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+        if cardImageHolderUIComponent ~= nil then
+            local unitContext = TotoWar__UI:getUIComponentCCO(
+                cardImageHolderUIComponent,
+                TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
-                ---@type string
-                local unitKey = unitContext:Call("Key")
-                self.selectedLordArmySuppliesCost:addUnit(unitKey)
-            end
+            ---@type string
+            local unitKey = unitContext:Call("Key")
+            self.selectedLordArmySuppliesCost:addUnit(unitKey)
         end
     end
 
@@ -476,19 +519,17 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUniCardClick(uiCompone
     local inRecruitmentMercenaryUnitCount = 0
     local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
 
-    if unitsUIComponent ~= nil then
-        for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
-            -- Iterating from the last unit card since units being recruited are at the end
-            local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
+    for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
+        -- Iterating from the last unit card since units being recruited are at the end
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
 
-            if not unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard)
-            then
-                -- Stopping the iteration as soon as we encounter a unit that is not a mercenary unit being recruited
-                break
-            end
-
-            inRecruitmentMercenaryUnitCount = inRecruitmentMercenaryUnitCount + 1
+        if not unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard)
+        then
+            -- Stopping the iteration as soon as we encounter a unit that is not a mercenary unit being recruited
+            break
         end
+
+        inRecruitmentMercenaryUnitCount = inRecruitmentMercenaryUnitCount + 1
     end
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
@@ -635,6 +676,117 @@ function TotoWar_Cbac_PlayerManager:onUnitRemovedFromRecruitment(unitKey)
     TotoWar_Cbac.loggers.playerManager:logDebug(
         "onUnitRemovedFromRecruitment(%s): COMPLETED",
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
+end
+
+---Reacts to a a warband upgrade being selected or a unit card being selected while the warband upgrade screen is open.
+function TotoWar_Cbac_PlayerManager:onWarbandUpgradeChanged()
+    TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeSelected(): STARTED")
+
+    local warbandUpgradeArmySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.new(
+        false,
+        self.selectedLordArmySuppliesCost.lordLevel)
+    local unitToUpgradeUiComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesUnitToUpgrade)
+    local upgradedUnitUiComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesUpgradedUnit)
+
+    TotoWar_Cbac.loggers.playerManager:logDebug(
+        "[TEST] upgradedUnitUiComponent: %s | upgradedUnitUiComponent: %s",
+        function() return unitToUpgradeUiComponent:Visible(true) end,
+        function() return upgradedUnitUiComponent:Visible(true) end)
+
+    if unitToUpgradeUiComponent:Visible(true)
+        and upgradedUnitUiComponent:Visible(true)
+    then
+        -- Getting the unit type to upgrade
+        local unitToUpgradeContext = TotoWar__UI:getUIComponentCCO(
+            unitToUpgradeUiComponent,
+            TotoWar__Enum_CcoContextTypeIds.campaignUnit)
+
+        local objectContextId = unitToUpgradeUiComponent:GetContextObjectId(TotoWar__Enum_CcoContextTypeIds.campaignUnit)
+
+        ---@type string
+        local unitToUpgradeKey = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.campaignUnit,
+            objectContextId,
+            "UnitRecordContext.Key")
+
+        -- Counting how many units of this type are selected
+        local unitsToUpgradeCount = 0
+        local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
+
+        -- Getting the number of units selected
+        for i = 0, unitsUIComponent:ChildCount() - 1, 1 do
+            local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
+
+            local isSelected =
+                unitCardUIComponent:CurrentState() == TotoWar__Enum_UIComponentStates.selected
+                or unitCardUIComponent:CurrentState() == TotoWar__Enum_UIComponentStates.selectedHover
+            local isInRecruitmentUnit = unitCardUIComponent:Id():match(
+                TotoWar__Enum_Patterns.inRecruitmentStandardUnitCard) ~= nil
+
+            if isSelected and not isInRecruitmentUnit
+            then
+                local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
+                    unitCardUIComponent,
+                    { "card_image_holder" })
+
+                if cardImageHolderUIComponent ~= nil then
+                    local unitContext = TotoWar__UI:getUIComponentCCO(
+                        cardImageHolderUIComponent,
+                        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+                    --- @type string
+                    local unitKey = unitContext:Call("Key")
+
+                    if unitKey == unitToUpgradeKey then
+                        unitsToUpgradeCount = unitsToUpgradeCount + 1
+                    end
+                end
+            end
+        end
+
+        -- Getting the army supplies cost without the units that are selected to be upgraded
+        local unitsNotToInclude = unitsToUpgradeCount
+
+        for index, unitArmySuppliesCost in ipairs(self.selectedLordArmySuppliesCost.unitArmySuppliesCosts) do
+            if unitArmySuppliesCost.unitKey == unitToUpgradeKey and unitsNotToInclude > 0 then
+                unitsNotToInclude = unitsNotToInclude - 1
+            else
+                warbandUpgradeArmySuppliesCost:addUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi, false)
+            end
+        end
+
+        TotoWar_Cbac.loggers.playerManager:logDebug(
+            "CONNARD: %s | %s",
+            function() return unitToUpgradeKey end,
+            function() return unitToUpgradeContext:Call("Cost") end)
+
+        -- Getting the upgraded unit type
+        local upgradedUnitContext = TotoWar__UI:getUIComponentCCO(
+            upgradedUnitUiComponent,
+            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+        ---@type string
+        local upgradedUnitKey = upgradedUnitContext:Call("Key")
+
+        TotoWar_Cbac.loggers.playerManager:logDebug(
+            "CONNARD2: %s | %s",
+            function() return upgradedUnitKey end,
+            function() return upgradedUnitContext:Call("Cost") end)
+
+        -- Adding the upgraded unit cost to the army supplies cost
+        for i = 1, unitsToUpgradeCount, 1 do
+            warbandUpgradeArmySuppliesCost:addUnit(upgradedUnitKey, nil, nil)
+        end
+    end
+
+    -- Sending an event to update the warband upgrade UI with the upgraded army supplies cost
+    core:trigger_event(TotoWar_Cbac_Enum_ModEvent.warbandUpgradeArmySuppliesCostChanged, warbandUpgradeArmySuppliesCost)
+
+    TotoWar_Cbac.loggers.playerManager:logDebug(
+        "onWarbandUpgradeSelected(): COMPLETED => %s",
+        function() return warbandUpgradeArmySuppliesCost.totalCost end)
 end
 
 ---Updates unit exchange army supplies costs.

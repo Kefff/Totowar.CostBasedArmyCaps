@@ -129,7 +129,10 @@ TotoWar__Enum_UIComponentStates = {
     inactive = "inactive",
 
     ---Selected.
-    selected = "selected"
+    selected = "selected",
+
+    ---Selected and hovered.
+    selectedHover = "selected_hover"
 }
 
 ---Docking points.
@@ -180,6 +183,10 @@ TotoWar__Enum_Patterns = {
     ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
     ---queue.
     recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$",
+
+    ---Pattern for identifying a UI component corresponding to the unit card of recruitable standard
+    ---unit in the selected army.
+    standardUnitCard = "^LandUnit",
 
     ---Pattern for identifying a UI component corresponding to the unit card of an hero during unit exchange.
     unitExchangeHeroCard = "^HeroCard",

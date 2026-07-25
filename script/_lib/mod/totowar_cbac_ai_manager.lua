@@ -1228,6 +1228,19 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
                 lord:cqi(),
                 TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry),
             rangedInfantryCount)
+
+        TotoWar_Cbac.loggers.aiManager:logInfo(
+            "Target army composition for %s from %s: %s",
+            TotoWar__Gameplay:getCharacterCaption(lord),
+            TotoWar__Gameplay:getFactionCaption(army:faction():name()),
+            string.format(
+                "Size: %s | Heroes: %s | Melee infantry: %s | Ranged infantry: %s | Cavalry & monsters: %s | War machines: %s",
+                armySize,
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)))
     end
 
     TotoWar_Cbac.loggers.aiManager:logDebug(

@@ -56,38 +56,42 @@ function TotoWar_Cbac_UIManager.new()
     local instance = setmetatable({}, TotoWar_Cbac_UIManager)
 
     instance.recruitmentPools = TotoWar__Dictionary.new()
-    instance.recruitmentPools:set(TotoWar_Cbac_Enum_UiRecruitmentPoolName.allied, {
-        name = TotoWar_Cbac_Enum_UiRecruitmentPoolName.allied,
-        panelName = TotoWar__Enum_Panels.mercenaryRecruitment,
-        uiComponentQuery = TotoWar__UI.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool,
-        updateUIFunction = function()
-            instance:updateAlliedRecruitmentPool()
-        end
-    })
-    instance.recruitmentPools:set(TotoWar_Cbac_Enum_UiRecruitmentPoolName.global, {
-        name = TotoWar_Cbac_Enum_UiRecruitmentPoolName.global,
-        panelName = TotoWar__Enum_Panels.standardRecruitment,
-        uiComponentQuery = TotoWar__UI.uiComponentQueries.recruitmentOptionsGlobalRecruitmentPool,
-        updateUIFunction = function()
-            instance:updateGlobalRecruitmentPool()
-        end
-    })
-    instance.recruitmentPools:set(TotoWar_Cbac_Enum_UiRecruitmentPoolName.local_, {
-        name = TotoWar_Cbac_Enum_UiRecruitmentPoolName.local_,
-        panelName = TotoWar__Enum_Panels.standardRecruitment,
-        uiComponentQuery = TotoWar__UI.uiComponentQueries.recruitmentOptionsLocalRecruitmentPool,
-        updateUIFunction = function()
-            instance:updateLocalRecruitmentPool()
-        end
-    })
-    instance.recruitmentPools:set(TotoWar_Cbac_Enum_UiRecruitmentPoolName.mercenary, {
-        name = TotoWar_Cbac_Enum_UiRecruitmentPoolName.mercenary,
-        panelName = TotoWar__Enum_Panels.mercenaryRecruitment,
-        uiComponentQuery = TotoWar__UI.uiComponentQueries.recruitmentOptionsMercenaryRecruitmentPool,
-        updateUIFunction = function()
-            instance:updateMercenaryRecruitmentPool()
-        end
-    })
+    instance.recruitmentPools:set(
+        TotoWar_Cbac_Enum_UiRecruitmentPoolName.allied,
+        TotoWar_Cbac_RecruitmentPoolUI.new(
+            TotoWar_Cbac_Enum_UiRecruitmentPoolName.allied,
+            TotoWar__Enum_Panels.mercenaryRecruitment,
+            TotoWar__UI.uiComponentQueries.unitsPanelRecruitmentOptionsAlliedRecruitmentPool,
+            function()
+                instance:updateAlliedRecruitmentPool()
+            end))
+    instance.recruitmentPools:set(
+        TotoWar_Cbac_Enum_UiRecruitmentPoolName.global,
+        TotoWar_Cbac_RecruitmentPoolUI.new(
+            TotoWar_Cbac_Enum_UiRecruitmentPoolName.global,
+            TotoWar__Enum_Panels.standardRecruitment,
+            TotoWar__UI.uiComponentQueries.unitsPanelRecruitmentOptionsGlobalRecruitmentPool,
+            function()
+                instance:updateGlobalRecruitmentPool()
+            end))
+    instance.recruitmentPools:set(
+        TotoWar_Cbac_Enum_UiRecruitmentPoolName.local_,
+        TotoWar_Cbac_RecruitmentPoolUI.new(
+            TotoWar_Cbac_Enum_UiRecruitmentPoolName.local_,
+            TotoWar__Enum_Panels.standardRecruitment,
+            TotoWar__UI.uiComponentQueries.unitPanelRecruitmentOptionsLocalRecruitmentPool,
+            function()
+                instance:updateLocalRecruitmentPool()
+            end))
+    instance.recruitmentPools:set(
+        TotoWar_Cbac_Enum_UiRecruitmentPoolName.mercenary,
+        TotoWar_Cbac_RecruitmentPoolUI.new(
+            TotoWar_Cbac_Enum_UiRecruitmentPoolName.mercenary,
+            TotoWar__Enum_Panels.mercenaryRecruitment,
+            TotoWar__UI.uiComponentQueries.unitsPanelRecruitmentOptionsMercenaryRecruitmentPool,
+            function()
+                instance:updateMercenaryRecruitmentPool()
+            end))
 
     TotoWar_Cbac.loggers.uiManager:logDebug("TotoWar_Cbac_UIManager.new(): COMPLETED")
 
@@ -406,16 +410,7 @@ function TotoWar_Cbac_UIManager:isRecruitmentPanel(panelName)
         "isRecruitmentPanel(%s): STARTED",
         function() return panelName end)
 
-    local result = false
-
-    for index, entry in ipairs(self.recruitmentPools.entries) do
-        local recruitmentPool = entry.value
-        if recruitmentPool.panelName == panelName then
-            result = true
-
-            break
-        end
-    end
+    local result = TotoWar__Linq:any(self.recruitmentPools.entries, function(e) return e.value.panelName == panelName end)
 
     TotoWar_Cbac.loggers.uiManager:logDebug(
         "isRecruitmentPanel(%s): COMPLETED => %s",
@@ -465,8 +460,8 @@ function TotoWar_Cbac_UIManager:onRecruitmentPanelClosed()
     TotoWar_Cbac.loggers.uiManager:logDebug("onRecruitmentPanelClosed(): COMPLETED")
 end
 
----Reacts to a panel being opened.
----@param panelName string Name of the panel;
+---Reacts to a recruitment panel being opened.
+---@param panelName string Name of the panel.
 function TotoWar_Cbac_UIManager:onRecruitmentPanelOpened(panelName)
     --- We do not need to update the units_panel when it is opened, because it is the
     --- fact that it is opened that triggers the army supplies cost calculation.
@@ -542,7 +537,7 @@ function TotoWar_Cbac_UIManager:updateAlliedRecruitmentPool()
     TotoWar_Cbac.loggers.uiManager:logDebug("updateAlliedRecruitmentPanel(): STARTED")
 
     local alliedRecruitmentPoolUIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.recruitmentOptionsAlliedRecruitmentPool)
+        TotoWar__UI.uiComponentQueries.unitsPanelRecruitmentOptionsAlliedRecruitmentPool)
 
     if alliedRecruitmentPoolUIComponent ~= nil then
         local unitListQuery = { "listview", "list_clip", "allied_unit_list" }
@@ -628,7 +623,7 @@ function TotoWar_Cbac_UIManager:updateMercenaryRecruitmentPool()
 
     local unitListQuery = { "listview", "list_clip", "list_box" }
     local recruitmentPoolUIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.recruitmentOptionsMercenaryRecruitmentPool)
+        TotoWar__UI.uiComponentQueries.unitsPanelRecruitmentOptionsMercenaryRecruitmentPool)
 
     if recruitmentPoolUIComponent ~= nil then
         local unitListUIComponent = TotoWar__UI:findUIComponentChild(

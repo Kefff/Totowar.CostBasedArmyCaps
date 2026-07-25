@@ -4,15 +4,18 @@ TotoWar__UI = {
     ---Queries for finding UI components.
     ---@class TotoWarUIUtils_UIComponentQuery
     uiComponentQueries = {
-        recruitmentOptionsAlliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
-        recruitmentOptionsCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-        recruitmentOptionsGlobalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
-        recruitmentOptionsLocalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
-        recruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
         unitExchangePool1 = { "unit_exchange", "main_units_panel_1" },
         unitExchangePool2 = { "unit_exchange", "main_units_panel_2" },
+        unitPanelRecruitmentOptionsLocalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
         unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
-        unitsPanelUnits = { "units_panel", "main_units_panel", "units" }
+        unitsPanelRecruitmentOptionsAlliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" }, -- The typo in "allied_recuitment_display" is from CA
+        unitsPanelRecruitmentOptionsCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
+        unitsPanelRecruitmentOptionsGlobalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
+        unitsPanelRecruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
+        unitsPanelUnits = { "units_panel", "main_units_panel", "units" },
+        unitsPanelWarbandUpgrades = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades" },
+        unitsPanelWarbandUpgradesUnitToUpgrade = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade_small", "card_image_holder" },
+        unitsPanelWarbandUpgradesUpgradedUnit = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade", "card_image_holder" }
     }
 }
 TotoWar__UI.__index = TotoWar__UI
@@ -50,9 +53,10 @@ function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     end
 
     TotoWar.loggers.uiUtils:logDebug(
-        "findUIComponentChild(%s/%s): COMPLETED",
+        "findUIComponentChild(%s/%s): COMPLETED => %s",
         function() return parentUIComponent:Id() end,
-        function() return queryText end)
+        function() return queryText end,
+        function() return uiComponent:Id() end)
 
     return uiComponent
 end
@@ -60,7 +64,7 @@ end
 ---Gets a UI component from the root.
 ---If the UI component is not found, throws an error.
 ---@param query string[] Query to the UI component from the root.
----@return UIC | nil
+---@return UIC
 function TotoWar__UI:getUIComponent(query)
     local uiComponent = self:findUIComponent(query)
 

@@ -56,6 +56,10 @@ local function log(instance, severity, message, ...)
     local parameters = {}
 
     for i, value in ipairs({ ... }) do
+        if value == nil then
+            value = "nil"
+        end
+
         parameters[i] = tostring(value)
     end
 
@@ -100,11 +104,6 @@ function TotoWar__Logger:logDebug(message, ...)
 
         for i, valueFunction in ipairs({ ... }) do
             local value = valueFunction()
-
-            if value == nil then
-                value = "nil"
-            end
-
             parameters[i] = tostring(value)
         end
 

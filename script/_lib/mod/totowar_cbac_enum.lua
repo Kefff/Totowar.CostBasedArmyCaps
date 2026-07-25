@@ -22,6 +22,9 @@ TotoWar_Cbac_Enum_ModEvent = {
 
     ---Event triggered when the army supplies cost of army exchanging units changes.
     unitExchangeArmySuppliesCostChanged = "TotoWar_Cbac_UnitExchangeArmySuppliesCostChanged",
+
+    ---Event triggered when the army supplies cost changes due to units being selected for upgrade in the warband upgrade screen.
+    warbandUpgradeArmySuppliesCostChanged = "TotoWar_Cbac_WarbandUpgradeArmySuppliesCostChanged"
 }
 
 ---Recruitment pool names.
