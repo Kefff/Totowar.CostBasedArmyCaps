@@ -3,37 +3,6 @@
 TotoWar__Gameplay = {}
 TotoWar__Gameplay.__index = TotoWar__Gameplay
 
----Adds a listener.
----@param listenerNamePrefix string Prefix added to the event to name the listener.
----@param event string Event.
----@param conditionFunction boolean | fun(eventParameter: any): boolean Function for checking whether the callback should be called when the event is triggered. Takes a context as an argument. Return a boolean. Can be `true` instead of a function to always trigger the callback function.
----@param callbackFunction fun(eventParameter: any) Function to execute when the event is triggered and the condition function returns `true`.
----@param isPermanent boolean? Indicates whether the listener is permanent or it should be removed immediately after the event is triggered.
-function TotoWar__Gameplay:addListener(listenerNamePrefix, event, conditionFunction, callbackFunction, isPermanent)
-    if isPermanent == nil then
-        isPermanent = true
-    end
-
-    ---@type string
-    local listenerName = nil
-
-    if not isPermanent then
-        listenerName = string.format("%s_SingleUse_%s", listenerNamePrefix, event)
-        TotoWar.loggers.utils:logDebug(
-            "addListener() => Add single-use listener \"%s\" to event \"%s\"",
-            function() return listenerName end,
-            function() return event end)
-    else
-        listenerName = string.format("%s_%s", listenerNamePrefix, event)
-        TotoWar.loggers.utils:logDebug(
-            "addListener() => Add listener \"%s\" to event \"%s\"",
-            function() return listenerName end,
-            function() return event end)
-    end
-
-    core:add_listener(listenerName, event, conditionFunction, callbackFunction, isPermanent)
-end
-
 ---Indicates whether an army can recruit units.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
 ---@return boolean

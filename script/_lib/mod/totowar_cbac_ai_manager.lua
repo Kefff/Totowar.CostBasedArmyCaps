@@ -18,6 +18,8 @@ function TotoWar_Cbac_AiManager.new()
 
     local instance = setmetatable({}, TotoWar_Cbac_AiManager)
 
+    instance:subscribeToEvents()
+
     TotoWar_Cbac.loggers.aiManager:logDebug("TotoWar_Cbac_AiManager.new(): COMPLETED")
 
     return instance
@@ -106,96 +108,6 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
         function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit:unit_key()) end)
 end
 
----Adds listeners for events.
-function TotoWar_Cbac_AiManager:addListeners()
-    TotoWar_Cbac.loggers.aiManager:logDebug("addListeners(): STARTED")
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.characterTurnEnd,
-        ---@param context CharacterTurnEnd
-        function(context)
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and TotoWar__Gameplay:isLordCharacter(context:character())
-                and not cm:is_local_players_turn()
-        end,
-        ---@param context CharacterTurnEnd
-        function(context)
-            self:onAiCharacterTurnEnd(context:character())
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.militaryForceCreated,
-        function()
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
-        end,
-        ---@param context TotoWar__GameEventContext_MilitaryForceCreated
-        function(context)
-            self:onAiArmyCreated(context:military_force_created())
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.unitConverted,
-        function()
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
-        end,
-        ---@param context TotoWar__GameEventContext_UnitConverted
-        function(context)
-            self:onAiUnitConverted(context:unit(), context:converted_unit())
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.unitDisbanded,
-        function()
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
-        end,
-        ---@param context TotoWar__GameEventContext_UnitDisbanded
-        function(context)
-            self:onAiUnitDisbanded(context:unit())
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.unitTrained,
-        ---@param context TotoWar__GameEventContext_UnitTrained
-        function(context)
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
-                and context:unit():military_force()
-                and TotoWar__Gameplay:canRecruitUnits(context:unit():military_force())
-        end,
-        ---@param context TotoWar__GameEventContext_UnitTrained
-        function(context)
-            self:onAiUnitRecruited(context:unit())
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac_AiManager",
-        TotoWar__Enum_GameEvent.unitUpgraded,
-        function()
-            return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
-        end,
-        ---@param context TotoWar__GameEventContext_UnitUpgraded
-        function(context)
-            self:onAiUnitUpgraded(context:unit())
-        end)
-
-    TotoWar_Cbac.loggers.aiManager:logDebug("addListeners(): COMPLETED")
-end
-
 ---Adjusts an AI army by removing excess heroes and units when its cost exceeds army supplies.
 ---@param lordCqi integer Command queue index of the lord whose army will be adjusted.
 function TotoWar_Cbac_AiManager:adjustAiArmy(lordCqi)
@@ -232,12 +144,12 @@ function TotoWar_Cbac_AiManager:adjustAiArmy(lordCqi)
     local targetArmySize = TotoWar__Linq:sum(targetArmyComposition:getValues(), function(v) return v end)
     local unitCategoryExcessCounts = self:getUnitCategoryExcessCounts(armySuppliesCost, targetArmyComposition)
 
-    if unitCategoryExcessCounts:exists(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero) then
+    if unitCategoryExcessCounts:exists(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero) then
         -- Removing excess of heroes
         self:adjustAiArmyHeroes(
             army,
             armySuppliesCost,
-            unitCategoryExcessCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero))
+            unitCategoryExcessCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero))
     end
 
     ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
@@ -291,8 +203,8 @@ function TotoWar_Cbac_AiManager:adjustAiArmyCompositionAndUnits(
         armySuppliesCost.unitArmySuppliesCosts,
         function(uasc)
             return
-                uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
-                and uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
+                uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
+                and uasc.unitCategory ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
         end)
 
     if #removableUnits == 0 then
@@ -733,7 +645,7 @@ end
 function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
     local heroes = TotoWar__Linq:where(
         armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero end)
+        function(uasc) return uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero end)
 
     if herosInExcess == 0 then
         return 0
@@ -865,17 +777,17 @@ end
 
 ---Gets the maximum percentage a unit category can represent in a target army composition.
 ---@param faction FACTION_SCRIPT_INTERFACE Faction.
----@return TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategory, integer>
+---@return TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 function TotoWar_Cbac_AiManager:getTargetArmyCompositionUnitCategoryMaximumPercentages(faction)
     TotoWar_Cbac.loggers.aiManager:logDebug(
         "getTargetArmyCompositionUnitCategoryMaximumPercentage(%s of %s): STARTED",
         function() return TotoWar__Gameplay:getFactionCaption(faction:name()) end,
         function() return TotoWar__Gameplay:getCultureCaption(faction:culture()) end)
 
-    ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategory, integer>
+    ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
     local result = TotoWar__Dictionary.new()
 
-    ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategory[]
+    ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategories[]
     local overrides = {}
 
     local defaultTargetComposition = TotoWar_Cbac_ArmyCompositionTarget:get("default")
@@ -915,8 +827,8 @@ function TotoWar_Cbac_AiManager:getTargetArmyCompositionUnitCategoryMaximumPerce
         local unitCategoriesToUpdate = TotoWar__Linq:where(
             defaultTargetComposition:getKeys(),
             function(k)
-                return k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord  -- We do not want to allow more lords
-                    and k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero -- We do not want to allow more heroes
+                return k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord  -- We do not want to allow more lords
+                    and k ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero -- We do not want to allow more heroes
                     and not TotoWar__Linq:any(overrides, function(o) return o == k end)
             end)
         local percentageToAddPerUnitCategory =
@@ -966,7 +878,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         string.format(
             TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
             lord:cqi(),
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord))
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord))
 
     ---@type integer
     local armySize
@@ -979,48 +891,48 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
 
         -- Reading existing values from the game state
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero,
             TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_Constant.modName,
                 string.format(
                     TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero)))
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
             TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_Constant.modName,
                 string.format(
                     TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines)))
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
             TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_Constant.modName,
                 string.format(
                     TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters)))
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord,
             lordUnitAmount)
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
             TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_Constant.modName,
                 string.format(
                     TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry)))
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
             TotoWar__Gameplay:getSavedValue(
                 TotoWar_Cbac_Constant.modName,
                 string.format(
                     TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                     lord:cqi(),
-                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry)))
+                    TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry)))
 
         armySize = TotoWar__Linq:sum(categoryUnitCounts:getValues(), function(v) return v end)
     else
@@ -1033,14 +945,14 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         local maximumPercentages = self:getTargetArmyCompositionUnitCategoryMaximumPercentages(army:faction())
 
         local cavalryAndMonstersMaximumPercentage = maximumPercentages:get(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters)
-        local heroMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters)
+        local heroMaximumPercentage = maximumPercentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero)
         local meleeInfantryMaximumPercentage = maximumPercentages:get(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry)
         local rangedInfantryMaximumPercentage = maximumPercentages:get(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry)
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry)
         local warMachinesMaximumPercentage = maximumPercentages:get(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines)
 
         armySize = math.random(TotoWar_Cbac_Constant.minimumTargetArmySize, TotoWar_Cbac_Constant.maximumTargetArmySize)
 
@@ -1100,32 +1012,34 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         meleeInfantryPercentage = meleeInfantryPercentage + 100 - percentagesTotal
 
         -- Making sure the melee percentage is the highest
-        ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategory, integer>
+        ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
         local percentages = TotoWar__Dictionary.new()
-        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters, cavalryAndMonstersPercentage)
-        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero, heroPercentage)
-        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry, meleeInfantryPercentage)
-        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry, rangedInfantryPercentage)
-        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines, warMachinesPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters, cavalryAndMonstersPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero, heroPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry, meleeInfantryPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, rangedInfantryPercentage)
+        percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, warMachinesPercentage)
 
         table.sort(
             percentages.entries,
             function(a, b) return a.value > b.value end)
         local highestPercentageEntry = percentages.entries[1]
 
-        if highestPercentageEntry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry then
+        if highestPercentageEntry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry then
             local highestPercentage = highestPercentageEntry.value
-            local meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
+            local meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
+                .meleeInfantry)
 
-            percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry, highestPercentage)
+            percentages:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry, highestPercentage)
             percentages:set(highestPercentageEntry.key, meleeInfantryPercentage)
         end
 
-        cavalryAndMonstersPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters)
-        heroPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
-        meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry)
-        rangedInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry)
-        warMachinesPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)
+        cavalryAndMonstersPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
+            .cavalryAndMonsters)
+        heroPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero)
+        meleeInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry)
+        rangedInfantryPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry)
+        warMachinesPercentage = percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines)
 
         TotoWar_Cbac.loggers.aiManager:logDebug(
             "getTargetArmyComposition(%s from %s): TARGET PERCENTAGES => %s",
@@ -1164,69 +1078,69 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         end
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
             warMachinesCount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines),
             warMachinesCount)
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
             cavalryAndMonstersCount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters),
             cavalryAndMonstersCount)
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero,
             heroCount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero),
             heroCount)
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord,
             lordUnitAmount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord),
             lordUnitAmount)
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
             meleeInfantryCount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry),
             meleeInfantryCount)
 
         categoryUnitCounts:set(
-            TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry,
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
             rangedInfantryCount)
         TotoWar__Gameplay:saveValue(
             TotoWar_Cbac_Constant.modName,
             string.format(
                 TotoWar_Cbac_Constant.storageKeyFormatArmyUnitCategoryAmount,
                 lord:cqi(),
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry),
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry),
             rangedInfantryCount)
 
         TotoWar_Cbac.loggers.aiManager:logInfo(
@@ -1236,11 +1150,11 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             string.format(
                 "Size: %s | Heroes: %s | Melee infantry: %s | Ranged infantry: %s | Cavalry & monsters: %s | War machines: %s",
                 armySize,
-                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero),
-                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry),
-                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry),
-                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters),
-                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines)))
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters),
+                categoryUnitCounts:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines)))
     end
 
     TotoWar_Cbac.loggers.aiManager:logDebug(
@@ -1297,7 +1211,7 @@ function TotoWar_Cbac_AiManager:getUnitCategoryExcessCounts(armySuppliesCost, ta
 
     if totalUnitCount > 0 then
         for _, entry in ipairs(categoryCounts.entries) do
-            if entry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry then -- Melee infantry cannot be in excess
+            if entry.key ~= TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry then -- Melee infantry cannot be in excess
                 local excess = entry.value - targetCategoryCounts:get(entry.key)
 
                 if excess > 0 then
@@ -1476,4 +1390,76 @@ function TotoWar_Cbac_AiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
         function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         function() return unitCqi end)
+end
+
+---Subscribes to events.
+function TotoWar_Cbac_AiManager:subscribeToEvents()
+    TotoWar_Cbac.loggers.aiManager:logDebug("subscribeToEvents(): STARTED")
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.characterTurnEnd,
+        ---@param context CharacterTurnEnd
+        function(context) self:onAiCharacterTurnEnd(context:character()) end,
+        ---@param context CharacterTurnEnd
+        function(context)
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and TotoWar__Gameplay:isLordCharacter(context:character())
+                and not cm:is_local_players_turn()
+        end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.militaryForceCreated,
+        ---@param context TotoWar__GameEventContext_MilitaryForceCreated
+        function(context) self:onAiArmyCreated(context:military_force_created()) end,
+        function()
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+        end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.unitConverted,
+        ---@param context TotoWar__GameEventContext_UnitConverted
+        function(context) self:onAiUnitConverted(context:unit(), context:converted_unit()) end,
+        function()
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+        end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.unitDisbanded,
+        ---@param context TotoWar__GameEventContext_UnitDisbanded
+        function(context) self:onAiUnitDisbanded(context:unit()) end,
+        function()
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+        end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.unitTrained,
+        ---@param context TotoWar__GameEventContext_UnitTrained
+        function(context) self:onAiUnitRecruited(context:unit()) end,
+        ---@param context TotoWar__GameEventContext_UnitTrained
+        function(context)
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+                and context:unit():military_force()
+                and TotoWar__Gameplay:canRecruitUnits(context:unit():military_force())
+        end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.unitUpgraded,
+        ---@param context TotoWar__GameEventContext_UnitUpgraded
+        function(context) self:onAiUnitUpgraded(context:unit()) end,
+        function()
+            return
+                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                and not cm:is_local_players_turn()
+        end)
+
+    TotoWar_Cbac.loggers.aiManager:logDebug("subscribeToEvents(): COMPLETED")
 end

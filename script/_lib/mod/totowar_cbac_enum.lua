@@ -1,6 +1,6 @@
 ---Unit categories composing an army.
----@class TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
-TotoWar_Cbac_Enum_ArmyCompositionUnitCategory = {
+---@class TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
+TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
     cavalryAndMonsters = "cavalryAndMonsters",
     hero = "hero",
     lord = "lord",
@@ -10,8 +10,8 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategory = {
 }
 
 ---Events triggered by the mod.
----@class TotoWar_Cbac_Enum_ModEvent
-TotoWar_Cbac_Enum_ModEvent = {
+---@class TotoWar_Cbac_Enum_ModEvents
+TotoWar_Cbac_Enum_ModEvents = {
     ---Event triggered when options are updated.
     ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
     ---have been updated by reading values from the Mod Configuration Tool.
@@ -27,9 +27,9 @@ TotoWar_Cbac_Enum_ModEvent = {
     warbandUpgradeArmySuppliesCostChanged = "TotoWar_Cbac_WarbandUpgradeArmySuppliesCostChanged"
 }
 
----Recruitment pool names.
----@class TotoWar_Cbac_Enum_UiRecruitmentPoolName
-TotoWar_Cbac_Enum_UiRecruitmentPoolName = {
+---Recruitment pool.
+---@class TotoWar_Cbac_Enum_UiRecruitmentPools
+TotoWar_Cbac_Enum_UiRecruitmentPools = {
     allied = "allied",
     global = "global",
     local_ = "local", -- `local` is a reserved word

@@ -51,10 +51,10 @@ function TotoWar_Cbac_ArmySuppliesCost.new(isAi, lordLevel)
         levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.playerArmySuppliesBonusAmountPerLevel
     end
 
-    instance.availableSupplies = instance.totalArmySupplies
     instance.lordLevel = lordLevel
     instance.inRecruitmentMercenaryUnits = {}
     instance.totalArmySupplies = baseArmySupplies + levelBonus
+    instance.availableSupplies = instance.totalArmySupplies
     instance.totalCost = 0
     instance.unitArmySuppliesCosts = {}
 
@@ -106,8 +106,8 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
             function(uasc)
                 -- We avoid adding the lord and heroes twice
                 return uasc.unitCqi == unitCqi
-                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
-                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero)
+                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
+                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero)
             end)
 
         if not isAlreadyAddedCharacter then
@@ -149,8 +149,8 @@ end
 
 ---Adds a unit to the army supplies cost.
 ---@param unitKey string Unit key.
----@param unitCqi integer | nil Unit command queue index if we are able to get one.
----@param isInRecruitmentMercenary boolean | nil Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
+---@param unitCqi integer? Unit command queue index if we are able to get one.
+---@param isInRecruitmentMercenary boolean? Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
 function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary)
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
@@ -289,12 +289,12 @@ end
 ---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, War machines
 function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
     local categoryPriority = {
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord] = 1,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero] = 2,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry] = 3,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry] = 4,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters] = 5,
-        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines] = 6
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord] = 1,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero] = 2,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry] = 3,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry] = 4,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters] = 5,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines] = 6
     }
 
     table.sort(
@@ -391,8 +391,8 @@ function TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArm
     ---@type string
     local tooltipText
 
-    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
-        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
+    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
+        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
     then
         local character = TotoWar__Gameplay:getCharacter(unitArmySuppliesCost.characterCqi)
 

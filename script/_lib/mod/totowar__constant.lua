@@ -1,6 +1,12 @@
+require("script._lib.mod.totowar__enum")
+
 ---Constants of the TotoWar mod.
 ---@class TotoWar__Constant
 TotoWar__Constant = {
+    ---Default log severity.
+    -- defaultLogLevel = TotoWar__Enum_LogSeverities.info,
+    defaultLogLevel = TotoWar__Enum_LogSeverities.debug,
+
     ---Name of the TotoWar base mod.
     modName = "totowar",
 

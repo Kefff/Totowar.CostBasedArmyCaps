@@ -27,7 +27,7 @@ end
 ---Adds padding to the left of a text to reach a certain length.
 ---@param text string Text.
 ---@param length integer Target length.
----@param paddingCharacter string | nil Padding character. Space by default.
+---@param paddingCharacter string? Padding character. Space by default.
 ---@return string
 function TotoWar__String:padLeft(text, length, paddingCharacter)
     paddingCharacter = paddingCharacter or ' '
@@ -39,7 +39,7 @@ end
 ---Adds padding to the right of a text to reach a certain length.
 ---@param text string Text.
 ---@param length integer Target length.
----@param paddingCharacter string | nil Padding character. Space by default.
+---@param paddingCharacter string? Padding character. Space by default.
 ---@return string
 function TotoWar__String:padRight(text, length, paddingCharacter)
     paddingCharacter = paddingCharacter or ' '

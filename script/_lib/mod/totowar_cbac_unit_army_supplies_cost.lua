@@ -17,7 +17,7 @@ TotoWar_Cbac_UnitArmySuppliesCost = {
     characterCqi = nil,
 
     ---Category of the unit.
-    ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
+    ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
     unitCategory = nil,
 
     ---Command queue index of the unit.
@@ -88,10 +88,10 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if TotoWar__Gameplay:isLordUnit(characterCqi) then
         ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+        instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
     else
         ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
+        instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
     end
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
@@ -105,7 +105,7 @@ end
 
 ---Initializes a new instance from a unit.
 ---@param unitKey string Unit key.
----@param unitCqi integer | nil Command queue index of the unit (if we are able to get one).
+---@param unitCqi integer? Command queue index of the unit (if we are able to get one).
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
@@ -153,8 +153,8 @@ end
 
 ---Gets the unit army composition type based on the category of a unit.
 ---@param unitKey string Unit key.
----@param characterCqi integer | nil Character command queue index (if it a character).
----@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategory
+---@param characterCqi integer? Character command queue index (if it a character).
+---@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
 function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey, characterCqi)
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
         "TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
@@ -165,9 +165,9 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
 
     if characterCqi ~= nil then
         if TotoWar__Gameplay:isLordUnit(characterCqi) then
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.lord
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
         else
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
         end
     else
         local unitGroup = common.get_context_value(
@@ -176,15 +176,15 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
             "UiUnitGroupContext.ParentGroup.Key")
 
         if unitGroup:find('artillery') or unitGroup:find('war_machines') then
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines
         elseif unitGroup:find('infantry') then
             if unitGroup:find('missile') then
-                armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry
+                armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry
             else
-                armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry
+                armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry
             end
         else
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
         end
     end
 

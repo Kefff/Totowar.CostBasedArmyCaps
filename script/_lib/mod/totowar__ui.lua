@@ -14,6 +14,7 @@ TotoWar__UI = {
         unitsPanelRecruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
         unitsPanelUnits = { "units_panel", "main_units_panel", "units" },
         unitsPanelWarbandUpgrades = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades" },
+        unitsPanelWarbandUpgradesRequirements = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "body" },
         unitsPanelWarbandUpgradesUnitToUpgrade = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade_small", "card_image_holder" },
         unitsPanelWarbandUpgradesUpgradedUnit = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade", "card_image_holder" }
     }
@@ -80,7 +81,7 @@ end
 ---If the child UI component is not found, throws an error.
 ---@param parentUIComponent UIC Parent UI component
 ---@param query string[] Query to the UI component from the parent UI component.
----@return UIC | nil
+---@return UIC
 function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
     local uiComponent = self:findUIComponentChild(parentUIComponent, query)
 

@@ -65,47 +65,20 @@ TotoWar_Cbac = nil
 function TotoWar_Cbac_Mod.new()
     TotoWar_Cbac = setmetatable({}, TotoWar_Cbac_Mod)
 
+    TotoWar_Cbac:overwriteOptionsForDebug()
     TotoWar_Cbac:initializeLoggers()
+    TotoWar_Cbac:subscribeToEvents()
 
     TotoWar_Cbac.aiManager = TotoWar_Cbac_AiManager.new()
     TotoWar_Cbac.playerManager = TotoWar_Cbac_PlayerManager.new()
     TotoWar_Cbac.uiManager = TotoWar_Cbac_UIManager.new()
 
-    TotoWar_Cbac:addListeners()
     TotoWar_Cbac:loadMctOptions()
 
     TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Mod initialized")
     TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod.new(): COMPLETED")
 
     return TotoWar_Cbac
-end
-
----Adds event listeners.
-function TotoWar_Cbac_Mod:addListeners()
-    TotoWar_Cbac.loggers.generic:logDebug("addListeners(): STARTED")
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar_Cbac",
-        TotoWar__Enum_ModEvents.mctOptionsUpdated,
-        true,
-        function()
-            TotoWar_Cbac:onMctOptionsUpdated()
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar",
-        TotoWar_Cbac_Enum_ModEvent.optionsUpdated,
-        true,
-        function()
-            TotoWar_Cbac:onOptionsUpdated()
-        end)
-
-    -- Manager listeners
-    TotoWar_Cbac.aiManager:addListeners()
-    TotoWar_Cbac.playerManager:addListeners()
-    TotoWar_Cbac.uiManager:addListeners()
-
-    TotoWar_Cbac.loggers.generic:logDebug("addListeners(): COMPLETED")
 end
 
 ---Initializes loggers.
@@ -142,22 +115,22 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         :get_finalized_setting()
 
     TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.cavalryAndMonsters,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
         options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyCavalryAndMonstersMaximumPercentage)
         :get_finalized_setting())
     TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.hero,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero,
         options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyHeroMaximumPercentage):get_finalized_setting())
     TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.meleeInfantry,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
         options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyMeleeInfantryMaximumPercentage)
         :get_finalized_setting())
     TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.rangedInfantry,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
         options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyRangedInfantryMaximumPercentage)
         :get_finalized_setting())
     TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategory.warMachines,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
         options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyWarMachinesMaximumPercentage)
         :get_finalized_setting())
 
@@ -172,7 +145,7 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         :get_finalized_setting()
 
     -- Signaling option changes
-    core:trigger_event(TotoWar_Cbac_Enum_ModEvent.optionsUpdated)
+    TotoWar.eventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
 
     TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Options loaded")
 end
@@ -199,14 +172,26 @@ end
 
 ---Allows to programatically overwrite option values for local debug purpose.
 function TotoWar_Cbac_Mod:overwriteOptionsForDebug()
-    TotoWar_Cbac.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
-
     -- Set override values here
+
     -- TotoWar_Cbac.loggers.aiManager.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar_Cbac.loggers.armySuppliesCost.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar_Cbac.loggers.generic.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar_Cbac.loggers.playerManager.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar_Cbac.loggers.uiManager.logLevel = TotoWar__Enum_LogSeverity.warning
+end
 
-    TotoWar_Cbac.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
+---Subscribes to events.
+function TotoWar_Cbac_Mod:subscribeToEvents()
+    TotoWar_Cbac.loggers.generic:logDebug("subscribeToEvents(): STARTED")
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsUpdated,
+        function() TotoWar_Cbac:onMctOptionsUpdated() end)
+
+    TotoWar.eventsManager:subscribe(
+        TotoWar__Enum_ModEvents.optionsUpdated,
+        function() TotoWar_Cbac:onOptionsUpdated() end)
+
+    TotoWar_Cbac.loggers.generic:logDebug("subscribeToEvents(): COMPLETED")
 end

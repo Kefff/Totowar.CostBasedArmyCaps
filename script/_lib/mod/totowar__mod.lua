@@ -1,8 +1,15 @@
 ---TotoWar base mod.
 ---@class TotoWar__Mod
 TotoWar__Mod = {
+    ---Events manager.
+    ---@type TotoWar__EventsManager
+    eventsManager = nil,
+
     ---Loggers.
     loggers = {
+        ---@type TotoWar__Logger
+        eventsManager = nil,
+
         ---@type TotoWar__Logger
         generic = nil,
 
@@ -44,44 +51,20 @@ TotoWar = nil
 function TotoWar__Mod.new()
     TotoWar = setmetatable({}, TotoWar__Mod)
 
+    -- Initialize option values
+    TotoWar:overwriteOptionsForDebug()
     TotoWar:initializeLoggers()
 
+    TotoWar.eventsManager = TotoWar__EventsManager.new()
     TotoWar.modsManager = TotoWar__ModsManager.new()
 
-    TotoWar:addListeners()
+    TotoWar:subscribeToEvents()
     TotoWar:loadMctOptions()
 
     TotoWar.loggers.generic:logInfo("TotoWar | Mod initialized")
     TotoWar.loggers.generic:logDebug("TotoWar__Mod.new(): COMPLETED")
 
     return TotoWar
-end
-
----Adds event listeners.
-function TotoWar__Mod:addListeners()
-    TotoWar__Gameplay:addListener(
-        "TotoWar",
-        TotoWar__Enum_GameEvent.factionTurnStart,
-        true,
-        function()
-            TotoWar:onFactionTurnStart()
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar",
-        TotoWar__Enum_ModEvents.mctOptionsUpdated,
-        true,
-        function()
-            TotoWar:onMctOptionsUpdated()
-        end)
-
-    TotoWar__Gameplay:addListener(
-        "TotoWar",
-        TotoWar__Enum_ModEvents.optionsUpdated,
-        true,
-        function()
-            TotoWar:onOptionsUpdated()
-        end)
 end
 
 ---Initializes the log file and loggers.
@@ -93,6 +76,7 @@ function TotoWar__Mod:initializeLoggers()
         file:close()
     end
 
+    TotoWar.loggers.eventsManager = TotoWar__Logger.new("TotoWar__EventsManager")
     TotoWar.loggers.generic = TotoWar__Logger.new("TotoWar__Generic")
     TotoWar.loggers.modsManager = TotoWar__Logger.new("TotoWar__ModsManager")
     TotoWar.loggers.uiUtils = TotoWar__Logger.new("TotoWar__UIUtils")
@@ -118,7 +102,7 @@ function TotoWar__Mod:loadMctOptions()
         :get_finalized_setting()
 
     -- Signaling option changes
-    core:trigger_event(TotoWar__Enum_ModEvents.optionsUpdated)
+    TotoWar.eventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
 
     TotoWar.loggers.generic:logInfo("TotoWar | Options loaded")
 end
@@ -150,7 +134,6 @@ function TotoWar__Mod:onOptionsUpdated()
     TotoWar.loggers.generic:logDebug("onOptionsUpdated(): STARTED")
 
     -- Overriding options after they are loaded
-    -- Must be executed first in this function
     TotoWar:overwriteOptionsForDebug()
 
     TotoWar.loggers.generic:logDebug("onOptionsUpdated(): COMPLETED")
@@ -158,13 +141,30 @@ end
 
 ---Allows to programatically overwrite option values for local debug purpose.
 function TotoWar__Mod:overwriteOptionsForDebug()
-    TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): STARTED")
-
     -- Set override values here
+
+    -- TotoWar.loggers.eventsManager.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar.loggers.generic.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar.loggers.modsManager.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar.loggers.uiUtils.logLevel = TotoWar__Enum_LogSeverity.warning
     -- TotoWar.loggers.utils.logLevel = TotoWar__Enum_LogSeverity.warning
+end
 
-    TotoWar.loggers.generic:logDebug("overwriteOptionsForDebug(): COMPLETED")
+---Subscribes to events.
+function TotoWar__Mod:subscribeToEvents()
+    TotoWar.loggers.generic:logDebug("subscribeToEvents(): STARTED")
+
+    self.eventsManager:subscribe(
+        TotoWar__Enum_GameEvents.factionTurnStart,
+        function() TotoWar:onFactionTurnStart() end)
+
+    self.eventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsUpdated,
+        function() TotoWar:onMctOptionsUpdated() end)
+
+    self.eventsManager:subscribe(
+        TotoWar__Enum_ModEvents.optionsUpdated,
+        function() TotoWar:onOptionsUpdated() end)
+
+    TotoWar.loggers.generic:logDebug("subscribeToEvents(): COMPLETED")
 end
