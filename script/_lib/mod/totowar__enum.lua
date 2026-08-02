@@ -25,7 +25,7 @@ TotoWar__Enum_DockingPoints = {
     bottomRight = 9
 }
 
----Cultures.
+---Factions.
 ---@class TotoWar__Enum_Factions
 TotoWar__Enum_Factions = {
     beastmen = "wh_dlc03_bst_beastmen",

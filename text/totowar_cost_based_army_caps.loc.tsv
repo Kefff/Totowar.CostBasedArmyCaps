@@ -30,3 +30,4 @@ totowar_cbac_tooltip_unit_armySuppliesCostDepleted	Insufficient [[col:white]][[i
 totowar_cbac_tooltip_unit_armySuppliesCostOfHero	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_hero]]%s[[/col]]: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]	true
 totowar_cbac_tooltip_unit_armySuppliesCostOfLord	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_lord]]%s[[/col]]: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]	true
 totowar_cbac_tooltip_unit_armySuppliesCostOfUnit	[[col:%s]]%s[[/col]]: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]	true
+totowar_cbac_warbandUpgradeArmySuppliesCost	New army supplies	false

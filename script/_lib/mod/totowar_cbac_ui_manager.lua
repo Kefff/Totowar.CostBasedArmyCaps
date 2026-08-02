@@ -14,22 +14,27 @@ local _armySuppliesDepletedWarningIconId = "totowar_alert"
 local _armySuppliesIconPath = "ui/totowar_cbac/icons/totowar_cbac_army_supplies.png"
 
 ---Height the global recruitment pool UI component should measure when displaying army supplies cost.
-local _globalRecruitmentPoolUIComponentTargetHeight = 239
+---@type integer | nil
+local _defaultUIComponentHeight_globalRecruitmentPool = nil
 
 ---Height the local recruitment pool UI component should measure when displaying army supplies cost.
-local _localRecruitmentPoolUIComponentTargetHeight = 239
-
----Height the mercenary recruitment pool UI component should measure when displaying army supplies cost.
-local _mercenaryRecruitmentPoolListBoxUIComponentTargetHeight = 208
+---@type integer | nil
+local _defaultUIComponentHeight_localRecruitmentPool = nil
 
 ---Height the listbox UI component of the mercenary recruitment pool should measure when displaying army supplies cost.
-local _mercenaryRecruitmentPoolUIComponentTargetHeight = 272
+---@type integer | nil
+local _defaultUIComponentHeight_mercenaryRecruitmentPool = nil
+
+---Height the mercenary recruitment pool UI component should measure when displaying army supplies cost.
+---@type integer | nil
+local _defaultUIComponentHeight_mercenaryRecruitmentPoolListBox = nil
+
+---Height the warband upgrade UI component should measure when displaying army supplies cost.
+---@type integer | nil
+local _defaultUIComponentHeight_warbandUpgrade = nil
 
 ---Template of the UI component that displays unit army supplies.
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
-
----Y offset of the UI component that displays unit army supplies cost.
-local _unitArmySuppliesCostUIComponentOffsetY = -18
 
 ---Manager in charge of displaying army supplies cost in the UI.
 ---@class TotoWar_Cbac_UIManager
@@ -430,18 +435,71 @@ end
 function TotoWar_Cbac_UIManager:onWarbandUpgradeArmySuppliesCostChanged()
     TotoWar_Cbac.loggers.uiManager:logDebug("onWarbandUpgradeArmySuppliesCostChanged(): STARTED")
 
-    local parent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesRequirements)
+    -- Resizing the upgrade panel to have space to add the army supplies after update component
+    local warbandUpgradesComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
 
-    if parent ~= nil then
+    if _defaultUIComponentHeight_warbandUpgrade == nil then
+        _defaultUIComponentHeight_warbandUpgrade = warbandUpgradesComponent:Height()
+    end
+
+    if warbandUpgradesComponent:Height() == _defaultUIComponentHeight_warbandUpgrade then
+        TotoWar__UI:resizeUIComponentAndChildren(
+            warbandUpgradesComponent,
+            0,
+            _armySuppliesCostUIComponentHeight,
+            { "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "body" })
+
+        -- Moving the upgrade button to take into account the resizing
+        local warbandUpgradesUpgradeButtonComponent = TotoWar__UI:getUIComponentChild(
+            warbandUpgradesComponent,
+            { "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "button_invoke" })
+        warbandUpgradesUpgradeButtonComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.bottomMiddle)
+    end
+
+    -- Adding / updating the army supplies after upgrade component
+    if (TotoWar_Cbac.playerManager.warbandUpgradeArmySuppliesCost ~= nil) then
         local armySuppliesCostText = self:getArmySuppliesCostText(
             TotoWar_Cbac.playerManager.warbandUpgradeArmySuppliesCost)
         local armySuppliesCostTooltip =
             TotoWar_Cbac.playerManager.warbandUpgradeArmySuppliesCost:toArmySuppliesCostTooltipText()
-        self:createOrUpdateArmySuppliesUIComponent(
-            parent,
+
+        local armySuppliesCostContainerComponentName = "totowar_cbac_warband_upgrade_army_supplies"
+        local warbandUpgradesRequirementsComponent = TotoWar__UI:getUIComponent(
+            TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesRequirements)
+        local armySuppliesCostContainerComponent = TotoWar__UI:findUIComponentChild(
+            warbandUpgradesRequirementsComponent,
+            { armySuppliesCostContainerComponentName })
+
+        if armySuppliesCostContainerComponent == nil then
+            -- Copying the total cost container component to create the army supplies cost container
+            local totalCostContainerComponent = TotoWar__UI:getUIComponentChild(
+                warbandUpgradesRequirementsComponent,
+                { "total_cost" })
+            local armySuppliesCostContainerComponentAddress = totalCostContainerComponent:CopyComponent(
+                armySuppliesCostContainerComponentName)
+            armySuppliesCostContainerComponent = UIComponent(armySuppliesCostContainerComponentAddress)
+            armySuppliesCostContainerComponent:SetVisible(true)
+
+            local armySuppliesCostCaptionComponent = TotoWar__UI:getUIComponentChild(
+                armySuppliesCostContainerComponent,
+                { "tx_total_cost" })
+            armySuppliesCostCaptionComponent:SetStateText(common.get_localised_string(
+            "totowar_cbac_warbandUpgradeArmySuppliesCost"))
+
+            -- Deleting the copied value component that will get replaced by the army supplies cost component
+            local copiedValueComponentToReplace = TotoWar__UI:getUIComponentChild(
+                armySuppliesCostContainerComponent,
+                { "total_cost_holder" })
+            copiedValueComponentToReplace:Destroy()
+        end
+
+        local armySuppliesCostComponent = self:createOrUpdateArmySuppliesUIComponent(
+            armySuppliesCostContainerComponent,
             armySuppliesCostText,
             armySuppliesCostTooltip)
+        armySuppliesCostComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.middleRight)
+        armySuppliesCostComponent:SetDockOffset(10, 0)
     end
 
     TotoWar_Cbac.loggers.uiManager:logDebug("onWarbandUpgradeArmySuppliesCostChanged(): COMPLETED")
@@ -581,7 +639,11 @@ function TotoWar_Cbac_UIManager:updateGlobalRecruitmentPool()
         if unitListUIComponent then
             self:updateRecruitableUnitCardList(unitListUIComponent)
 
-            if globalRecruitmentPoolUIComponent:Height() < _globalRecruitmentPoolUIComponentTargetHeight then
+            if _defaultUIComponentHeight_globalRecruitmentPool == nil then
+                _defaultUIComponentHeight_globalRecruitmentPool = globalRecruitmentPoolUIComponent:Height()
+            end
+
+            if globalRecruitmentPoolUIComponent:Height() == _defaultUIComponentHeight_globalRecruitmentPool then
                 TotoWar__UI:resizeUIComponentAndChildren(
                     globalRecruitmentPoolUIComponent,
                     0,
@@ -610,7 +672,11 @@ function TotoWar_Cbac_UIManager:updateLocalRecruitmentPool()
         if unitListUIComponent then
             self:updateRecruitableUnitCardList(unitListUIComponent)
 
-            if localRecruitmentPoolUIComponent:Height() < _localRecruitmentPoolUIComponentTargetHeight then
+            if _defaultUIComponentHeight_localRecruitmentPool == nil then
+                _defaultUIComponentHeight_localRecruitmentPool = localRecruitmentPoolUIComponent:Height()
+            end
+
+            if localRecruitmentPoolUIComponent:Height() == _defaultUIComponentHeight_localRecruitmentPool then
                 TotoWar__UI:resizeUIComponentAndChildren(
                     localRecruitmentPoolUIComponent,
                     0,
@@ -639,7 +705,11 @@ function TotoWar_Cbac_UIManager:updateMercenaryRecruitmentPool()
         if unitListUIComponent then
             self:updateRecruitableUnitCardList(unitListUIComponent)
 
-            if recruitmentPoolUIComponent:Height() < _mercenaryRecruitmentPoolUIComponentTargetHeight then
+            if _defaultUIComponentHeight_mercenaryRecruitmentPool == nil then
+                _defaultUIComponentHeight_mercenaryRecruitmentPool = recruitmentPoolUIComponent:Height()
+            end
+
+            if recruitmentPoolUIComponent:Height() == _defaultUIComponentHeight_mercenaryRecruitmentPool then
                 TotoWar__UI:resizeUIComponentAndChildren(
                     recruitmentPoolUIComponent,
                     0,
@@ -647,7 +717,11 @@ function TotoWar_Cbac_UIManager:updateMercenaryRecruitmentPool()
                     { "listview" })
             end
 
-            if unitListUIComponent:Height() < _mercenaryRecruitmentPoolListBoxUIComponentTargetHeight then
+            if _defaultUIComponentHeight_mercenaryRecruitmentPoolListBox == nil then
+                _defaultUIComponentHeight_mercenaryRecruitmentPoolListBox = unitListUIComponent:Height()
+            end
+
+            if unitListUIComponent:Height() == _defaultUIComponentHeight_mercenaryRecruitmentPoolListBox then
                 TotoWar__UI:resizeUIComponent(
                     unitListUIComponent,
                     0,

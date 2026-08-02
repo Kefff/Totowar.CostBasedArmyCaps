@@ -1,9 +1,6 @@
 ---UI of a recruitment pool in a recruitment panel.
 ---@class TotoWar_Cbac_RecruitmentPoolUI
 TotoWar_Cbac_RecruitmentPoolUI = {
-    ---Indicates whether the recruitment pool UI component has been resized to be able to display army supplies cost under each unit price.
-    isResized = false,
-
     ---Name.
     ---@type string
     name = nil,
@@ -16,13 +13,9 @@ TotoWar_Cbac_RecruitmentPoolUI = {
     ---@type string[]
     uiComponentQuery = nil,
 
-    ---Function to call to updated the recruitment pool UI.
+    ---Function to call to update the recruitment pool UI.
     ---@type fun()
-    updateUIFunction = nil,
-
-    ---Update mode defining when the recruitment pool must be updated.
-    ---@type string
-    updateMode = nil
+    updateUIFunction = nil
 }
 TotoWar_Cbac_RecruitmentPoolUI.__index = TotoWar_Cbac_RecruitmentPoolUI
 
@@ -37,7 +30,6 @@ function TotoWar_Cbac_RecruitmentPoolUI.new(name, panelName, uiComponentQuery, u
 
     local instance = setmetatable({}, TotoWar_Cbac_RecruitmentPoolUI)
 
-    instance.isResized = false
     instance.name = name
     instance.panelName = panelName
     instance.uiComponentQuery = uiComponentQuery

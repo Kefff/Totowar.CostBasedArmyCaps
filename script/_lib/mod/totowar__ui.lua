@@ -217,7 +217,7 @@ function TotoWar__UI:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
         function() return heightToAdd end)
 end
 
----A UI components and its children listed in a path.
+---Resizes a UI components and its children listed in a path.
 ---@param uiComponent UIC UI component to resize.
 ---@param widthToAdd number Width to add.
 ---@param heightToAdd number Height to add.

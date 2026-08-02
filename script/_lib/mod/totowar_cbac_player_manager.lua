@@ -501,7 +501,13 @@ function TotoWar_Cbac_PlayerManager:onWarbandUpgradeChanged()
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
         "onWarbandUpgradeSelected(): COMPLETED => %s",
-        function() return self.warbandUpgradeArmySuppliesCost.totalCost end)
+        function()
+            if self.warbandUpgradeArmySuppliesCost ~= nil then
+                return self.warbandUpgradeArmySuppliesCost.totalCost
+            end
+
+            return "Not calculated"
+        end)
 end
 
 ---Subscribes to events.
