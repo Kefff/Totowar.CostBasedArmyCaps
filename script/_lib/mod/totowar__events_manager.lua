@@ -26,11 +26,84 @@ function TotoWar__EventsManager.new()
     return instance
 end
 
+---Checks the condition for executing the callback function of an event subscription and executes it if conditions are met.
+---@param eventSubscription TotoWar__EventSubscription Event subscription.
+---@param event string Triggered event.
+---@param context any Event context.
+function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
+    TotoWar.loggers.eventsManager:logDebug(
+        "executeEventSubscriptionIfConditionMet(%s, %s, %s): STARTED",
+        function() return eventSubscription.id end,
+        function() return event end,
+        function()
+            if context ~= nil then
+                return "context"
+            end
+
+            return nil
+        end)
+
+    local isSuccess, isToBeExecuted = xpcall(
+        function() return eventSubscription.conditionFunction(context) end,
+        function(error) self:onConditionError(eventSubscription, error) end)
+
+    TotoWar.loggers.eventsManager:logDebug(
+        "executeEventSubscriptionIfConditionMet(%s, %s, %s): CONDITION => %s | %s (%s, %s)",
+        function() return eventSubscription.id end,
+        function() return event end,
+        function()
+            if context ~= nil then
+                return "context"
+            end
+
+            return nil
+        end,
+        function() return eventSubscription.id end,
+        function() return isSuccess and isToBeExecuted end,
+        function() return isSuccess end,
+        function() return isToBeExecuted end)
+
+    if isSuccess and isToBeExecuted then
+        TotoWar.loggers.eventsManager:logDebug(
+            "executeEventSubscriptionIfConditionMet(%s, %s, %s): EXECUTING => %s",
+            function() return eventSubscription.id end,
+            function() return event end,
+            function()
+                if context ~= nil then
+                    return "context"
+                end
+
+                return nil
+            end,
+            function() return eventSubscription.id end)
+
+        isSuccess = xpcall(
+            function() eventSubscription.callbackFunction(context) end,
+            function(error) self:onCallbackError(eventSubscription, error) end)
+
+        if isSuccess then
+            eventSubscription.executions = eventSubscription.executions + 1
+        end
+    end
+
+    TotoWar.loggers.eventsManager:logDebug(
+        "executeEventSubscriptionIfConditionMet(%s, %s, %s): COMPLETED",
+        function() return eventSubscription.id end,
+        function() return event end,
+        function()
+            if context ~= nil then
+                return "context"
+            end
+
+            return nil
+        end)
+end
+
 ---Reacts to an error when executing the callback of an event subscription.
 ---@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
 ---@param error any Error.
 function TotoWar__EventsManager:onCallbackError(eventSubscription, error)
-    local stacktrace = debug.traceback(error, 2) -- 2 avoids the include the stacktrace of the onError method
+    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
     TotoWar.loggers.eventsManager:logError(
         "Error during event \"%s\" when executing the callback of event subscription %s :\n%s",
         eventSubscription.event,
@@ -42,7 +115,7 @@ end
 ---@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
 ---@param error any Error.
 function TotoWar__EventsManager:onConditionError(eventSubscription, error)
-    local stacktrace = debug.traceback(error, 2) -- 2 avoids the include the stacktrace of the onError method
+    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
     TotoWar.loggers.eventsManager:logError(
         "Error during event \"%s\" when executing the condition of event subscription %s :\n%s",
         eventSubscription.event,
@@ -72,45 +145,7 @@ function TotoWar__EventsManager:onEvent(event, context)
     table.sort(eventSubscriptions, function(a, b) return a.priority > b.priority end)
 
     for index, eventSubscription in ipairs(eventSubscriptions) do
-        local isSuccess, isToBeExecuted = xpcall(
-            function() return eventSubscription.conditionFunction(context) end,
-            function(error) self:onConditionError(eventSubscription, error) end)
-
-        TotoWar.loggers.eventsManager:logDebug(
-            "onEvent(%s, %s): CONDITION => %s | %s %s",
-            function() return event end,
-            function()
-                if context ~= nil then
-                    return "context"
-                end
-
-                return nil
-            end,
-            function() return eventSubscription.id end,
-            function() return isSuccess end,
-            function() return isToBeExecuted end)
-
-        if isSuccess and isToBeExecuted then
-            TotoWar.loggers.eventsManager:logDebug(
-                "onEvent(%s, %s): EXECUTING => %s",
-                function() return event end,
-                function()
-                    if context ~= nil then
-                        return "context"
-                    end
-
-                    return nil
-                end,
-                function() return eventSubscription.id end)
-
-            isSuccess = xpcall(
-                function() eventSubscription.callbackFunction(context) end,
-                function(error) self:onCallbackError(eventSubscription, error) end)
-
-            if isSuccess then
-                eventSubscription.executions = eventSubscription.executions + 1
-            end
-        end
+        self:executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
     end
 
     -- Removing event subscriptions that have been executed the maximum number of times they were allowed
@@ -157,12 +192,12 @@ end
 ---@return TotoWar__EventSubscription
 function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunction, maximumExecutions, priority)
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): STARTED",
+        "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): STARTED",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
         function()
             if conditionFunction ~= nil then
-                return "condition"
+                return "conditionFunction"
             end
 
             return nil
@@ -188,12 +223,12 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
             true)
 
         TotoWar.loggers.eventsManager:logDebug(
-            "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): LISTENER ADDED",
+            "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): LISTENER ADDED",
             ---@diagnostic disable-next-line: return-type-mismatch
             function() return event end,
             function()
                 if conditionFunction ~= nil then
-                    return "condition"
+                    return "conditionFunction"
                 end
 
                 return nil
@@ -205,12 +240,12 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
     table.insert(self.eventSubscriptions, eventSubscription)
 
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): COMPLETED => %s",
+        "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): COMPLETED => %s",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
         function()
             if conditionFunction ~= nil then
-                return "condition"
+                return "conditionFunction"
             end
 
             return nil

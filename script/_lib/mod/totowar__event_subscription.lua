@@ -39,7 +39,13 @@ TotoWar__EventSubscription.__index = TotoWar__EventSubscription
 ---@param maximumExecutions integer? Maximum number of times the callback function will be executed when the subscribed event is triggered.
 ---@param priority integer? Priority that determines in which order event subscriptions to the same event are executed.
 ---@return TotoWar__EventSubscription
-function TotoWar__EventSubscription.new(id, event, callbackFunction, conditionFunction, maximumExecutions, priority)
+function TotoWar__EventSubscription.new(
+    id,
+    event,
+    callbackFunction,
+    conditionFunction,
+    maximumExecutions,
+    priority)
     local instance = setmetatable({}, TotoWar__EventSubscription)
 
     instance.callbackFunction = callbackFunction

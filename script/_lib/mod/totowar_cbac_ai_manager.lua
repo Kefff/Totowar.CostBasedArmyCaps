@@ -37,10 +37,10 @@ function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(lordCqi)
     then
         table.insert(self.armyAdjustmentQueue, lordCqi)
 
-        -- Forced to use a callback here to defer the adjustment until all units are recruited.
+        -- Forced to delay the adjustment until all units are recruited.
         -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
-        -- we switched to a defered global adjustment to fix that.
-        cm:callback(
+        -- we switched to a deferred global adjustment to fix that.
+        TotoWar__Utils:delay(
             function()
                 self:adjustAiArmy(lordCqi)
                 TotoWar__Linq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == lordCqi end)
@@ -93,7 +93,7 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
 
         -- Callback to wait for other disband events to be executed before checking whether we should reinstate the unit.
         -- Not sure it is required like for the adjustment queue but added it to be consistent.
-        cm:callback(
+        TotoWar__Utils:delay(
             function()
                 self:cancelDisbandIfAlreadyAdjusted(lordCqi)
                 self.disbandQueue:remove(lordCqi)
