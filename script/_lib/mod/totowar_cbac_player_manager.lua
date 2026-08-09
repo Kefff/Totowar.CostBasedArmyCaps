@@ -141,7 +141,7 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
                     --- Initializing the army supplies cost for the newly selected army
                     self:initializeArmySuppliesCost(character)
                 end,
-                0.1)
+                0.25)
         else
             --- Adding a one-time listener that waits for the unit_panel to open before
             --- initializing the army supplies cost because we need to get the cost of the

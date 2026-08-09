@@ -22,10 +22,7 @@ By default, player and AI lords gain 50 `Army Supplies` each time they level up.
 This roughly allows the recruitment of two more elite units at level 50 compared to a level 1 lord.  
 
 ## Restrictions applied to player armies
-Two restrictions are applied to player armies:
-- if the `Army Supplies` cost of a unit exceeds the remaining `Army Supplies` of an army, it cannot be recruited
-- if the `Army Supplies` of an army are depleted, the army cannot move  
-
+The mod only adds one restriction for the player: if the `Army Supplies` of one of your armies are depleted, the army cannot move.  
 To be able to move again, you can remove heroes, disband units, or transfer them to another army.  
 This also applies to spawned armies, such as the Lizardmen full dinosaur rite army. They will not be able to move if they exceed the budget `Army Supplies` when spawning.
 

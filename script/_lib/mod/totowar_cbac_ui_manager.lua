@@ -485,7 +485,7 @@ function TotoWar_Cbac_UIManager:onWarbandUpgradeArmySuppliesCostChanged()
                 armySuppliesCostContainerComponent,
                 { "tx_total_cost" })
             armySuppliesCostCaptionComponent:SetStateText(common.get_localised_string(
-            "totowar_cbac_warbandUpgradeArmySuppliesCost"))
+                "totowar_cbac_warbandUpgradeArmySuppliesCost"))
 
             -- Deleting the copied value component that will get replaced by the army supplies cost component
             local copiedValueComponentToReplace = TotoWar__UI:getUIComponentChild(
@@ -499,7 +499,7 @@ function TotoWar_Cbac_UIManager:onWarbandUpgradeArmySuppliesCostChanged()
             armySuppliesCostText,
             armySuppliesCostTooltip)
         armySuppliesCostComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.middleRight)
-        armySuppliesCostComponent:SetDockOffset(10, 0)
+        armySuppliesCostComponent:SetDockOffset(15, 0)
     end
 
     TotoWar_Cbac.loggers.uiManager:logDebug("onWarbandUpgradeArmySuppliesCostChanged(): COMPLETED")
@@ -774,19 +774,8 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
     local unitBaseCostText = tostring(unitBaseCost)
 
     if unitBaseCost > TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost.availableSupplies then
-        -- Disabling the unit card when its the army supplies exceeds the available army supplies of the selected lord
-        TotoWar_Cbac.loggers.uiManager:logDebug(
-            "updateRecruitableUnitCard(%s): UNIT RECRUITMENT DISABLED => (%s, %s)",
-            function() return unitCardUIComponent:Id() end,
-            function() return unitName end,
-            function() return unitBaseCost end)
-
-        unitCardUIComponent:SetDisabled(true)
-        unitCardUIComponent:SetState(TotoWar__Enum_UIComponentStates.inactive)
+        -- Displaying the army supplies cost is red when it exceeds the available army supplies
         unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", "red", unitBaseCostText)
-    elseif unitCardUIComponent:IsDisabled() then
-        -- Reenabling the unit card if it was disabled
-        unitCardUIComponent:SetDisabled(false)
     end
 
     if armySuppliesCostUIComponent ~= nil then

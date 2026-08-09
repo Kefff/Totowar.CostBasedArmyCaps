@@ -26,11 +26,11 @@ beastmen:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 0)
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local chaos = TotoWar__Dictionary.new()
-chaos:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 0)
+chaos:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 10) -- Extended roster
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local dwarfs = TotoWar__Dictionary.new()
-dwarfs:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters, 0)
+dwarfs:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters, 10) -- Extended roster
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local khorne = TotoWar__Dictionary.new()
@@ -42,12 +42,12 @@ lizardmen:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 0)
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local norsca = TotoWar__Dictionary.new()
-norsca:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 0)
+norsca:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 10) -- Extended roster
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local nurgle = TotoWar__Dictionary.new()
-nurgle:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 0)
-nurgle:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 0)
+nurgle:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 10) -- Extended roster
+nurgle:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 10)    -- Extended roster
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local slaanesh = TotoWar__Dictionary.new()
@@ -59,7 +59,7 @@ tzeench:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 0)
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local vampireCounts = TotoWar__Dictionary.new()
-vampireCounts:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 0)
+vampireCounts:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry, 10) -- Extended roster
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local woodElves = TotoWar__Dictionary.new()
