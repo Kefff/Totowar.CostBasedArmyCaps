@@ -32,6 +32,7 @@ TotoWar_Cbac_Enum_ModEvents = {
 TotoWar_Cbac_Enum_UiRecruitmentPools = {
     allied = "allied",
     global = "global",
-    local_ = "local", -- `local` is a reserved word
+    local1 = "local1",
+    local2 = "local2",
     mercenary = "mercenary"
 }
