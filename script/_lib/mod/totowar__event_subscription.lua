@@ -54,7 +54,7 @@ function TotoWar__EventSubscription.new(
     instance.executions = 0
     instance.id = id
     instance.maximumExecutions = maximumExecutions
-    instance.priority = priority or 100000
+    instance.priority = priority or 1000
 
     return instance
 end

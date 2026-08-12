@@ -14,14 +14,14 @@ TotoWar__EventsManager.__index = TotoWar__EventsManager
 ---Initializes a new instance.
 ---@return TotoWar__EventsManager
 function TotoWar__EventsManager.new()
-    TotoWar.loggers.eventsManager:logDebug("TotoWar__ModsManager.new(): STARTED")
+    TotoWar.loggers.eventsManager:logDebug("TotoWar__EventsManager.new(): STARTED")
 
     local instance = setmetatable({}, TotoWar__EventsManager)
 
     instance.idCounter = 0
     instance.eventSubscriptions = {}
 
-    TotoWar.loggers.eventsManager:logDebug("TotoWar__ModsManager.new(): COMPLETED")
+    TotoWar.loggers.eventsManager:logDebug("TotoWar__EventsManager.new(): COMPLETED")
 
     return instance
 end
@@ -142,7 +142,7 @@ function TotoWar__EventsManager:onEvent(event, context)
     local eventSubscriptions = TotoWar__Linq:where(
         self.eventSubscriptions,
         function(es) return es.event == event and (es.maximumExecutions == nil or es.executions < es.maximumExecutions) end)
-    table.sort(eventSubscriptions, function(a, b) return a.priority > b.priority end)
+    table.sort(eventSubscriptions, function(a, b) return a.priority < b.priority end)
 
     for index, eventSubscription in ipairs(eventSubscriptions) do
         self:executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
@@ -192,7 +192,7 @@ end
 ---@return TotoWar__EventSubscription
 function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunction, maximumExecutions, priority)
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): STARTED",
+        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): STARTED",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
         function()
@@ -223,7 +223,7 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
             true)
 
         TotoWar.loggers.eventsManager:logDebug(
-            "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): LISTENER ADDED",
+            "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): LISTENER ADDED",
             ---@diagnostic disable-next-line: return-type-mismatch
             function() return event end,
             function()
@@ -240,7 +240,7 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
     table.insert(self.eventSubscriptions, eventSubscription)
 
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %ss, %s): COMPLETED => %s",
+        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): COMPLETED => %s",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
         function()

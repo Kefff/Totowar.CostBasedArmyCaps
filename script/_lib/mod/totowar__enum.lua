@@ -124,6 +124,10 @@ TotoWar__Enum_LogSeverities = {
 ---Events triggered by the mod.
 ---@class TotoWar__Enum_ModEvents
 TotoWar__Enum_ModEvents = {
+    ---Event triggered when the events manager has been initialized to indicate to loggers,
+    ---which are instaciated before, that they can now subscribe to events.
+    eventsManagerInitialized = "TotoWar__EventsManagerInitialized",
+
     ---Event triggered when options are updated in the Mod Configuration Tool if it is installed.
     mctOptionsUpdated = "MctFinalized",
 

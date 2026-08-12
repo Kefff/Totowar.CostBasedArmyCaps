@@ -51,15 +51,15 @@ TotoWar = nil
 function TotoWar__Mod.new()
     TotoWar = setmetatable({}, TotoWar__Mod)
 
-    -- Initialize option values
-    TotoWar:overwriteOptionsForDebug()
     TotoWar:initializeLoggers()
 
     TotoWar.eventsManager = TotoWar__EventsManager.new()
-    TotoWar.modsManager = TotoWar__ModsManager.new()
+    core:trigger_event(TotoWar__Enum_ModEvents.eventsManagerInitialized) -- Signaling loggers that they can subscribe to the events manager
 
     TotoWar:subscribeToEvents()
     TotoWar:loadMctOptions()
+
+    TotoWar.modsManager = TotoWar__ModsManager.new()
 
     TotoWar.loggers.generic:logInfo("TotoWar | Mod initialized")
     TotoWar.loggers.generic:logDebug("TotoWar__Mod.new(): COMPLETED")
@@ -82,7 +82,7 @@ function TotoWar__Mod:initializeLoggers()
     TotoWar.loggers.uiUtils = TotoWar__Logger.new("TotoWar__UIUtils")
     TotoWar.loggers.utils = TotoWar__Logger.new("TotoWar__Utils")
 
-    TotoWar.loggers.generic:logDebug("initializeLoggers(): COMPLETED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:initializeLoggers(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
@@ -122,37 +122,37 @@ end
 
 ---Reacts to MCT options being updated.
 function TotoWar__Mod:onMctOptionsUpdated()
-    TotoWar.loggers.generic:logDebug("onMctOptionsUpdated(): STARTED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:onMctOptionsUpdated(): STARTED")
 
     TotoWar:loadMctOptions()
 
-    TotoWar.loggers.generic:logDebug("onMctOptionsUpdated(): COMPLETED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:onMctOptionsUpdated(): COMPLETED")
 end
 
 ---Reacts to TotoWar options being updated.
 function TotoWar__Mod:onOptionsUpdated()
-    TotoWar.loggers.generic:logDebug("onOptionsUpdated(): STARTED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:onOptionsUpdated(): STARTED")
 
-    -- Overriding options after they are loaded
+    -- Overriding options after they are loaded / changed
     TotoWar:overwriteOptionsForDebug()
 
-    TotoWar.loggers.generic:logDebug("onOptionsUpdated(): COMPLETED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:onOptionsUpdated(): COMPLETED")
 end
 
 ---Allows to programatically overwrite option values for local debug purpose.
 function TotoWar__Mod:overwriteOptionsForDebug()
     -- Set override values here
 
-    -- TotoWar.loggers.eventsManager.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar.loggers.generic.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar.loggers.modsManager.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar.loggers.uiUtils.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar.loggers.utils.logLevel = TotoWar__Enum_LogSeverity.warning
+    -- TotoWar.loggers.eventsManager.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar.loggers.generic.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar.loggers.modsManager.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar.loggers.uiUtils.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar.loggers.utils.logLevel = TotoWar__Enum_LogSeverities.debug
 end
 
 ---Subscribes to events.
 function TotoWar__Mod:subscribeToEvents()
-    TotoWar.loggers.generic:logDebug("subscribeToEvents(): STARTED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:subscribeToEvents(): STARTED")
 
     self.eventsManager:subscribe(
         TotoWar__Enum_GameEvents.factionTurnStart,
@@ -166,5 +166,5 @@ function TotoWar__Mod:subscribeToEvents()
         TotoWar__Enum_ModEvents.optionsUpdated,
         function() TotoWar:onOptionsUpdated() end)
 
-    TotoWar.loggers.generic:logDebug("subscribeToEvents(): COMPLETED")
+    TotoWar.loggers.generic:logDebug("TotoWar__Mod:subscribeToEvents(): COMPLETED")
 end

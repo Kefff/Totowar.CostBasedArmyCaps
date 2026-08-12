@@ -3,7 +3,6 @@
 TotoWar__Logger = {
     ---Log level.
     ---@type TotoWar__Enum_LogSeverities
-    ---@diagnostic disable-next-line: assign-type-mismatch
     logLevel = nil,
 
     ---Mod name.
@@ -33,17 +32,6 @@ function TotoWar__Logger.new(loggerName)
     instance:logInfo("Logger instance created")
 
     return instance
-end
-
----Adds event listeners.
----Special case where we directly use the core:add_listener instead of TotoWar__EventsManager because loggers must be instanciated as soon as possible, before the manager.
-function TotoWar__Logger:addEventListeners()
-    core:add_listener(
-        "TotoWar__Logger_" .. TotoWar__Enum_ModEvents.optionsUpdated,
-        TotoWar__Enum_ModEvents.optionsUpdated,
-        true,
-        function() self:onOptionsUpdated() end,
-        true)
 end
 
 ---Logs a message.
@@ -96,6 +84,31 @@ local function log(instance, severity, message, ...)
     if file then
         file:write(fullLog .. "\n")
         file:close()
+    end
+end
+
+---Adds event listeners.
+function TotoWar__Logger:addEventListeners()
+    if TotoWar.eventsManager == nil then
+        -- This case is only for loggers created by the TotoWar mod
+        -- which are instanciated before the events manager is instanciated
+        -- (which uses logs).
+        -- They need to subscribe to events manager after it has been initialized.
+        -- This event is only triggered once.
+        core:add_listener(
+            "TotoWar__Logger_" .. TotoWar__Enum_ModEvents.eventsManagerInitialized,
+            TotoWar__Enum_ModEvents.eventsManagerInitialized,
+            true,
+            function()
+                TotoWar.eventsManager:subscribe(
+                    TotoWar__Enum_ModEvents.optionsUpdated,
+                    function() self:onOptionsUpdated() end)
+            end,
+            true)
+    else
+        TotoWar.eventsManager:subscribe(
+            TotoWar__Enum_ModEvents.optionsUpdated,
+            function() self:onOptionsUpdated() end)
     end
 end
 
@@ -153,15 +166,11 @@ end
 
 ---Reacts to options being updated.
 function TotoWar__Logger:onOptionsUpdated()
-    if TotoWar.options.debugEnabled
-        and self.logLevel ~= TotoWar__Enum_LogSeverities.debug
-    then
+    if TotoWar.options.debugEnabled then
         ---@diagnostic disable-next-line: assign-type-mismatch
         self.logLevel = TotoWar__Enum_LogSeverities.debug
-    elseif not TotoWar.options.debugEnabled
-        and self.logLevel == TotoWar__Enum_LogSeverities.debug
-    then
+    else
         ---@diagnostic disable-next-line: assign-type-mismatch
-        self.logLevel = TotoWar__Enum_LogSeverities.info
+        self.logLevel = TotoWar__Constant.defaultLogLevel
     end
 end

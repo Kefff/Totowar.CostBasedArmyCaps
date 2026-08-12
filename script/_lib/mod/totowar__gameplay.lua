@@ -149,7 +149,7 @@ function TotoWar__Gameplay:getUnitCaption(unitKey)
     if caption == nil then
         caption = ''
 
-        TotoWar.loggers.utils:logWarning("Caption found for unit \"%s\" not found", unitKey)
+        TotoWar.loggers.utils:logWarning("Caption not found for unit \"%s\"", unitKey)
     end
 
     TotoWar.loggers.utils:logDebug(
@@ -168,16 +168,18 @@ function TotoWar__Gameplay:isLordCharacter(character)
         "isLordCharacter(%s): STARTED",
         function() return self:getCharacterCaption(character) end)
 
-    local isPlayerFactionLord =
-        character:has_military_force()
-        and self:canRecruitUnits(character:military_force())
+    local isGarrisonCommander = common.get_context_value(
+        TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
+        tostring(character:cqi()),
+        "IsGarrisonCommander")
+    local isLord = character:has_military_force() and not isGarrisonCommander
 
     TotoWar.loggers.utils:logDebug(
         "isLordCharacter(%s): COMPLETED => %s",
         function() return self:getCharacterCaption(character) end,
-        function() return isPlayerFactionLord end)
+        function() return isLord end)
 
-    return isPlayerFactionLord
+    return isLord
 end
 
 ---Indicates whether a character is a lord.
@@ -188,13 +190,18 @@ function TotoWar__Gameplay:isLordUnit(characterCqi)
         "isLordUnit(%s): STARTED",
         function() return characterCqi end)
 
-    local isLord = false
-
     -- Directly searching for the character corresponding to the CQI
-    isLord = common.get_context_value(
+    ---@type boolean
+    local isLord = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "IsArmy")
+
+    ---@type boolean
+    local isGarrisonCommander = common.get_context_value(
+        TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
+        tostring(characterCqi),
+        "IsGarrisonCommander")
 
     if not isLord then
         -- If the character is not found, it means we have the CQI of a unit
@@ -203,12 +210,18 @@ function TotoWar__Gameplay:isLordUnit(characterCqi)
             TotoWar__Enum_CcoContextTypeIds.campaignUnit,
             tostring(characterCqi),
             "CharacterContext.IsArmy")
+        isGarrisonCommander = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.campaignUnit,
+            tostring(characterCqi),
+            "CharacterContext.IsGarrisonCommander")
 
         if not isLord then
             -- isLord can be nil when we arrive here
             isLord = false
         end
     end
+
+    isLord = isLord and not isGarrisonCommander
 
     TotoWar.loggers.utils:logDebug(
         "isLordUnit(%s): COMPLETED => %s",

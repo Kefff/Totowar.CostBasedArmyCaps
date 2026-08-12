@@ -65,15 +65,13 @@ TotoWar_Cbac = nil
 function TotoWar_Cbac_Mod.new()
     TotoWar_Cbac = setmetatable({}, TotoWar_Cbac_Mod)
 
-    TotoWar_Cbac:overwriteOptionsForDebug()
     TotoWar_Cbac:initializeLoggers()
     TotoWar_Cbac:subscribeToEvents()
+    TotoWar_Cbac:loadMctOptions()
 
     TotoWar_Cbac.aiManager = TotoWar_Cbac_AiManager.new()
     TotoWar_Cbac.playerManager = TotoWar_Cbac_PlayerManager.new()
     TotoWar_Cbac.uiManager = TotoWar_Cbac_UIManager.new()
-
-    TotoWar_Cbac:loadMctOptions()
 
     TotoWar_Cbac.loggers.generic:logInfo("TotoWar: Army Caps | Mod initialized")
     TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod.new(): COMPLETED")
@@ -89,7 +87,7 @@ function TotoWar_Cbac_Mod:initializeLoggers()
     TotoWar_Cbac.loggers.playerManager = TotoWar__Logger.new("TotoWar_Cbac_PlayerManager")
     TotoWar_Cbac.loggers.uiManager = TotoWar__Logger.new("TotoWar_Cbac_UIManager")
 
-    TotoWar_Cbac.loggers.generic:logDebug("initializeLoggers(): COMPLETED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:initializeLoggers(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
@@ -152,38 +150,37 @@ end
 
 ---Reacts to MCT options being updated.
 function TotoWar_Cbac_Mod:onMctOptionsUpdated()
-    TotoWar_Cbac.loggers.generic:logDebug("onMctOptionsUpdated(): STARTED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:onMctOptionsUpdated(): STARTED")
 
     TotoWar_Cbac:loadMctOptions()
 
-    TotoWar_Cbac.loggers.generic:logDebug("onMctOptionsUpdated(): COMPLETED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:onMctOptionsUpdated(): COMPLETED")
 end
 
 ---Reacts to TotoWar options being updated.
 function TotoWar_Cbac_Mod:onOptionsUpdated()
-    TotoWar_Cbac.loggers.generic:logDebug("onOptionsUpdated(): STARTED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:onOptionsUpdated(): STARTED")
 
-    -- Overriding options after they are loaded
-    -- Must be executed first in this function
+    -- Overriding options after they are loaded / changed
     TotoWar_Cbac:overwriteOptionsForDebug()
 
-    TotoWar_Cbac.loggers.generic:logDebug("onOptionsUpdated(): COMPLETED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:onOptionsUpdated(): COMPLETED")
 end
 
 ---Allows to programatically overwrite option values for local debug purpose.
 function TotoWar_Cbac_Mod:overwriteOptionsForDebug()
     -- Set override values here
 
-    -- TotoWar_Cbac.loggers.aiManager.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar_Cbac.loggers.armySuppliesCost.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar_Cbac.loggers.generic.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar_Cbac.loggers.playerManager.logLevel = TotoWar__Enum_LogSeverity.warning
-    -- TotoWar_Cbac.loggers.uiManager.logLevel = TotoWar__Enum_LogSeverity.warning
+    -- TotoWar_Cbac.loggers.aiManager.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar_Cbac.loggers.armySuppliesCost.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar_Cbac.loggers.generic.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar_Cbac.loggers.playerManager.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar_Cbac.loggers.uiManager.logLevel = TotoWar__Enum_LogSeverities.debug
 end
 
 ---Subscribes to events.
 function TotoWar_Cbac_Mod:subscribeToEvents()
-    TotoWar_Cbac.loggers.generic:logDebug("subscribeToEvents(): STARTED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:subscribeToEvents(): STARTED")
 
     TotoWar.eventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
@@ -193,5 +190,5 @@ function TotoWar_Cbac_Mod:subscribeToEvents()
         TotoWar__Enum_ModEvents.optionsUpdated,
         function() TotoWar_Cbac:onOptionsUpdated() end)
 
-    TotoWar_Cbac.loggers.generic:logDebug("subscribeToEvents(): COMPLETED")
+    TotoWar_Cbac.loggers.generic:logDebug("TotoWar_Cbac_Mod:subscribeToEvents(): COMPLETED")
 end
