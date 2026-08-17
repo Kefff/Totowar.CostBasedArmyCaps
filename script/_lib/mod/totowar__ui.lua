@@ -207,9 +207,7 @@ function TotoWar__UI:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
         function() return heightToAdd end)
 
     local uiComponentWidth, uiComponentHeight = uiComponent:Dimensions()
-    uiComponent:SetCanResizeWidth(true)
-    uiComponent:SetCanResizeHeight(true)
-    uiComponent:Resize(uiComponentWidth + widthToAdd, uiComponentHeight + heightToAdd, false)
+    self:setUIComponentSize(uiComponent, uiComponentWidth + widthToAdd, uiComponentHeight + heightToAdd)
 
     TotoWar.loggers.uiUtils:logDebug(
         "resizeUIComponent(%s, %s, %s): COMPLETED",
@@ -247,4 +245,26 @@ function TotoWar__UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heigh
         function() return widthToAdd end,
         function() return heightToAdd end,
         function() return table.concat(query, "/") end)
+end
+
+---Sets the size of a UI component.
+---@param uiComponent UIC UI component.
+---@param width number Width to add.
+---@param height number Height to add.
+function TotoWar__UI:setUIComponentSize(uiComponent, width, height)
+    TotoWar.loggers.uiUtils:logDebug(
+        "setUIComponentSize(%s, %s, %s): STARTED",
+        function() return uiComponent:Id() end,
+        function() return width end,
+        function() return height end)
+
+    uiComponent:SetCanResizeWidth(true)
+    uiComponent:SetCanResizeHeight(true)
+    uiComponent:Resize(width, height, false)
+
+    TotoWar.loggers.uiUtils:logDebug(
+        "setUIComponentSize(%s, %s, %s): COMPLETED",
+        function() return uiComponent:Id() end,
+        function() return width end,
+        function() return height end)
 end

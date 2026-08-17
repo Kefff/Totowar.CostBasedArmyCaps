@@ -757,19 +757,42 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
 
     if armySuppliesCostUIComponent == nil then
         local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, { "external_holder" })
+        local visibleComponentsCount = 0
+        local visibleComponentsHeight = 0
+
+        for i = 0, unitCardUIComponent:ChildCount() - 1, 1 do
+            local childUIComponent = find_child_uicomponent_by_index(externalHolderUIComponent, i)
+
+            if childUIComponent:Visible() then
+                visibleComponentsCount = visibleComponentsCount + 1
+                visibleComponentsHeight = childUIComponent:Height()
+            end
+        end
 
         armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(externalHolderUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
             common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
 
+        local heightToAdd = armySuppliesCostUIComponent:Height()
+
+        if visibleComponentsCount == 1 then
+            -- When only one cost component is visible (when there is no upkeep mostly),
+            -- the space for the upkeep component is still there.
+            -- We need to resize because the height of armySuppliesCostUIComponent is greater
+            -- than the height of the cost component, but we do not need to add the full
+            -- height.
+            heightToAdd = heightToAdd - visibleComponentsHeight
+        end
+
         -- Resizing the container to have enough space to display the new component
-        TotoWar__UI:resizeUIComponent(unitCardUIComponent, 0, armySuppliesCostUIComponent:Height())
-        TotoWar__UI:resizeUIComponent(externalHolderUIComponent, 0, armySuppliesCostUIComponent:Height())
+        -- as it is only sized for 2 components
+        TotoWar__UI:resizeUIComponent(unitCardUIComponent, 0, heightToAdd)
+        TotoWar__UI:resizeUIComponent(externalHolderUIComponent, 0, heightToAdd)
 
         -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
-        TotoWar__UI:offsetChildUIComponents(externalHolderUIComponent, 0, -armySuppliesCostUIComponent:Height())
-        armySuppliesCostUIComponent:SetDockOffset(0, 0) -- Cancelling the offset of the army supplies cost component itself
+        TotoWar__UI:offsetChildUIComponents(externalHolderUIComponent, 0, -heightToAdd)
+        armySuppliesCostUIComponent:SetDockOffset(-2, 0) -- Cancelling the offset of the army supplies cost component itself (-2 du align the right border with the other cost compoments)
     end
 
     local unitBaseCostText = tostring(unitBaseCost)
