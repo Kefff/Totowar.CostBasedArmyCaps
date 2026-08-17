@@ -160,6 +160,14 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
     elseif self.selectedLordArmySuppliesCost then
         self.selectedLord = nil
         self.selectedLordArmySuppliesCost = nil
+
+        -- Signaling army supplies cost change.
+        -- This is only useful in the case we select a we select an isolated player faction hero.
+        -- The units panel is not close and the CharactedDeselected event is not triggered by the game.
+        -- So we set selectedLordArmySuppliesCost to nil and we still trigger the selectedLordArmySuppliesCostChanged
+        -- event to make the UI manager react.
+        -- In this case, it will hide the army supplies because selectedLordArmySuppliesCost is nil.
+        TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
     end
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
@@ -462,11 +470,17 @@ function TotoWar_Cbac_PlayerManager:onWarbandUpgradeClicked(context)
 
             local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
                 TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
+            local isVisible = false
+
+            if warbandUpgradesUIComponent ~= nil then
+                isVisible = warbandUpgradesUIComponent:Visible(true)
+            end
+
             local isWarbandUpgradeClicked =
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and warbandUpgradesUIComponent ~= nil
-                and warbandUpgradesUIComponent:Visible(true)
+                and isVisible
                 and clickedUiComponentName == "button_invoke"
                 and TotoWar__UI:isUIComponentChildOf(
                     UIComponent(clickedUiComponentAddress),

@@ -927,19 +927,27 @@ end
 function TotoWar_Cbac_UIManager:updateUnitsPanel()
     TotoWar_Cbac.loggers.uiManager:logDebug("updateUnitsPanel(): STARTED")
 
-    local armySuppliesCostText = self:getArmySuppliesCostText(
-        TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost)
-    local armySuppliesCostTooltip =
-        TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()
+    if TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost == nil then
+        -- This occurs when a player faction army is selected, and we select an isolated player faction hero.
+        -- The units panel is not close and the CharactedDeselected event is not triggered by the game.
+        -- We still manage to set selectedLordArmySuppliesCost to nil.
+        -- In that case, we need to hide the army supplies component.
+        self:hideArmySuppliesCostUIComponent()
+    else
+        local armySuppliesCostText = self:getArmySuppliesCostText(
+            TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost)
+        local armySuppliesCostTooltip =
+            TotoWar_Cbac.playerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()
 
-    local unitsPanelIconListUIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitsPanelIconList)
+        local unitsPanelIconListUIComponent = TotoWar__UI:getUIComponent(
+            TotoWar__UI.uiComponentQueries.unitsPanelIconList)
 
-    if unitsPanelIconListUIComponent ~= nil then
-        self:createOrUpdateArmySuppliesUIComponent(
-            unitsPanelIconListUIComponent,
-            armySuppliesCostText,
-            armySuppliesCostTooltip)
+        if unitsPanelIconListUIComponent ~= nil then
+            self:createOrUpdateArmySuppliesUIComponent(
+                unitsPanelIconListUIComponent,
+                armySuppliesCostText,
+                armySuppliesCostTooltip)
+        end
     end
 
     TotoWar_Cbac.loggers.uiManager:logDebug("updateUnitsPanel(): COMPLETED")
