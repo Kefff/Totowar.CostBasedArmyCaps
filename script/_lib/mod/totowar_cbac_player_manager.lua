@@ -462,19 +462,19 @@ function TotoWar_Cbac_PlayerManager:onWarbandUpgradeClicked(context)
 
             local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
                 TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
-
             local isWarbandUpgradeClicked =
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn()
                 and warbandUpgradesUIComponent ~= nil
                 and warbandUpgradesUIComponent:Visible(true)
-                and TotoWar__String:startsWith(clickedUiComponentName, "CcoMainUnitRecord")
+                and clickedUiComponentName == "button_invoke"
                 and TotoWar__UI:isUIComponentChildOf(
                     UIComponent(clickedUiComponentAddress),
                     { "warband_upgrades" })
 
             if isWarbandUpgradeClicked then
-                self:updateWarbandUpgradeArmySupplies()
+                -- Updating the selected army supplies with upgraded units
+                self:initializeArmySuppliesCost(self.selectedLord)
             end
 
             TotoWar_Cbac.loggers.playerManager:logDebug(
