@@ -50,7 +50,7 @@ end
 
 ---Indicates whether a text starts with another text.
 ---@param text string Text.
----@param searchedText integer Searched text.
+---@param searchedText string Searched text.
 ---@return boolean
 function TotoWar__String:startsWith(text, searchedText)
     text = text:sub(1, #searchedText)

@@ -4,20 +4,20 @@ TotoWar__UI = {
     ---Queries for finding UI components.
     ---@class TotoWarUIUtils_UIComponentQuery
     uiComponentQueries = {
-        unitExchangePool1 = { "unit_exchange", "main_units_panel_1" },
-        unitExchangePool2 = { "unit_exchange", "main_units_panel_2" },
-        unitPanelRecruitmentOptionsLocalRecruitmentPool1 = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
-        unitPanelRecruitmentOptionsLocalRecruitmentPool2 = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list" }, -- Appear sometimes, when recruiting Beastmen from Herdstones for example
-        unitsPanelIconList = { "units_panel", "main_units_panel", "icon_list" },
-        unitsPanelRecruitmentOptionsAlliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" },                                -- The typo in "allied_recuitment_display" is from CA
-        unitsPanelRecruitmentOptionsCloseButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-        unitsPanelRecruitmentOptionsGlobalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
-        unitsPanelRecruitmentOptionsMercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
-        unitsPanelUnits = { "units_panel", "main_units_panel", "units" },
-        unitsPanelWarbandUpgrades = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades" },
-        unitsPanelWarbandUpgradesRequirements = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "body" },
-        unitsPanelWarbandUpgradesUnitToUpgrade = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade_small", "card_image_holder" },
-        unitsPanelWarbandUpgradesUpgradedUnit = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade", "card_image_holder" }
+        unitExchange_pool1 = { "unit_exchange", "main_units_panel_1" },
+        unitExchange_pool2 = { "unit_exchange", "main_units_panel_2" },
+        unitsPanel_recruitmentOptions_localRecruitmentPool1 = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local1", "unit_list" },
+        unitsPanel_recruitmentOptions_localRecruitmentPool2 = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "local2", "unit_list" }, -- Appear sometimes, when recruiting Beastmen from Herdstones for example
+        unitsPanel_iconList = { "units_panel", "main_units_panel", "icon_list" },
+        unitsPanel_recruitmentOptions_alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" },                                 -- The typo in "allied_recuitment_display" is from CA
+        unitsPanel_recruitmentOptions_closeButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
+        unitsPanel_recruitmentOptions_globalRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box", "global", "unit_list" },
+        unitsPanel_recruitmentOptions_mercenaryRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "frame" },
+        unitsPanel_units = { "units_panel", "main_units_panel", "units" },
+        unitsPanel_warbandUpgrades = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades" },
+        unitsPanel_warbandUpgradesRequirements = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "body" },
+        unitsPanel_warbandUpgradesUnitToUpgrade = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade_small", "card_image_holder" },
+        unitsPanel_warbandUpgradesUpgradedUnit = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade", "card_image_holder" }
     }
 }
 TotoWar__UI.__index = TotoWar__UI

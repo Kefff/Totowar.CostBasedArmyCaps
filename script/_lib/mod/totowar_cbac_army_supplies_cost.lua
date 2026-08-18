@@ -193,6 +193,26 @@ function TotoWar_Cbac_ArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
+---Creates a new instance by copy.
+---@return TotoWar_Cbac_ArmySuppliesCost
+function TotoWar_Cbac_ArmySuppliesCost:copy()
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("copy(): STARTED")
+
+    local copy = TotoWar_Cbac_ArmySuppliesCost:new(self.lordLevel)
+
+    for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
+        if unitArmySuppliesCost.characterCqi ~= nil then
+            copy:addCharacter(unitArmySuppliesCost.characterCqi)
+        else
+            copy:addUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi)
+        end
+    end
+
+    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("copy(): COMPLETED")
+
+    return copy
+end
+
 ---Removes the character corresponding to a command queue index.
 ---@param characterCqi integer Character command queue index.
 function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)

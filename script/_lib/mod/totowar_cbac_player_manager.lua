@@ -68,7 +68,7 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
     self.selectedLordArmySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(false, lord:military_force())
 
     -- Adding units being recruited in the lord army
-    local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
+    local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanel_units)
 
     -- Adding units from the recruitment queue
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
@@ -251,7 +251,7 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUniCardClick(uiCompone
     -- was not `inactive` at the time of the click and we add its army supplies cost.
     -- so we can add the unit army supplies cost.
     local inRecruitmentMercenaryUnitCount = 0
-    local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
+    local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanel_units)
 
     for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
         -- Iterating from the last unit card since units being recruited are at the end
@@ -420,15 +420,13 @@ function TotoWar_Cbac_PlayerManager:onWarbandUnitToUpgradeClicked(context)
     -- For some reason, when multiple unit cards are selected using SHIEFT + Click or CTRL + Click,
     -- this event is triggered for each selected unit card, not just the one clicked.
 
-    -- Delay because when clicking on the Upgrade button, this method is called again (because we have selected unit cards)
-    -- while the warband upgrade panel is being animated which causes a crash. We wait for the animation to finish
-    -- before checking if we need to call updateWarbandUpgradeArmySupplies.
+    -- Delay here to avoid a crash when clicking on the "Upgrade" for some reason.
     TotoWar__Utils:delay(
         function()
             TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUnitToUpgradeClicked(context): STARTED")
 
             local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
-                TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
+                TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgrades)
             local isStandardUnitCard = context.string:match(TotoWar__Enum_Patterns.standardUnitCard) ~= nil
 
             local isUnitCardForWarbandUpgradeClicked =
@@ -458,18 +456,13 @@ function TotoWar_Cbac_PlayerManager:onWarbandUpgradeClicked(context)
     -- The Warband Upgrade screen is not considered a panel so we cannot know when it is opened.
     -- However, we can check when clicking on an element whether it is a Warband Upgrade to update the Warband Upgrade cost in the Warband Upgrade panel.
 
-    -- For some reason, when a warband upgrade is selected, clicking on a unit card in the unit list triggers the click event for the selected warband upgrade.
-    -- So this method may be called multiples times instead of just once.
-
-    -- Delay because when clicking on the Upgrade button, this method is called again (because we have selected unit cards)
-    -- while the warband upgrade panel is being animated which causes a crash. We wait for the animation to finish
-    -- before checking if we need to call updateWarbandUpgradeArmySupplies.
+    -- Delay here to avoid a crash when clicking on the "Upgrade" for some reason.
     TotoWar__Utils:delay(
         function()
             TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeClicked(context): STARTED")
 
             local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
-                TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgrades)
+                TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgrades)
             local isVisible = false
 
             if warbandUpgradesUIComponent ~= nil then
@@ -736,9 +729,9 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
     local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitExchangePool1)
+        TotoWar__UI.uiComponentQueries.unitExchange_pool1)
     local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitExchangePool2)
+        TotoWar__UI.uiComponentQueries.unitExchange_pool2)
 
     local lord1 = TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePool1UIComponent)
     local lord1Rank = 1
@@ -812,9 +805,9 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
     TotoWar_Cbac.loggers.playerManager:logDebug("updateWarbandUpgradeArmySupplies(): STARTED")
 
     local unitToUpgradeUiComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesUnitToUpgrade)
+        TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgradesUnitToUpgrade)
     local upgradedUnitUiComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitsPanelWarbandUpgradesUpgradedUnit)
+        TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgradesUpgradedUnit)
 
     if unitToUpgradeUiComponent:Visible(true)
         and upgradedUnitUiComponent:Visible(true)
@@ -830,7 +823,7 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
 
         -- Counting how many units of this type are selected
         local unitsToUpgradeCount = 0
-        local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanelUnits)
+        local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanel_units)
 
         -- Getting the number of units selected
         for i = 0, unitsUIComponent:ChildCount() - 1, 1 do
