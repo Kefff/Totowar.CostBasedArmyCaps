@@ -208,6 +208,10 @@ function TotoWar_Cbac_ArmySuppliesCost:copy()
         end
     end
 
+    for index, inRecruitmentMercenaryUnit in ipairs(self.inRecruitmentMercenaryUnits) do
+        copy:addUnit(inRecruitmentMercenaryUnit.unitKey, inRecruitmentMercenaryUnit.unitCqi, true)
+    end
+
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug("copy(): COMPLETED")
 
     return copy

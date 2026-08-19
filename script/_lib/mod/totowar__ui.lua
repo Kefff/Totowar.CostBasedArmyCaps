@@ -133,7 +133,7 @@ function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
         function() return uiComponent:Id() end,
         function() return parentNamesText end)
 
-    local hasParent = TotoWar__Linq:any(
+    local isChildOfAll = TotoWar__Linq:all(
         parentNames,
         function(pn)
             return (uicomponent_has_parent_filter(
@@ -146,9 +146,9 @@ function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
         "isUIComponentChildOf(%s, %s): COMPETED => %s",
         function() return uiComponent:Id() end,
         function() return parentNamesText end,
-        function() return hasParent end)
+        function() return isChildOfAll end)
 
-    return hasParent
+    return isChildOfAll
 end
 
 ---Offsets the children of a UI component.
