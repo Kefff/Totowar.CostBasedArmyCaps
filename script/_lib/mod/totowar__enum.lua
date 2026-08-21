@@ -7,6 +7,9 @@ TotoWar__Enum_CcoContextTypeIds = {
     ---Unit. ID: unit CQI.
     campaignUnit = "CcoCampaignUnit",
 
+    -- Faction. ID: faction CQI.
+    factionRecord = "CcoFactionRecord",
+
     ---Main unit record. ID: unit key.
     mainUnitRecord = "CcoMainUnitRecord"
 }
@@ -80,6 +83,10 @@ TotoWar__Enum_GameEvents = {
 
     --Event triggered when an army is created.
     militaryForceCreated = "MilitaryForceCreated",
+
+    --Event triggered by one player's game to activate a change across all players' games.
+    --It is primarily used to synchronize the game state among all connected players.
+    multiplayerEventTriggered = "UITrigger",
 
     ---Event triggered when a panel is opened.
     panelOpened = "PanelOpenedCampaign",

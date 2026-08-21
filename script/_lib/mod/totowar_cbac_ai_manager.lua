@@ -14,13 +14,13 @@ TotoWar_Cbac_AiManager.__index = TotoWar_Cbac_AiManager
 ---Initializes a new instance.
 ---@return TotoWar_Cbac_AiManager
 function TotoWar_Cbac_AiManager.new()
-    TotoWar_Cbac.loggers.aiManager:logDebug("TotoWar_Cbac_AiManager.new(): STARTED")
+    TotoWar_Cbac.loggers.aiManager:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar_Cbac_AiManager)
 
     instance:subscribeToEvents()
 
-    TotoWar_Cbac.loggers.aiManager:logDebug("TotoWar_Cbac_AiManager.new(): COMPLETED")
+    TotoWar_Cbac.loggers.aiManager:logDebug("new(): COMPLETED")
 
     return instance
 end

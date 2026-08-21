@@ -56,7 +56,7 @@ TotoWar_Cbac_UIManager.__index = TotoWar_Cbac_UIManager
 ---Initializes a new instance.
 ---@return TotoWar_Cbac_UIManager
 function TotoWar_Cbac_UIManager.new()
-    TotoWar_Cbac.loggers.uiManager:logDebug("TotoWar_Cbac_UIManager.new(): STARTED")
+    TotoWar_Cbac.loggers.uiManager:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar_Cbac_UIManager)
 
@@ -101,7 +101,7 @@ function TotoWar_Cbac_UIManager.new()
 
     instance:subscribeToEvents()
 
-    TotoWar_Cbac.loggers.uiManager:logDebug("TotoWar_Cbac_UIManager.new(): COMPLETED")
+    TotoWar_Cbac.loggers.uiManager:logDebug("new(): COMPLETED")
 
     return instance
 end

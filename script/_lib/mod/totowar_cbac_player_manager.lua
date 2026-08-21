@@ -33,13 +33,13 @@ TotoWar_Cbac_PlayerManager.__index = TotoWar_Cbac_PlayerManager
 ---Initializes a new instance.
 ---@return TotoWar_Cbac_PlayerManager
 function TotoWar_Cbac_PlayerManager.new()
-    TotoWar_Cbac.loggers.playerManager:logDebug("TotoWar_Cbac_PlayerManager.new(): STARTED")
+    TotoWar_Cbac.loggers.playerManager:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar_Cbac_PlayerManager)
 
     instance:subscribeToEvents()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("TotoWar_Cbac_PlayerManager.new(): COMPLETED")
+    TotoWar_Cbac.loggers.playerManager:logDebug("new(): COMPLETED")
 
     return instance
 end

@@ -102,6 +102,24 @@ function TotoWar__Gameplay:getCultureCaption(cultureName)
     return caption
 end
 
+---Gets a faction.
+---@param factionCqi integer Faction command queue index.
+function TotoWar__Gameplay:getFaction(factionCqi)
+    TotoWar.loggers.utils:logDebug(
+        "getFaction(%s): STARTED",
+        function() return factionCqi end)
+
+    local factionKey = cco(TotoWar__Enum_CcoContextTypeIds.factionRecord, factionCqi):Call("Key")
+    local faction = cm:get_faction(factionKey)
+
+    TotoWar.loggers.utils:logDebug(
+        "getFaction(%s): COMPLETED => %s",
+        function() return factionCqi end,
+        function() return self:getFactionCaption(faction:name()) end)
+
+    return faction
+end
+
 ---Gets the caption of a faction.
 ---@param factionName string Faction name.
 function TotoWar__Gameplay:getFactionCaption(factionName)

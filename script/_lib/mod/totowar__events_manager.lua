@@ -1,3 +1,9 @@
+---Separator used to separated the event
+local _multiplayerEventDataSeparator = "|"
+
+---Maximum amount of characters that can be passed in a multiplayer event.
+local _multiplayerEventMaximumDataLength = 100
+
 ---Manager for events.
 ---@class TotoWar__EventsManager
 TotoWar__EventsManager = {
@@ -14,14 +20,14 @@ TotoWar__EventsManager.__index = TotoWar__EventsManager
 ---Initializes a new instance.
 ---@return TotoWar__EventsManager
 function TotoWar__EventsManager.new()
-    TotoWar.loggers.eventsManager:logDebug("TotoWar__EventsManager.new(): STARTED")
+    TotoWar.loggers.eventsManager:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar__EventsManager)
 
     instance.idCounter = 0
     instance.eventSubscriptions = {}
 
-    TotoWar.loggers.eventsManager:logDebug("TotoWar__EventsManager.new(): COMPLETED")
+    TotoWar.loggers.eventsManager:logDebug("new(): COMPLETED")
 
     return instance
 end
@@ -192,9 +198,10 @@ end
 ---@return TotoWar__EventSubscription
 function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunction, maximumExecutions, priority)
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): STARTED",
+        "subscribe(%s, %s %s, %s, %s): STARTED",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
+        function() return "callbackFunction" end,
         function()
             if conditionFunction ~= nil then
                 return "conditionFunction"
@@ -223,9 +230,10 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
             true)
 
         TotoWar.loggers.eventsManager:logDebug(
-            "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): LISTENER ADDED",
+            "subscribe(%s, %s, %s, %s, %s): LISTENER ADDED",
             ---@diagnostic disable-next-line: return-type-mismatch
             function() return event end,
+            function() return "callbackFunction" end,
             function()
                 if conditionFunction ~= nil then
                     return "conditionFunction"
@@ -240,9 +248,122 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
     table.insert(self.eventSubscriptions, eventSubscription)
 
     TotoWar.loggers.eventsManager:logDebug(
-        "TotoWar__EventsManager.subscribe(%s, %s, %s, %s): COMPLETED => %s",
+        "subscribe(%s, %s, %s, %s, %s): COMPLETED => %s",
         ---@diagnostic disable-next-line: return-type-mismatch
         function() return event end,
+        function() return "callbackFunction" end,
+        function()
+            if conditionFunction ~= nil then
+                return "conditionFunction"
+            end
+
+            return nil
+        end,
+        function() return maximumExecutions end,
+        function() return priority end,
+        function() return eventSubscription.id end)
+
+    return eventSubscription
+end
+
+---Initializes a new instance.
+---@param event string Subscribed event.
+---@param callbackFunction fun(dataString: string) Function executed when the subscribed event being triggered. `dataString` can be empty when no data is passed in the event.
+---@param conditionFunction (fun(dataString: string): boolean)? Function for deciding whether the callback function should be triggered, when the event subscribed event is fired based on the event context. `dataString` can be empty when no data is passed in the event.
+---@param maximumExecutions integer? Maximum number of times the callback function will be executed when the subscribed event is triggered.
+---@param priority integer? Priority that determines in which order event subscriptions to the same event are executed.
+---@return TotoWar__EventSubscription
+function TotoWar__EventsManager:subscribeMultiplayer(
+    event,
+    callbackFunction,
+    conditionFunction,
+    maximumExecutions,
+    priority)
+    TotoWar.loggers.eventsManager:logDebug(
+        "subscribeMultiplayer(%s, %s, %s, %s, %s): STARTED",
+        ---@diagnostic disable-next-line: return-type-mismatch
+        function() return event end,
+        function() return "callbackFunction" end,
+        function()
+            if conditionFunction ~= nil then
+                return "conditionFunction"
+            end
+
+            return nil
+        end,
+        function() return maximumExecutions end,
+        function() return priority end)
+
+    local multiplayerCallbackFunction = function(context)
+        local factionCqi = context:faction_cqi()
+
+        -- Extracting the data string from the context and passing it to the callback function
+        ---@type string
+        local fullDataString = context:trigger()
+        local dataString = fullDataString:gsub("^" .. event, "", 1)
+        dataString = dataString:gsub("^" .. _multiplayerEventDataSeparator, "", 1)
+
+        TotoWar.loggers.eventsManager:logDebug(
+            "multiplayerCallbackFunction(context): STARTED => Origin: %s | Event: %s | Data: %s",
+            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return event end,
+            function() return dataString end)
+
+        callbackFunction(dataString)
+
+        TotoWar.loggers.eventsManager:logDebug(
+            "multiplayerCallbackFunction(context): COMPLETED => Origin: %s | Event: %s | Data: %s",
+            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return event end,
+            function() return dataString end)
+    end
+
+    local multiplayerConditionFunction = function(context)
+        local factionCqi = context:faction_cqi()
+
+        -- Extracting the data string from the context and passing it to the condition function
+        ---@type string
+        local fullDataString = context:trigger()
+        local dataString = fullDataString:gsub("^" .. event, "", 1)
+        dataString = dataString:gsub("^" .. _multiplayerEventDataSeparator, "", 1)
+
+        TotoWar.loggers.eventsManager:logDebug(
+            "multiplayerConditionFunction(context): STARTED => Origin: %s | Event: %s | Data: %s",
+            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return event end,
+            function() return dataString end)
+
+        -- Checking whether the event stored in the context corresponds to the subcribed event
+        if fullDataString == event -- Case where no data is passed in the event
+            or TotoWar__String:startsWith(fullDataString, event .. _multiplayerEventDataSeparator)
+        then
+            if result and conditionFunction ~= nil then
+                result = conditionFunction(dataString)
+            end
+        end
+
+        TotoWar.loggers.eventsManager:logDebug(
+            "multiplayerConditionFunction(context): COMPLETE => Origin: %s | Event: %s | Data: %s | Execute callback: %s",
+            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return event end,
+            function() return dataString end,
+            function() return result end)
+
+        return result
+    end
+
+    local eventSubscription = self:subscribe(
+        TotoWar__Enum_GameEvents.multiplayerEventTriggered,
+        multiplayerCallbackFunction,
+        multiplayerConditionFunction,
+        maximumExecutions,
+        priority)
+
+    TotoWar.loggers.eventsManager:logDebug(
+        "subscribeMultiplayer(%s, %s, %s, %s, %s): COMPLETED => %s",
+        ---@diagnostic disable-next-line: return-type-mismatch
+        function() return event end,
+        function() return "callbackFunction" end,
         function()
             if conditionFunction ~= nil then
                 return "conditionFunction"
@@ -297,6 +418,48 @@ function TotoWar__EventsManager:trigger(event, context)
 
             return nil
         end)
+end
+
+---Triggers a multiplayer event that is received by all players in the game.
+---Used to synchronize state between all players to avoid desyncs.
+---
+---WARNING : `event` and `dataString` are concatenated using a `|` character. THEIR COMBINED SIZE MUST BE LESSER OR EQUAL TO 100 CHARACTERS.
+---@param factionCqi integer Faction CQI.
+---@param event string Event.
+---@param dataString string? Data to pass in the event.
+function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString)
+    TotoWar.loggers.eventsManager:logDebug(
+        "triggerMultiplayer(%s, %s, %s): STARTED",
+        function()
+            return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name())
+        end,
+        function() return event end,
+        function() return dataString end)
+
+    local fullDataString = event
+
+    if dataString ~= nil and #dataString > 0 then
+        fullDataString = fullDataString .. _multiplayerEventDataSeparator .. dataString
+    end
+
+    if #fullDataString > _multiplayerEventMaximumDataLength then
+        -- Due to technical limitation in the game, we cannot send more that 100 characters as data in the event
+        TotoWar.loggers.eventsManager:logError(
+            "Multiplayer event data string \"%s\" is too long and cannot be sent",
+            fullDataString)
+
+        return
+    end
+
+    CampaignUI.TriggerCampaignScriptEvent(factionCqi, fullDataString);
+
+    TotoWar.loggers.eventsManager:logDebug(
+        "triggerMultiplayer(%s, %s, %s): COMPLETED",
+        function()
+            return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name())
+        end,
+        function() return event end,
+        function() return dataString end)
 end
 
 ---Cancels the specified event subscription.
