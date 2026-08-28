@@ -527,7 +527,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
             -- We do not check the TotoWar_Cbac.options.playerArmySuppliesEnabled option because when this option
             -- is disabled, we deselect everything and we want onCharacterDeselected to be executed
             -- to reset UI elements.
-            return cm:is_local_players_turn()
+            return cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -537,8 +537,8 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function(context)
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
-                and not TotoWar__Gameplay:isPlayerFaction(context:character():faction():name())
+                and cm:is_local_players_turn(true)
+                and not TotoWar__Gameplay:isLocalPlayerFaction(context:character():faction():name())
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -552,7 +552,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function(context)
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
+                and cm:is_local_players_turn(true)
                 and context.string == TotoWar__Enum_Panels.recruitmentOptions
         end)
 
@@ -564,7 +564,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function(context)
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
+                and cm:is_local_players_turn(true)
                 and not TotoWar_Cbac.playerManager.isInitializingArmySuppliesCost
                 and self:isRecruitmentPanel(context.string)
         end)
@@ -575,7 +575,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
+                and cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -584,7 +584,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
+                and cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -593,7 +593,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn()
+                and cm:is_local_players_turn(true)
         end)
 
     TotoWar_Cbac.loggers.uiManager:logDebug("subscribeToEvents(): COMPLETED")

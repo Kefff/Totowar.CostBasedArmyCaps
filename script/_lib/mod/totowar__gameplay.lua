@@ -249,22 +249,22 @@ function TotoWar__Gameplay:isLordUnit(characterCqi)
     return isLord
 end
 
----Indicates whether a faction is the faction of the player.
+---Indicates whether a faction is the faction of the local player.
 ---@param factionName string Faction name.
 ---@return boolean
-function TotoWar__Gameplay:isPlayerFaction(factionName)
+function TotoWar__Gameplay:isLocalPlayerFaction(factionName)
     TotoWar.loggers.utils:logDebug(
-        "isPlayerFaction(%s): STARTED",
+        "isLocalPlayerFaction(%s): STARTED",
         function() return self:getFactionCaption(factionName) end)
 
-    local isPlayerFactionLord = factionName == cm:get_local_faction_name()
+    local isLocalPlayerFactionLord = factionName == cm:get_local_faction_name()
 
     TotoWar.loggers.utils:logDebug(
-        "isPlayerFaction(%s): COMPLETED => %s",
+        "isLocalPlayerFaction(%s): COMPLETED => %s",
         function() return self:getFactionCaption(factionName) end,
-        function() return isPlayerFactionLord end)
+        function() return isLocalPlayerFactionLord end)
 
-    return isPlayerFactionLord
+    return isLocalPlayerFactionLord
 end
 
 ---Gets a value in the game state.

@@ -28,3 +28,47 @@ function TotoWar__Utils:delay(callback, delay)
 
     TotoWar.loggers.generic:logDebug("TotoWar__Utils.delay(callback, %s): COMPLETED", function() return delay end)
 end
+
+---Gets a consistent pseudo-random value using a seed generated from parameters.
+---@param minValue integer Minimum value.
+---@param maxValue integer Maximum value.
+---@param ... string Parameters detemining the seed.
+---@return integer
+function TotoWar__Utils:ramdomWithSeed(minValue, maxValue, ...)
+    local parameters = { ... }
+
+    TotoWar.loggers.generic:logDebug(
+        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): STARTED",
+        function() return minValue end,
+        function() return maxValue end,
+        function() return #parameters end)
+
+    local seed = 0
+
+    for _, parameter in ipairs(parameters) do
+        local parameterAsString = tostring(parameter)
+
+        for i = 1, #parameterAsString do
+            seed = seed + string.byte(parameterAsString, i) * (i % 3 + 1) -- Adding ASCII codes
+        end
+    end
+
+    TotoWar.loggers.generic:logDebug(
+        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): STARTED => SEED: %s",
+        function() return minValue end,
+        function() return maxValue end,
+        function() return #parameters end,
+        function() return seed end)
+
+    math.randomseed(seed)
+    local randomValue = math.random(minValue, maxValue)
+
+    TotoWar.loggers.generic:logDebug(
+        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): COMPLETED => %s",
+        function() return minValue end,
+        function() return maxValue end,
+        function() return #parameters end,
+        function() return randomValue end)
+
+    return randomValue
+end

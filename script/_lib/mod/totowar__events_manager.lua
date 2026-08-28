@@ -189,7 +189,7 @@ function TotoWar__EventsManager:onEvent(event, context)
         end)
 end
 
----Initializes a new instance.
+---Subscribes to an event.
 ---@param event string Subscribed event.
 ---@param callbackFunction fun(context: any) Function executed when the subscribed event being triggered.
 ---@param conditionFunction (fun(context: any): boolean)? Function for deciding whether the callback function should be triggered, when the event subscribed event is fired based on the event context.
@@ -266,7 +266,7 @@ function TotoWar__EventsManager:subscribe(event, callbackFunction, conditionFunc
     return eventSubscription
 end
 
----Initializes a new instance.
+---Subscribes to a multiplayer event.
 ---@param event string Subscribed event.
 ---@param callbackFunction fun(dataString: string) Function executed when the subscribed event being triggered. `dataString` can be empty when no data is passed in the event.
 ---@param conditionFunction (fun(dataString: string): boolean)? Function for deciding whether the callback function should be triggered, when the event subscribed event is fired based on the event context. `dataString` can be empty when no data is passed in the event.

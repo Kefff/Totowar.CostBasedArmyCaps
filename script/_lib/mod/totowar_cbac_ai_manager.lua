@@ -954,34 +954,56 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         local warMachinesMaximumPercentage = maximumPercentages:get(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines)
 
-        armySize = math.random(TotoWar_Cbac_Constant.minimumTargetArmySize, TotoWar_Cbac_Constant.maximumTargetArmySize)
+        -- Consistent pseudo-random values based on the current turn, faction and lord to make sure
+        -- all players have the same result
+        armySize = TotoWar__Utils:ramdomWithSeed(
+            TotoWar_Cbac_Constant.minimumTargetArmySize,
+            TotoWar_Cbac_Constant.maximumTargetArmySize,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
 
         lordUnitAmount = 1
         local nonLordUnitCount = armySize - lordUnitAmount
 
-        local cavalryAndMonstersPercentage = math.random(
+        local cavalryAndMonstersPercentage = TotoWar__Utils:ramdomWithSeed(
             cavalryAndMonstersMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
-            cavalryAndMonstersMaximumPercentage)
+            cavalryAndMonstersMaximumPercentage,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
         cavalryAndMonstersPercentage = math.floor(cavalryAndMonstersPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local heroPercentage = math.random(
+        local heroPercentage = TotoWar__Utils:ramdomWithSeed(
             heroMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
-            heroMaximumPercentage)
+            heroMaximumPercentage,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
         heroPercentage = math.floor(heroPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local meleeInfantryPercentage = math.random(
+        local meleeInfantryPercentage = TotoWar__Utils:ramdomWithSeed(
             meleeInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
-            meleeInfantryMaximumPercentage)
+            meleeInfantryMaximumPercentage,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
         meleeInfantryPercentage = math.floor(meleeInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local rangedInfantryPercentage = math.random(
+        local rangedInfantryPercentage = TotoWar__Utils:ramdomWithSeed(
             rangedInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
-            rangedInfantryMaximumPercentage)
+            rangedInfantryMaximumPercentage,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
         rangedInfantryPercentage = math.floor(rangedInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local warMachinesPercentage = math.random(
+        local warMachinesPercentage = TotoWar__Utils:ramdomWithSeed(
             warMachinesMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
-            warMachinesMaximumPercentage)
+            warMachinesMaximumPercentage,
+            cm:turn_number(),
+            lord:faction():name(),
+            lord:cqi())
         warMachinesPercentage = math.floor(warMachinesPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
         local percentagesTotal =
@@ -1405,7 +1427,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and TotoWar__Gameplay:isLordCharacter(context:character())
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -1415,7 +1437,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -1425,7 +1447,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -1435,7 +1457,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
         end)
 
     TotoWar.eventsManager:subscribe(
@@ -1446,7 +1468,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function(context)
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
                 and context:unit():military_force()
                 and TotoWar__Gameplay:canRecruitUnits(context:unit():military_force())
         end)
@@ -1458,7 +1480,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
-                and not cm:is_local_players_turn()
+                and not cm:is_local_players_turn(true)
         end)
 
     TotoWar_Cbac.loggers.aiManager:logDebug("subscribeToEvents(): COMPLETED")
