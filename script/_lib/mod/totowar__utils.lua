@@ -34,11 +34,11 @@ end
 ---@param maxValue integer Maximum value.
 ---@param ... string Parameters detemining the seed.
 ---@return integer
-function TotoWar__Utils:ramdomWithSeed(minValue, maxValue, ...)
+function TotoWar__Utils:randomWithSeed(minValue, maxValue, ...)
     local parameters = { ... }
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): STARTED",
+        "TotoWar__Utils.randomWithSeed(%s, %s, %s): STARTED",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end)
@@ -54,7 +54,7 @@ function TotoWar__Utils:ramdomWithSeed(minValue, maxValue, ...)
     end
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): STARTED => SEED: %s",
+        "TotoWar__Utils.randomWithSeed(%s, %s, %s): STARTED => SEED: %s",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end,
@@ -64,7 +64,7 @@ function TotoWar__Utils:ramdomWithSeed(minValue, maxValue, ...)
     local randomValue = math.random(minValue, maxValue)
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.ramdomWithSeed(%s, %s, %s): COMPLETED => %s",
+        "TotoWar__Utils.randomWithSeed(%s, %s, %s): COMPLETED => %s",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end,

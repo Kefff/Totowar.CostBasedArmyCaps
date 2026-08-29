@@ -956,7 +956,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
 
         -- Consistent pseudo-random values based on the current turn, faction and lord to make sure
         -- all players have the same result
-        armySize = TotoWar__Utils:ramdomWithSeed(
+        armySize = TotoWar__Utils:randomWithSeed(
             TotoWar_Cbac_Constant.minimumTargetArmySize,
             TotoWar_Cbac_Constant.maximumTargetArmySize,
             cm:turn_number(),
@@ -966,7 +966,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
         lordUnitAmount = 1
         local nonLordUnitCount = armySize - lordUnitAmount
 
-        local cavalryAndMonstersPercentage = TotoWar__Utils:ramdomWithSeed(
+        local cavalryAndMonstersPercentage = TotoWar__Utils:randomWithSeed(
             cavalryAndMonstersMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
             cavalryAndMonstersMaximumPercentage,
             cm:turn_number(),
@@ -974,7 +974,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             lord:cqi())
         cavalryAndMonstersPercentage = math.floor(cavalryAndMonstersPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local heroPercentage = TotoWar__Utils:ramdomWithSeed(
+        local heroPercentage = TotoWar__Utils:randomWithSeed(
             heroMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
             heroMaximumPercentage,
             cm:turn_number(),
@@ -982,7 +982,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             lord:cqi())
         heroPercentage = math.floor(heroPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local meleeInfantryPercentage = TotoWar__Utils:ramdomWithSeed(
+        local meleeInfantryPercentage = TotoWar__Utils:randomWithSeed(
             meleeInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
             meleeInfantryMaximumPercentage,
             cm:turn_number(),
@@ -990,7 +990,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             lord:cqi())
         meleeInfantryPercentage = math.floor(meleeInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local rangedInfantryPercentage = TotoWar__Utils:ramdomWithSeed(
+        local rangedInfantryPercentage = TotoWar__Utils:randomWithSeed(
             rangedInfantryMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
             rangedInfantryMaximumPercentage,
             cm:turn_number(),
@@ -998,7 +998,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             lord:cqi())
         rangedInfantryPercentage = math.floor(rangedInfantryPercentage / 5 + 0.5) * 5 -- Multiple of 5
 
-        local warMachinesPercentage = TotoWar__Utils:ramdomWithSeed(
+        local warMachinesPercentage = TotoWar__Utils:randomWithSeed(
             warMachinesMaximumPercentage * TotoWar_Cbac_Constant.minimumUnitCategoryPercentageRatio,
             warMachinesMaximumPercentage,
             cm:turn_number(),
