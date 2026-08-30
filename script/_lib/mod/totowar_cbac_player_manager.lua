@@ -715,12 +715,12 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     end
 
     self.unitExchangeArmySuppliesCost1 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord1Rank)
+    self.unitExchangeArmySuppliesCost2 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord2Rank)
+
     TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
         unitExchangePool1UIComponent,
         self.unitExchangeArmySuppliesCost1,
         self.unitExchangeArmySuppliesCost2)
-
-    self.unitExchangeArmySuppliesCost2 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord2Rank)
     TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
         unitExchangePool2UIComponent,
         self.unitExchangeArmySuppliesCost2,

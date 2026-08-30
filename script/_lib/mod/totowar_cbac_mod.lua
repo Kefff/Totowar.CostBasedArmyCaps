@@ -160,7 +160,7 @@ function TotoWar_Cbac_Mod:overwriteOptionsForDebug()
     -- TotoWar_Cbac.loggers.aiManager.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar_Cbac.loggers.armySuppliesCost.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar.loggers.generic.logLevel = TotoWar__Enum_LogSeverities.debug
-    TotoWar_Cbac.loggers.playerManager.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar_Cbac.loggers.playerManager.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar_Cbac.loggers.uiManager.logLevel = TotoWar__Enum_LogSeverities.debug
 end
 

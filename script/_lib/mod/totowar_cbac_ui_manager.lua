@@ -858,6 +858,10 @@ function TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
     unitExchangePoolUIComponent,
     unitExchangePoolArmySuppliesCost,
     otherUnitExchangePoolArmySuppliesCost)
+    TotoWar_Cbac.loggers.uiManager:logDebug("updateUnitExchangeArmySuppliesCost(): STARTED => Army 1: %s | Army 2: %s",
+        function() return unitExchangePoolArmySuppliesCost.availableSupplies end,
+        function() return otherUnitExchangePoolArmySuppliesCost.availableSupplies end)
+
     local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
 
     for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
@@ -900,6 +904,11 @@ function TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
             end
         end
     end
+
+    TotoWar_Cbac.loggers.uiManager:logDebug(
+        "updateUnitExchangeArmySuppliesCost(): COMPLETED => Army 1: %s | Army 2: %s",
+        function() return unitExchangePoolArmySuppliesCost.availableSupplies end,
+        function() return otherUnitExchangePoolArmySuppliesCost.availableSupplies end)
 end
 
 ---Updates the army supplies cost of a unit exchange pool.

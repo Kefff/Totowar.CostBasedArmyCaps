@@ -136,7 +136,7 @@ function TotoWar__Mod:overwriteOptionsForDebug()
     -- TotoWar.loggers.eventsManager.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar.loggers.generic.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar.loggers.modsManager.logLevel = TotoWar__Enum_LogSeverities.debug
-    TotoWar.loggers.ui.logLevel = TotoWar__Enum_LogSeverities.debug
+    -- TotoWar.loggers.ui.logLevel = TotoWar__Enum_LogSeverities.debug
     -- TotoWar.loggers.utils.logLevel = TotoWar__Enum_LogSeverities.debug
 end
 
