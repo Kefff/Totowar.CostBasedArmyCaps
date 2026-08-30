@@ -94,7 +94,7 @@ function TotoWar__Logger:addEventListeners()
         -- which are instanciated before the events manager is instanciated
         -- (which uses logs).
         -- They need to subscribe to events manager after it has been initialized.
-        -- This event is only triggered once.
+        -- The TotoWar__Enum_ModEvents.eventsManagerInitialized event is only triggered once.
         core:add_listener(
             "TotoWar__Logger_" .. TotoWar__Enum_ModEvents.eventsManagerInitialized,
             TotoWar__Enum_ModEvents.eventsManagerInitialized,
@@ -104,7 +104,7 @@ function TotoWar__Logger:addEventListeners()
                     TotoWar__Enum_ModEvents.optionsUpdated,
                     function() self:onOptionsUpdated() end)
             end,
-            true)
+            false)
     else
         TotoWar.eventsManager:subscribe(
             TotoWar__Enum_ModEvents.optionsUpdated,

@@ -7,7 +7,7 @@ TotoWar__Utils.__index = TotoWar__Utils
 ---@param callback fun() Function to executed with a delay.
 ---@param delay integer Delay in seconds.
 function TotoWar__Utils:delay(callback, delay)
-    TotoWar.loggers.generic:logDebug("TotoWar__Utils.delay(callback, %s): STARTED", function() return delay end)
+    TotoWar.loggers.generic:logDebug("TotoWar__Utils:delay(callback, %s): STARTED", function() return delay end)
 
     ---Reacts to an error when executing the callback
     ---@param error any Error.
@@ -26,7 +26,7 @@ function TotoWar__Utils:delay(callback, delay)
         end,
         delay)
 
-    TotoWar.loggers.generic:logDebug("TotoWar__Utils.delay(callback, %s): COMPLETED", function() return delay end)
+    TotoWar.loggers.generic:logDebug("TotoWar__Utils:delay(callback, %s): COMPLETED", function() return delay end)
 end
 
 ---Gets a consistent pseudo-random value using a seed generated from parameters.
@@ -38,7 +38,7 @@ function TotoWar__Utils:randomWithSeed(minValue, maxValue, ...)
     local parameters = { ... }
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.randomWithSeed(%s, %s, %s): STARTED",
+        "TotoWar__Utils:randomWithSeed(%s, %s, %s): STARTED",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end)
@@ -54,7 +54,7 @@ function TotoWar__Utils:randomWithSeed(minValue, maxValue, ...)
     end
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.randomWithSeed(%s, %s, %s): STARTED => SEED: %s",
+        "TotoWar__Utils:randomWithSeed(%s, %s, %s): STARTED => SEED: %s",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end,
@@ -64,7 +64,7 @@ function TotoWar__Utils:randomWithSeed(minValue, maxValue, ...)
     local randomValue = math.random(minValue, maxValue)
 
     TotoWar.loggers.generic:logDebug(
-        "TotoWar__Utils.randomWithSeed(%s, %s, %s): COMPLETED => %s",
+        "TotoWar__Utils:randomWithSeed(%s, %s, %s): COMPLETED => %s",
         function() return minValue end,
         function() return maxValue end,
         function() return #parameters end,
