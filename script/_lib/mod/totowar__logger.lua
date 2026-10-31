@@ -1,44 +1,8 @@
----Logger for TotoWar mods.
----@class TotoWar__Logger
-TotoWar__Logger = {
-    ---Log level.
-    ---@type TotoWar__Enum_LogSeverities
-    logLevel = nil,
-
-    ---Mod name.
-    ---@type string
-    loggerName = nil
-}
-TotoWar__Logger.__index = TotoWar__Logger
-
----Initializes a new instance.
----@param loggerName string Logger name.
----@return TotoWar__Logger
-function TotoWar__Logger.new(loggerName)
-    local instance = setmetatable({}, TotoWar__Logger)
-
-    if TotoWar.options.debugEnabled then
-        ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.logLevel = TotoWar__Enum_LogSeverities.debug
-    else
-        ---@diagnostic disable-next-line: assign-type-mismatch
-        instance.logLevel = TotoWar__Constant.defaultLogLevel
-    end
-
-    instance.loggerName = loggerName
-
-    instance:addEventListeners()
-
-    instance:logInfo("Logger instance created")
-
-    return instance
-end
-
 ---Logs a message.
 ---@param instance TotoWar__Logger Logger instance.
 ---@param severity TotoWar__Enum_LogSeverities Severity.
 ---@param message string Message to log.
----@param ... boolean | integer | nil | number | string Message parameters.
+---@param ... boolean | integer | nil | number | string | table Message parameters.
 local function log(instance, severity, message, ...)
     local parameterCount = select("#", ...)
     local parameters = {}
@@ -48,6 +12,9 @@ local function log(instance, severity, message, ...)
 
         if parameterValue == nil then
             parameters[i] = "nil"
+        elseif type(parameterValue) == "table" then
+            -- Savegame format to get the table on a single line
+            parameters[i] = table.tostring(parameterValue, true)
         else
             parameters[i] = tostring(parameterValue)
         end
@@ -87,6 +54,42 @@ local function log(instance, severity, message, ...)
     end
 end
 
+---Logger for TotoWar mods.
+---@class TotoWar__Logger
+TotoWar__Logger = {
+    ---Log level.
+    ---@type TotoWar__Enum_LogSeverities
+    logLevel = nil,
+
+    ---Mod name.
+    ---@type string
+    loggerName = nil
+}
+TotoWar__Logger.__index = TotoWar__Logger
+
+---Initializes a new instance.
+---@param loggerName string Logger name.
+---@return TotoWar__Logger
+function TotoWar__Logger.new(loggerName)
+    local instance = setmetatable({}, TotoWar__Logger)
+
+    if TotoWar.options.debugEnabled then
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.logLevel = TotoWar__Enum_LogSeverities.debug
+    else
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        instance.logLevel = TotoWar__Constant.defaultLogLevel
+    end
+
+    instance.loggerName = loggerName
+
+    instance:addEventListeners()
+
+    instance:logInfo("Logger instance created")
+
+    return instance
+end
+
 ---Adds event listeners.
 function TotoWar__Logger:addEventListeners()
     if TotoWar.eventsManager == nil then
@@ -114,7 +117,7 @@ end
 
 ---Logs a debug message.
 ---@param message string Message to log.
----@param ... (fun(): boolean | integer | nil | number | string) Functions for getting parameter values.
+---@param ... (fun(): boolean | integer | nil | number | string | table) Functions for getting parameter values.
 function TotoWar__Logger:logDebug(message, ...)
     if self.logLevel == TotoWar__Enum_LogSeverities.debug then
         local parameterValueFunctionCount = select("#", ...)
@@ -136,14 +139,14 @@ end
 
 ---Logs an error message.
 ---@param message string Message to log.
----@param ... boolean | integer | number | string Message parameters.
+---@param ... boolean | integer | number | string | table Message parameters.
 function TotoWar__Logger:logError(message, ...)
     log(self, TotoWar__Enum_LogSeverities.error, message, ...)
 end
 
 ---Logs an information message.
 ---@param message string Message to log.
----@param ... boolean | integer | number | string Message parameters.
+---@param ... boolean | integer | number | string | table Message parameters.
 function TotoWar__Logger:logInfo(message, ...)
     if self.logLevel == TotoWar__Enum_LogSeverities.debug
         or self.logLevel == TotoWar__Enum_LogSeverities.info
@@ -154,7 +157,7 @@ end
 
 ---Logs an warning message.
 ---@param message string Message to log.
----@param ... boolean | integer | number | string Message parameters.
+---@param ... boolean | integer | number | string | table Message parameters.
 function TotoWar__Logger:logWarning(message, ...)
     if self.logLevel == TotoWar__Enum_LogSeverities.debug
         or self.logLevel == TotoWar__Enum_LogSeverities.info

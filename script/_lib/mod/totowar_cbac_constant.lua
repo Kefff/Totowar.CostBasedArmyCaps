@@ -1,3 +1,5 @@
+require("totowar_cbac_enum")
+
 ---Constants of the TotoWar: Army Caps mod.
 ---@class TotoWar_Cbac_Constant
 TotoWar_Cbac_Constant = {
@@ -52,12 +54,12 @@ TotoWar_Cbac_Constant = {
     ---Default value for the option that enabled AI army supplies restrictions.
     optionDefaultValue_playerArmySuppliesEnabled = true,
 
-    ---Name of the option for the maximum percentage of heroes in AI armies.
-    optionName_aiArmyHeroMaximumPercentage = "totowar_cbac_aiArmyHeroMaximumPercentage",
-
     ---Name of the option for the maximum percentage of cavalry and monsters to target in AI armies.
     optionName_aiArmyCavalryAndMonstersMaximumPercentage =
     "totowar_cbac_aiArmyCavalryAndMonstersMaximumPercentage",
+
+    ---Name of the option for the maximum percentage of heroes in AI armies.
+    optionName_aiArmyHeroMaximumPercentage = "totowar_cbac_aiArmyHeroMaximumPercentage",
 
     ---Name of the option for the maximum percentage of melee infantry to target in AI armies.
     optionName_aiArmyMeleeInfantryMaximumPercentage =
@@ -90,9 +92,16 @@ TotoWar_Cbac_Constant = {
     ---Name of the option that enables army supplies restriction for player armies.
     optionName_playerArmySuppliesEnabled = "totowar_cbac_playerArmySuppliesEnabled",
 
-    ---Storage key for date associated with the last turn an army was adjusted to meet cost-based caps.
-    storageKeyFormatArmyLastAdjustmentTurn = "armyLastAdjustmentTurn_%s",
+    ---Unit categories whose target percentage is randomly generated for AI armies.
+    ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategories[]
+    randomUnitCategories = {
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
+        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines
+    },
 
-    ---Storage key for the amount a unit category should represent in an army.
-    storageKeyFormatArmyUnitCategoryAmount = "armyUnitCategoryAmount_%s_%s"
+    ---Storage key for the data of an AI army (target composition and last adjustment turn). Formatted with the army command queue index.
+    storageKeyFormatAiArmy = "aiArmy_%s"
 }

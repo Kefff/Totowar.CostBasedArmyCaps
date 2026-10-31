@@ -85,6 +85,9 @@ TotoWar__Enum_GameEvents = {
     --Event triggered when an army is created.
     militaryForceCreated = "MilitaryForceCreated",
 
+    ---Event triggered when an army is destroyed.
+    militaryForceDestroyed = "MilitaryForceDestroyed",
+
     --Event triggered by one player's game to activate a change across all players' games.
     --It is primarily used to synchronize the game state among all connected players.
     multiplayerEventTriggered = "UITrigger",

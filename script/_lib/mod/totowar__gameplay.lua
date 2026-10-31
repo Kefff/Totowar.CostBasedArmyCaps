@@ -37,25 +37,42 @@ function TotoWar__Gameplay:canRecruitUnits(army)
     return canRecruitUnits
 end
 
+---Removes a value from the game state.
+---@param modName string Mod name.
+---@param key string Key of the value to remove for the mod.
+function TotoWar__Gameplay:clearSavedValue(modName, key)
+    TotoWar.loggers.utils:logDebug(
+        "clearSavedValue(%s, %s): STARTED",
+        function() return modName end,
+        function() return key end)
+
+    cm:clear_saved_value(string.format("%s_%s", modName, key))
+
+    TotoWar.loggers.utils:logDebug(
+        "clearSavedValue(%s, %s): COMPLETED",
+        function() return modName end,
+        function() return key end)
+end
+
 ---Gets a character.
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return CHARACTER_SCRIPT_INTERFACE|nil
 function TotoWar__Gameplay:getCharacter(characterCqi)
     TotoWar.loggers.utils:logDebug(
-        "getCharacterCaption(%s): STARTED",
+        "getCharacter(%s): STARTED",
         function() return characterCqi end)
 
     local character = cm:get_character_by_cqi(characterCqi)
 
-    if not character then
+    if character == false then
         TotoWar.loggers.utils:logWarning(
-            "getCharacterCaption(%s): NOT FOUND",
+            "getCharacter(%s): NOT FOUND",
             characterCqi)
 
         return nil
     else
         TotoWar.loggers.utils:logDebug(
-            "getCharacterCaption(%s): COMPLETED => %s",
+            "getCharacter(%s): COMPLETED => %s",
             function() return characterCqi end,
             function() return self:getCharacterCaption(character) end)
     end
@@ -144,13 +161,71 @@ function TotoWar__Gameplay:getMct()
 
     local mct = core:get_static_object("mod_configuration_tool")
 
-    if not mct then
+    if mct == nil then
         TotoWar.loggers.utils:logDebug("getMct(): NOT FOUND")
     end
 
     TotoWar.loggers.utils:logDebug("getMct(): COMPLETED")
 
     return mct
+end
+
+---Gets an army.
+---@param militaryForceCqi integer Army command queue index.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE|nil
+function TotoWar__Gameplay:getMilitaryForce(militaryForceCqi)
+    TotoWar.loggers.utils:logDebug(
+        "getMilitaryForce(%s): STARTED",
+        function() return militaryForceCqi end)
+
+    local militaryForce = cm:get_military_force_by_cqi(militaryForceCqi)
+
+    if militaryForce == false then
+        TotoWar.loggers.utils:logDebug(
+            "getMilitaryForce(%s): COMPLETED => NOT FOUND",
+            function() return militaryForceCqi end)
+
+        return nil
+    end
+
+    TotoWar.loggers.utils:logDebug(
+        "getMilitaryForce(%s): COMPLETED",
+        function() return militaryForceCqi end)
+
+    return militaryForce
+end
+
+---Gets the caption of the general of an army.
+---@param militaryForce MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@return string
+function TotoWar__Gameplay:getMilitaryForceGeneralCaption(militaryForce)
+    if not militaryForce:has_general() then
+        return "No general"
+    end
+
+    return self:getCharacterCaption(militaryForce:general_character())
+end
+
+---Gets a value in the game state.
+---@param modName string Mod name.
+---@param key string Key of the value to save for the mod.
+---@returns boolean | integer | number | string | table | nil
+function TotoWar__Gameplay:getSavedValue(modName, key)
+    TotoWar.loggers.utils:logDebug(
+        "getSavedValue(%s, %s): STARTED",
+        function() return modName end,
+        function() return key end)
+
+    ---@type boolean | integer | number | string | table | nil
+    local value = cm:get_saved_value(string.format("%s_%s", modName, key))
+
+    TotoWar.loggers.utils:logDebug(
+        "getSavedValue(%s, %s): COMPLETED => %s",
+        function() return modName end,
+        function() return key end,
+        function() return value end)
+
+    return value
 end
 
 ---Gets the caption of a unit.
@@ -176,6 +251,24 @@ function TotoWar__Gameplay:getUnitCaption(unitKey)
         function() return caption end)
 
     return caption
+end
+
+---Indicates whether a faction is the faction of the local player.
+---@param factionName string Faction name.
+---@return boolean
+function TotoWar__Gameplay:isLocalPlayerFaction(factionName)
+    TotoWar.loggers.utils:logDebug(
+        "isLocalPlayerFaction(%s): STARTED",
+        function() return self:getFactionCaption(factionName) end)
+
+    local isLocalPlayerFactionLord = factionName == cm:get_local_faction_name()
+
+    TotoWar.loggers.utils:logDebug(
+        "isLocalPlayerFaction(%s): COMPLETED => %s",
+        function() return self:getFactionCaption(factionName) end,
+        function() return isLocalPlayerFactionLord end)
+
+    return isLocalPlayerFactionLord
 end
 
 ---Indicates whether a character is a lord.
@@ -249,50 +342,10 @@ function TotoWar__Gameplay:isLordUnit(characterCqi)
     return isLord
 end
 
----Indicates whether a faction is the faction of the local player.
----@param factionName string Faction name.
----@return boolean
-function TotoWar__Gameplay:isLocalPlayerFaction(factionName)
-    TotoWar.loggers.utils:logDebug(
-        "isLocalPlayerFaction(%s): STARTED",
-        function() return self:getFactionCaption(factionName) end)
-
-    local isLocalPlayerFactionLord = factionName == cm:get_local_faction_name()
-
-    TotoWar.loggers.utils:logDebug(
-        "isLocalPlayerFaction(%s): COMPLETED => %s",
-        function() return self:getFactionCaption(factionName) end,
-        function() return isLocalPlayerFactionLord end)
-
-    return isLocalPlayerFactionLord
-end
-
----Gets a value in the game state.
----@param modName string Mod name.
----@param key string Key of the value to save for the mod.
----@returns boolean | integer | number | string | nil
-function TotoWar__Gameplay:getSavedValue(modName, key)
-    TotoWar.loggers.utils:logDebug(
-        "getValue(%s, %s): STARTED",
-        function() return modName end,
-        function() return key end)
-
-    ---@type boolean | integer | number | string | nil
-    local value = cm:get_saved_value(string.format("%s_%s", modName, key))
-
-    TotoWar.loggers.utils:logDebug(
-        "getValue(%s, %s): COMPLETED => %s",
-        function() return modName end,
-        function() return key end,
-        function() return value end)
-
-    return value
-end
-
 ---Saves a value in the game state.
 ---@param modName string Mod name.
 ---@param key string Key of the value to save for the mod.
----@param value boolean | integer | number | string | nil Value to save for the mod.
+---@param value boolean | integer | number | string | table | nil Value to save for the mod.
 function TotoWar__Gameplay:saveValue(modName, key, value)
     TotoWar.loggers.utils:logDebug(
         "saveValue(%s, %s, %s): STARTED",

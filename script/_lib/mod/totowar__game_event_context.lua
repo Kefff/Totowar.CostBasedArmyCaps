@@ -14,13 +14,13 @@ function TotoWar__GameEventContext_ArmyStanceChanged:stance_adopted() end
 ---Context for the ComponentLClickUp event.
 ---@class TotoWar__GameEventContext_ComponentLeftClick
 TotoWar__GameEventContext_ComponentLeftClick = {
-    ---Name of the clicked UI component.
-    ---@type string
-    string = nil,
-
     ---Clicked UI component address.
     ---@type UIC_Address
-    component = nil
+    component = nil,
+
+    ---Name of the clicked UI component.
+    ---@type string
+    string = nil
 }
 
 ---Context for the FactionTurnStart event.
@@ -36,6 +36,13 @@ TotoWar__GameEventContext_MilitaryForceCreated = {}
 ---Gets the army.
 ---@return MILITARY_FORCE_SCRIPT_INTERFACE
 function TotoWar__GameEventContext_MilitaryForceCreated:military_force_created() end
+
+---Context for the MilitaryForceDestroyed event.
+---@class TotoWar__GameEventContext_MilitaryForceDestroyed
+TotoWar__GameEventContext_MilitaryForceDestroyed = {}
+---Gets the army.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE
+function TotoWar__GameEventContext_MilitaryForceDestroyed:military_force() end
 
 ---Context for the PanelOpenedCampaign event.
 ---@class TotoWar__GameEventContext_PanelOpenedOrClosed
