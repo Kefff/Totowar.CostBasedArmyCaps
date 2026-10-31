@@ -1,6 +1,5 @@
-require("script._lib.mod.totowar__dictionary")
-require("script._lib.mod.totowar_cbac_constant")
-require("script._lib.mod.totowar_cbac_enum")
+require("totowar_cbac_constant")
+require("totowar_cbac_enum")
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local default = TotoWar__Dictionary.new()

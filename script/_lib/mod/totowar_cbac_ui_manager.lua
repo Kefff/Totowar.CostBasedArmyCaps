@@ -116,7 +116,7 @@ function TotoWar_Cbac_UIManager:createArmySuppliesUIComponent(parentUIComponent)
     local uiComponentAddress = parentUIComponent:CreateComponent(
         _armySuppliesUIComponentName,
         _unitArmySuppliesUIComponentTemplate)
-    armySuppliesUIComponent = UIComponent(uiComponentAddress)
+    local armySuppliesUIComponent = UIComponent(uiComponentAddress)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
     parentUIComponent:Adopt(uiComponentAddress)
 

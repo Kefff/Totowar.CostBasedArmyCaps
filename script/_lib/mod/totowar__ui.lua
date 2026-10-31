@@ -143,7 +143,7 @@ function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
         end)
 
     TotoWar.loggers.ui:logDebug(
-        "isUIComponentChildOf(%s, %s): COMPETED => %s",
+        "isUIComponentChildOf(%s, %s): COMPLETED => %s",
         function() return uiComponent:Id() end,
         function() return parentNamesText end,
         function() return isChildOfAll end)

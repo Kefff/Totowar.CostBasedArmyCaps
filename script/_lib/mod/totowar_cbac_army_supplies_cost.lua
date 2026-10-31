@@ -59,7 +59,7 @@ function TotoWar_Cbac_ArmySuppliesCost.new(isAi, lordLevel)
     instance.unitArmySuppliesCosts = {}
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_ArmySuppliesCost.new(%s, %s): COMPLETED => Base armmy supplies: %s | Bonus army supplies: %s | Total army supplies: %s",
+        "TotoWar_Cbac_ArmySuppliesCost.new(%s, %s): COMPLETED => Base army supplies: %s | Bonus army supplies: %s | Total army supplies: %s",
         function() return isAi end,
         function() return lordLevel end,
         function() return baseArmySupplies end,
@@ -76,8 +76,7 @@ end
 function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
     local rank = 1
 
-    if army:general_character() ~= nil then
-        -- For some reason, army:general_character() can be null
+    if army:has_general() then
         rank = army:general_character():rank()
     end
 
@@ -193,30 +192,6 @@ function TotoWar_Cbac_ArmySuppliesCost:clearMercenaryRecruitment()
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
----Creates a new instance by copy.
----@return TotoWar_Cbac_ArmySuppliesCost
-function TotoWar_Cbac_ArmySuppliesCost:copy()
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("copy(): STARTED")
-
-    local copy = TotoWar_Cbac_ArmySuppliesCost:new(self.lordLevel)
-
-    for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
-        if unitArmySuppliesCost.characterCqi ~= nil then
-            copy:addCharacter(unitArmySuppliesCost.characterCqi)
-        else
-            copy:addUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi)
-        end
-    end
-
-    for index, inRecruitmentMercenaryUnit in ipairs(self.inRecruitmentMercenaryUnits) do
-        copy:addUnit(inRecruitmentMercenaryUnit.unitKey, inRecruitmentMercenaryUnit.unitCqi, true)
-    end
-
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug("copy(): COMPLETED")
-
-    return copy
-end
-
 ---Removes the character corresponding to a command queue index.
 ---@param characterCqi integer Character command queue index.
 function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
@@ -321,16 +296,18 @@ function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
         [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines] = 6
     }
 
+    ---@type table<string, string>
+    local captions = {}
+
+    for index, unitArmySuppliesCost in ipairs(self.unitArmySuppliesCosts) do
+        if captions[unitArmySuppliesCost.unitKey] == nil then
+            captions[unitArmySuppliesCost.unitKey] = TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey)
+        end
+    end
+
     table.sort(
         self.unitArmySuppliesCosts,
         function(item1, item2)
-            -- For some reason, item1 or item2 can be null. Could not find the cause.
-            if item1 == nil then
-                return false
-            elseif item2 == nil then
-                return true
-            end
-
             local priority1 = categoryPriority[item1.unitCategory] or math.huge
             local priority2 = categoryPriority[item2.unitCategory] or math.huge
 
@@ -345,8 +322,8 @@ function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
             end
 
             -- Name sort
-            local caption1 = TotoWar__Gameplay:getUnitCaption(item1.unitKey)
-            local caption2 = TotoWar__Gameplay:getUnitCaption(item2.unitKey)
+            local caption1 = captions[item1.unitKey]
+            local caption2 = captions[item2.unitKey]
 
             if caption1 ~= caption2 then
                 return caption1 < caption2

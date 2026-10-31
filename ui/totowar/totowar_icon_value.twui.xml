@@ -12,12 +12,8 @@
 		<totowar_icon_value
 			this="414f6b8c-12a7-4877-bfe6-3d242a7b3322"
 			id="totowar_icon_value"
-			offset="72.00,0.00"
 			allowverticalresize="false"
-			priority="1"
 			tooltipslocalised="true"
-			componentleveltooltip="Upkeep"
-			tooltiplabel="totowar_icon_value_Tooltip_8a0e4684"
 			uniqueguid="414f6b8c-12a7-4877-bfe6-3d242a7b3322"
 			currentstate="BB433A44-92DE-4041-9326093C31B33E9B"
 			defaultstate="BB433A44-92DE-4041-9326093C31B33E9B">
@@ -71,46 +67,6 @@
 						font_m_leading="3"
 						fontcat_name="body_12"/>
 				</default>
-				<glow
-					this="27CA268A-7839-4B17-BA94394073F52C1F"
-					name="glow"
-					width="92"
-					height="34"
-					interactive="true"
-					shader_name="glow_pulse_t0"
-					uniqueguid="27CA268A-7839-4B17-BA94394073F52C1F">
-					<imagemetrics>
-						<image
-							this="4F888BD0-B0BF-419E-8F913055663C8849"
-							uniqueguid="4F888BD0-B0BF-419E-8F913055663C8849"
-							componentimage="21B4AD0F-63A5-4593-88796269A910CF7E"
-							offset="15.00,0.00"
-							width="77"
-							height="34"
-							tile="true"
-							margin="0.00,40.00,0.00,10.00"/>
-						<image
-							this="857663F7-BFED-4639-B3E324618EF183DB"
-							uniqueguid="857663F7-BFED-4639-B3E324618EF183DB"
-							componentimage="4300B63C-9FB5-44A5-8A3062E6930E9AA5"
-							offset="0.00,4.00"
-							width="26"
-							height="26"
-							dockpoint="Center Left"
-							canresizeheight="false"
-							canresizewidth="false"/>
-					</imagemetrics>
-					<component_text
-						text="9999"
-						textxoffset="26.00,30.00"
-						textyoffset="10.00,0.00"
-						texthbehaviour="Resize"
-						textlabel="totowar_icon_value_NewState_Text_0"
-						font_m_size="12"
-						font_m_colour="#FFF8D7FF"
-						font_m_leading="3"
-						fontcat_name="body_12"/>
-				</glow>
 			</states>
 		</totowar_icon_value>
 		<root

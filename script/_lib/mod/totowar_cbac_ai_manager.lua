@@ -3,11 +3,11 @@
 TotoWar_Cbac_AiManager = {
     ---List of command queue interfaces of the lords for which we need to check and adjust the composition in order to comply with army supply restrictions.
     ---@type integer[]
-    armyAdjustmentQueue = {},
+    armyAdjustmentQueue = nil,
 
     ---List of command queue interfaces of the lords for which we need to check whether disbanded units should be reinstated.
     ---@type TotoWar__Dictionary<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>
-    disbandQueue = TotoWar__Dictionary.new()
+    disbandQueue = nil
 }
 TotoWar_Cbac_AiManager.__index = TotoWar_Cbac_AiManager
 
@@ -17,6 +17,8 @@ function TotoWar_Cbac_AiManager.new()
     TotoWar_Cbac.loggers.aiManager:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar_Cbac_AiManager)
+    instance.armyAdjustmentQueue = {}
+    instance.disbandQueue = TotoWar__Dictionary.new()
 
     instance:subscribeToEvents()
 
@@ -1469,7 +1471,7 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
             return
                 TotoWar_Cbac.options.aiArmySuppliesEnabled
                 and not cm:is_local_players_turn(true)
-                and context:unit():military_force()
+                and not context:unit():military_force():is_null_interface()
                 and TotoWar__Gameplay:canRecruitUnits(context:unit():military_force())
         end)
 

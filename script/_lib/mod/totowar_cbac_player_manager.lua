@@ -175,9 +175,9 @@ end
 
 ---Reacts to the click on the unit card of a mercenary unit in the selected army recruitment queue.
 ---@param uiComponentName string Name of the clicked UI component.
-function TotoWar_Cbac_PlayerManager:onInRecruitmentMercenaryUniCardClick(uiComponentName)
+function TotoWar_Cbac_PlayerManager:onInRecruitmentMercenaryUnitCardClick(uiComponentName)
     TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onInRecruitmentMercenaryUniCardClick(%s): STARTED",
+        "onInRecruitmentMercenaryUnitCardClick(%s): STARTED",
         function() return uiComponentName end)
 
     self.selectedLordArmySuppliesCost:removeUnit(uiComponentName)
@@ -186,7 +186,7 @@ function TotoWar_Cbac_PlayerManager:onInRecruitmentMercenaryUniCardClick(uiCompo
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onInRecruitmentMercenaryUniCardClick(%s): COMPLETED",
+        "onInRecruitmentMercenaryUnitCardClick(%s): COMPLETED",
         function() return uiComponentName end)
 end
 
@@ -234,9 +234,9 @@ end
 ---Reacts to the click on the unit card of a recruitable mercenary unit.
 ---@param uiComponentName string Name of the clicked UI component.
 ---@param unitUIComponent UIC Clicked UI component.
-function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUniCardClick(uiComponentName, unitUIComponent)
+function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUnitCardClick(uiComponentName, unitUIComponent)
     TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUniCardClick(%s): STARTED",
+        "onRecruitableMercenaryUnitCardClick(%s): STARTED",
         function() return uiComponentName end)
 
     -- Workaround for the fact that we cannot know whether a unit card was `inactive` before clicking
@@ -266,7 +266,7 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUniCardClick(uiCompone
     end
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUniCardClick(%s): %s mercenary units in the recruitment pool | %s mercenary units tracked in the army supplies cost",
+        "onRecruitableMercenaryUnitCardClick(%s): %s mercenary units in the recruitment pool | %s mercenary units tracked in the army supplies cost",
         function() return uiComponentName end,
         function() return inRecruitmentMercenaryUnitCount end,
         function() return #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits end)
@@ -282,7 +282,7 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUniCardClick(uiCompone
     end
 
     TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUniCardClick(%s): COMPLETED",
+        "onRecruitableMercenaryUnitCardClick(%s): COMPLETED",
         function() return uiComponentName end)
 end
 
@@ -303,7 +303,7 @@ function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
     end
 
     if needsSelectedLordMovementUpdate then
-        self:updatedSelectedLordMovement()
+        self:updateSelectedLordMovement()
     end
 
     TotoWar_Cbac.loggers.playerManager:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
@@ -460,7 +460,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     TotoWar.eventsManager:subscribe(
         TotoWar__Enum_GameEvents.componentLeftClick,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
-        function(context) self:onInRecruitmentMercenaryUniCardClick(context.string) end,
+        function(context) self:onInRecruitmentMercenaryUnitCardClick(context.string) end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
             local isInRecruitmentMercenaryUnitCard =
@@ -477,7 +477,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
             local uiComponent = UIComponent(context.component)
-            self:onRecruitableMercenaryUniCardClick(context.string, uiComponent)
+            self:onRecruitableMercenaryUnitCardClick(context.string, uiComponent)
         end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
@@ -692,6 +692,42 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     TotoWar_Cbac.loggers.playerManager:logDebug("subscribeToEvents(): COMPLETED")
 end
 
+---Updates the ability to move of the selected lord depending on the army supplies cost of its army.
+function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
+    TotoWar_Cbac.loggers.playerManager:logDebug("updateSelectedLordMovement(): STARTED")
+
+    if self.selectedLordArmySuppliesCost.availableSupplies < 0 then
+        TotoWar_Cbac.loggers.playerManager:logDebug(
+            "updateSelectedLordMovement(): BLOCKED => %s",
+            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
+
+        cm:disable_movement_for_character(cm:char_lookup_str(self.selectedLord:cqi()))
+
+        -- Reactivating movement for heroes contained in the army as they should be able to leave the army
+        local selectedLordArmyCharacters = self.selectedLord:military_force():character_list()
+
+        for i = 0, selectedLordArmyCharacters:num_items() - 1, 1 do
+            local character = selectedLordArmyCharacters:item_at(i)
+
+            if not TotoWar__Gameplay:isLordCharacter(character) then
+                TotoWar_Cbac.loggers.playerManager:logDebug(
+                    "updateSelectedLordMovement(): REACTIVATING MOVEMENT FOR HERO => %s",
+                    function() return TotoWar__Gameplay:getCharacterCaption(character) end)
+
+                cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
+            end
+        end
+    else
+        TotoWar_Cbac.loggers.playerManager:logDebug(
+            "updateSelectedLordMovement(): FREE TO MOVE => %s",
+            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
+
+        cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
+    end
+
+    TotoWar_Cbac.loggers.playerManager:logDebug("updateSelectedLordMovement(): COMPLETED")
+end
+
 ---Updates unit exchange army supplies costs.
 function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
@@ -730,42 +766,6 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.unitExchangeArmySuppliesCostChanged)
 
     TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
-end
-
----Updates the ability to move of the selected lord depending on the army supplies cost of its army.
-function TotoWar_Cbac_PlayerManager:updatedSelectedLordMovement()
-    TotoWar_Cbac.loggers.playerManager:logDebug("updatedSelectedLordMovement(): STARTED")
-
-    if self.selectedLordArmySuppliesCost.availableSupplies < 0 then
-        TotoWar_Cbac.loggers.playerManager:logDebug(
-            "updatedSelectedLordMovement(): BLOCKED => %s",
-            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
-
-        cm:disable_movement_for_character(cm:char_lookup_str(self.selectedLord:cqi()))
-
-        -- Reactivating movement for heroes contained in the army as they should be able to leave the army
-        local selectedLordArmyCharacters = self.selectedLord:military_force():character_list()
-
-        for i = 0, selectedLordArmyCharacters:num_items() - 1, 1 do
-            local character = selectedLordArmyCharacters:item_at(i)
-
-            if not TotoWar__Gameplay:isLordCharacter(character) then
-                TotoWar_Cbac.loggers.playerManager:logDebug(
-                    "updatedSelectedLordMovement(): REACTIVATING MOVEMENT FOR HERO => %s",
-                    function() return TotoWar__Gameplay:getCharacterCaption(character) end)
-
-                cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
-            end
-        end
-    else
-        TotoWar_Cbac.loggers.playerManager:logDebug(
-            "updatedSelectedLordMovement(): FREE TO MOVE => %s",
-            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
-
-        cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
-    end
-
-    TotoWar_Cbac.loggers.playerManager:logDebug("updatedSelectedLordMovement(): COMPLETED")
 end
 
 ---Updates the army supplies displayed in the Warband Upgrade panel.

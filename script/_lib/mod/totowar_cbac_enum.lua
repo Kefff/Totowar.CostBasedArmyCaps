@@ -12,11 +12,6 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
 ---Events triggered by the mod.
 ---@class TotoWar_Cbac_Enum_ModEvents
 TotoWar_Cbac_Enum_ModEvents = {
-    ---Event triggered when options are updated.
-    ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values
-    ---have been updated by reading values from the Mod Configuration Tool.
-    optionsUpdated = "TotoWar_Cab_OptionsUpdated",
-
     ---Event triggered when the army supplies cost of the selected army changes.
     selectedLordArmySuppliesCostChanged = "TotoWar_Cbac_SelectedLordArmySuppliesCostChanged",
 
