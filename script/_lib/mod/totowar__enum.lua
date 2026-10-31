@@ -14,23 +14,9 @@ TotoWar__Enum_CcoContextTypeIds = {
     mainUnitRecord = "CcoMainUnitRecord"
 }
 
----Docking points.
----@class TotoWar__Enum_DockingPoints
-TotoWar__Enum_DockingPoints = {
-    topLeft = 1,
-    topMiddle = 2,
-    topRight = 3,
-    middleLeft = 4,
-    center = 5,
-    middleRight = 6,
-    bottomLeft = 7,
-    bottomMiddle = 8,
-    bottomRight = 9
-}
-
----Factions.
----@class TotoWar__Enum_Factions
-TotoWar__Enum_Factions = {
+---Cultures.
+---@class TotoWar__Enum_Cultures
+TotoWar__Enum_Cultures = {
     beastmen = "wh_dlc03_bst_beastmen",
     bretonnia = "wh_main_brt_bretonnia",
     cathay = "wh3_main_cth_cathay",
@@ -46,6 +32,7 @@ TotoWar__Enum_Factions = {
     kislev = "wh3_main_ksl_kislev",
     kislevPrologue = "wh3_main_pro_ksl_kislev",
     lizardmen = "wh2_main_lzd_lizardmen",
+    nagash = "wh3_dlc29_nag_undead_legions",
     norsca = "wh_dlc08_nor_norsca",
     nurgle = "wh3_main_nur_nurgle",
     ogreKingdoms = "wh3_main_ogr_ogre_kingdoms",
@@ -57,6 +44,20 @@ TotoWar__Enum_Factions = {
     vampireCoast = "wh2_dlc11_cst_vampire_coast",
     vampireCounts = "wh_main_vmp_vampire_counts",
     woodElves = "wh_dlc05_wef_wood_elves"
+}
+
+---Docking points.
+---@class TotoWar__Enum_DockingPoints
+TotoWar__Enum_DockingPoints = {
+    bottomLeft = 7,
+    bottomMiddle = 8,
+    bottomRight = 9,
+    center = 5,
+    middleLeft = 4,
+    middleRight = 6,
+    topLeft = 1,
+    topMiddle = 2,
+    topRight = 3
 }
 
 ---Events triggered by the game.
@@ -88,14 +89,11 @@ TotoWar__Enum_GameEvents = {
     --It is primarily used to synchronize the game state among all connected players.
     multiplayerEventTriggered = "UITrigger",
 
-    ---Event triggered when a panel is opened.
-    panelOpened = "PanelOpenedCampaign",
-
     ---Event triggered when a panel is closed.
     panelClosed = "PanelClosedCampaign",
 
-    ---Event triggered when a unit is removed from the recruitment queue.
-    unitRemovedFromRecruitment = "RecruitmentItemCancelledByPlayer",
+    ---Event triggered when a panel is opened.
+    panelOpened = "PanelOpenedCampaign",
 
     ---Event triggered when a unit is added to the recruitment queue.
     unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",
@@ -112,6 +110,9 @@ TotoWar__Enum_GameEvents = {
     ---Event triggered when units are merged unit and some of them have been destroyed.
     unitMergedAndDestroyed = "UnitMergedAndDestroyed",
 
+    ---Event triggered when a unit is removed from the recruitment queue.
+    unitRemovedFromRecruitment = "RecruitmentItemCancelledByPlayer",
+
     ---Event triggered when a unit is added to an army.
     unitTrained = "UnitTrained",
 
@@ -123,9 +124,9 @@ TotoWar__Enum_GameEvents = {
 ---@class TotoWar__Enum_LogSeverities
 TotoWar__Enum_LogSeverities = {
     debug = "DEBUG",
+    error = "ERROR",
     info = "INFO",
-    warning = "WARN",
-    error = "ERROR"
+    warning = "WARN"
 }
 
 ---Events triggered by the mod.

@@ -108,25 +108,23 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmySuppliesEnabled)
         :get_finalized_setting()
 
-    TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
-        options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyCavalryAndMonstersMaximumPercentage)
-        :get_finalized_setting())
-    TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero,
-        options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyHeroMaximumPercentage):get_finalized_setting())
-    TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
-        options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyMeleeInfantryMaximumPercentage)
-        :get_finalized_setting())
-    TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
-        options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyRangedInfantryMaximumPercentage)
-        :get_finalized_setting())
-    TotoWar_Cbac_ArmyCompositionTarget:set(
-        TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
-        options:get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmyWarMachinesMaximumPercentage)
-        :get_finalized_setting())
+    local compositionOptionNames = {
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters] =
+            TotoWar_Cbac_Constant.optionName_aiArmyCavalryAndMonstersMaximumPercentage,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero] =
+            TotoWar_Cbac_Constant.optionName_aiArmyHeroMaximumPercentage,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry] =
+            TotoWar_Cbac_Constant.optionName_aiArmyMeleeInfantryMaximumPercentage,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry] =
+            TotoWar_Cbac_Constant.optionName_aiArmyRangedInfantryMaximumPercentage,
+        [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines] =
+            TotoWar_Cbac_Constant.optionName_aiArmyWarMachinesMaximumPercentage
+    }
+    local defaultComposition = TotoWar_Cbac_ArmyCompositionTarget:get("default")
+
+    for unitCategory, optionName in pairs(compositionOptionNames) do
+        defaultComposition:set(unitCategory, options:get_option_by_key(optionName):get_finalized_setting())
+    end
 
     TotoWar_Cbac.options.playerArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_playerArmySuppliesAmount)

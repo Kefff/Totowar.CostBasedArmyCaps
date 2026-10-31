@@ -3,6 +3,14 @@
 TotoWar__Number = {}
 TotoWar__Number.__index = TotoWar__Number
 
+---Rounds a number to the nearest multiple of another number.
+---@param number_ number Number.
+---@param multiple number Multiple to round to.
+---@return number
+function TotoWar__Number:roundToMultipleOf(number_, multiple)
+    return self:roundToNearestInteger(number_ / multiple) * multiple
+end
+
 ---Rounds a number to the nearest integer.
 ---@param number_ number Number.
 ---@return integer

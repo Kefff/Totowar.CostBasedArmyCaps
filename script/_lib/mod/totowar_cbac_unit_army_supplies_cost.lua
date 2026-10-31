@@ -1,3 +1,23 @@
+---Army composition unit categories by key of parent unit group (ui_unit_group_parents table).
+---Lords and heroes (`commander` and `heroes_agents` groups) are categorized from their character.
+---@type table<string, TotoWar_Cbac_Enum_ArmyCompositionUnitCategories>
+local _unitCategoriesByParentGroup = {
+    artillery_war_machines = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
+    campaign_exclusives = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+    cavalry_chariots = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+    constructs = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+    flying_war_machine = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines,
+    infantry = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
+    missile_cavalry_chariots = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+    missile_infantry = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry,
+    missile_monster_beasts = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters,
+    monster_beasts = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
+}
+
+---Army composition unit categories already found, by unit key.
+---@type table<string, TotoWar_Cbac_Enum_ArmyCompositionUnitCategories>
+local _unitCategoriesByUnitKey = {}
+
 ---@class TotoWar_Cbac_UnitArmySuppliesCost
 TotoWar_Cbac_UnitArmySuppliesCost = {
     ---Army supplies cost of the unit.
@@ -159,24 +179,29 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
         "TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
         function() return unitKey end)
 
-    ---@type string | nil
-    local armyCompositionUnitType = nil
+    local armyCompositionUnitType = _unitCategoriesByUnitKey[unitKey]
 
-    local unitGroup = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UiUnitGroupContext.ParentGroup.Key")
+    if armyCompositionUnitType == nil then
+        local unitGroup = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+            unitKey,
+            "UiUnitGroupContext.ParentGroup.Key")
 
-    if unitGroup:find('artillery') or unitGroup:find('war_machines') then
-        armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines
-    elseif unitGroup:find('infantry') then
-        if unitGroup:find('missile') then
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.rangedInfantry
-        else
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry
+        if unitGroup ~= nil then
+            armyCompositionUnitType = _unitCategoriesByParentGroup[unitGroup]
         end
-    else
-        armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
+
+        if armyCompositionUnitType == nil then
+            TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
+                "Unknown unit group \"%s\" for unit \"%s\" (Category used instead: %s)",
+                unitGroup,
+                unitKey,
+                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters)
+
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
+        end
+
+        _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
     end
 
     TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
