@@ -48,11 +48,11 @@ function TotoWar_Cbac_ArmySuppliesCost.new(isAi, lordLevel)
     local levelBonus = 0
 
     if isAi then
-        baseArmySupplies = TotoWar_Cbac.options.aiArmySuppliesAmount
-        levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.aiArmySuppliesBonusAmountPerLevel
+        baseArmySupplies = TotoWar_Cbac_Mod.options.aiArmySuppliesAmount
+        levelBonus = (lordLevel - 1) * TotoWar_Cbac_Mod.options.aiArmySuppliesBonusAmountPerLevel
     else
-        baseArmySupplies = TotoWar_Cbac.options.playerArmySuppliesAmount
-        levelBonus = (lordLevel - 1) * TotoWar_Cbac.options.playerArmySuppliesBonusAmountPerLevel
+        baseArmySupplies = TotoWar_Cbac_Mod.options.playerArmySuppliesAmount
+        levelBonus = (lordLevel - 1) * TotoWar_Cbac_Mod.options.playerArmySuppliesBonusAmountPerLevel
     end
 
     instance.lordLevel = lordLevel

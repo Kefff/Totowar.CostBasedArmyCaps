@@ -13,23 +13,6 @@ TotoWar_Cbac_AiManager = {
     ---@type TotoWar__Dictionary<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>
     disbandQueue = nil
 }
-TotoWar_Cbac_AiManager.__index = TotoWar_Cbac_AiManager
-
----Initializes a new instance.
----@return TotoWar_Cbac_AiManager
-function TotoWar_Cbac_AiManager.new()
-    logger:logDebug("new(): STARTED")
-
-    local instance = setmetatable({}, TotoWar_Cbac_AiManager)
-    instance.armyAdjustmentQueue = {}
-    instance.disbandQueue = TotoWar__Dictionary.new()
-
-    instance:subscribeToEvents()
-
-    logger:logDebug("new(): COMPLETED")
-
-    return instance
-end
 
 ---Adds an army to the adjustment queue.
 ---@param armyCqi integer Command queue index of the army to adjust.
@@ -1185,6 +1168,18 @@ function TotoWar_Cbac_AiManager:getUnitCategoryMaximumPercentage(culture, unitCa
     return maximumPercentage
 end
 
+---Initializes the AI manager.
+function TotoWar_Cbac_AiManager:initialize()
+    logger:logDebug("initialize(): STARTED")
+
+    self.armyAdjustmentQueue = {}
+    self.disbandQueue = TotoWar__Dictionary.new()
+
+    self:subscribeToEvents()
+
+    logger:logDebug("initialize(): COMPLETED")
+end
+
 ---Indicates whether an army is an AI army whose composition is managed by the mod.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return boolean
@@ -1409,32 +1404,32 @@ end
 function TotoWar_Cbac_AiManager:subscribeToEvents()
     logger:logDebug("subscribeToEvents(): STARTED")
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.characterTurnEnd,
         ---@param context CharacterTurnEnd
         function(context) self:onAiCharacterTurnEnd(context:character()) end,
         ---@param context CharacterTurnEnd
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and TotoWar__Gameplay:isLordCharacter(context:character())
                 and context:character():has_military_force()
                 and self:isManagedAiArmy(context:character():military_force())
         end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.militaryForceCreated,
         ---@param context TotoWar__GameEventContext_MilitaryForceCreated
         function(context) self:onAiArmyCreated(context:military_force_created()) end,
         ---@param context TotoWar__GameEventContext_MilitaryForceCreated
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and self:isManagedAiArmy(context:military_force_created())
         end)
 
     -- Not depending on the option: stored data must be removed even if AI restrictions are disabled
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.militaryForceDestroyed,
         ---@param context TotoWar__GameEventContext_MilitaryForceDestroyed
         function(context) self:onAiArmyDestroyed(context:military_force()) end,
@@ -1443,47 +1438,47 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
             return self:getAiArmyData(context:military_force():command_queue_index()) ~= nil
         end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitConverted,
         ---@param context TotoWar__GameEventContext_UnitConverted
         function(context) self:onAiUnitConverted(context:unit(), context:converted_unit()) end,
         ---@param context TotoWar__GameEventContext_UnitConverted
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and self:isManagedAiArmy(context:converted_unit():military_force())
         end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitDisbanded,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context) self:onAiUnitDisbanded(context:unit()) end,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and self:isManagedAiArmy(context:unit():military_force())
         end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitTrained,
         ---@param context TotoWar__GameEventContext_UnitTrained
         function(context) self:onAiUnitRecruited(context:unit()) end,
         ---@param context TotoWar__GameEventContext_UnitTrained
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and self:isManagedAiArmy(context:unit():military_force())
         end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitUpgraded,
         ---@param context TotoWar__GameEventContext_UnitUpgraded
         function(context) self:onAiUnitUpgraded(context:unit()) end,
         ---@param context TotoWar__GameEventContext_UnitUpgraded
         function(context)
             return
-                TotoWar_Cbac.options.aiArmySuppliesEnabled
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
                 and self:isManagedAiArmy(context:unit():military_force())
         end)
 

@@ -3,15 +3,8 @@ local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
 ---TotoWar base mod.
 ---@class TotoWar__Mod
 TotoWar__Mod = {
-    ---Events manager.
-    ---@type TotoWar__EventsManager
-    eventsManager = nil,
-
-    ---Mods manager.
-    ---@type TotoWar__ModsManager
-    modsManager = nil,
-
-    ---Options
+    ---Options.
+    ---Declared with their default values because the logger reads them before the initialization.
     options = {
         ---Indicates whether debug messages are logged.
         debugEnabled = TotoWar__Constant.optionDefaultValue_debugEnabled,
@@ -21,40 +14,33 @@ TotoWar__Mod = {
         logFileName = "totowar_logs.txt"
     },
 
+    ---Number of the current turn.
     ---@type integer
-    turnNumber = 0
+    turnNumber = nil
 }
-TotoWar__Mod.__index = TotoWar__Mod
 
----TotoWar base mod instance.
----@type TotoWar__Mod
-TotoWar = nil
+---Initializes the TotoWar base mod and its services.
+function TotoWar__Mod:initialize()
+    self.turnNumber = 0
 
----Initializes a new instance.
----@return TotoWar__Mod
-function TotoWar__Mod.new()
-    TotoWar = setmetatable({}, TotoWar__Mod)
+    self:initializeLogFile()
 
-    TotoWar:initializeLogFile()
+    logger:logDebug("TotoWar__Mod:initialize(): STARTED")
 
-    logger:logDebug("TotoWar__Mod.new(): STARTED")
+    TotoWar__EventsManager:initialize()
 
-    TotoWar.eventsManager = TotoWar__EventsManager.new()
+    self:subscribeToEvents()
+    self:loadMctOptions()
 
-    TotoWar:subscribeToEvents()
-    TotoWar:loadMctOptions()
-
-    TotoWar.modsManager = TotoWar__ModsManager.new()
+    TotoWar__ModsManager:initialize()
 
     logger:logInfo("TotoWar base mod initialized")
-    logger:logDebug("TotoWar__Mod.new(): COMPLETED")
-
-    return TotoWar
+    logger:logDebug("TotoWar__Mod:initialize(): COMPLETED")
 end
 
 ---Empties the log file.
 function TotoWar__Mod:initializeLogFile()
-    local file = io.open(TotoWar.options.logFileName, "w")
+    local file = io.open(self.options.logFileName, "w")
 
     if file ~= nil then
         file:write("")
@@ -74,11 +60,11 @@ function TotoWar__Mod:loadMctOptions()
 
     local options = mct:get_mod_by_key(TotoWar__Constant.modName)
 
-    TotoWar.options.debugEnabled = options
+    self.options.debugEnabled = options
         :get_option_by_key(TotoWar__Constant.optionName_debugEnabled)
         :get_finalized_setting()
 
-    if TotoWar.options.debugEnabled then
+    if self.options.debugEnabled then
         TotoWar__Logger.level = TotoWar__Enum_LogSeverities.debug
     else
         TotoWar__Logger.level = TotoWar__Constant.defaultLogLevel
@@ -86,10 +72,10 @@ function TotoWar__Mod:loadMctOptions()
 
     logger:logInfo(
         "TotoWar options loaded from the Mod Configuration Tool (Debug logs: %s)",
-        TotoWar.options.debugEnabled)
+        self.options.debugEnabled)
 
     -- Signaling option changes
-    TotoWar.eventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
+    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
 end
 
 ---Reacts to the start of the turn of a faction.
@@ -109,7 +95,7 @@ end
 function TotoWar__Mod:onMctOptionsUpdated()
     logger:logDebug("TotoWar__Mod:onMctOptionsUpdated(): STARTED")
 
-    TotoWar:loadMctOptions()
+    self:loadMctOptions()
 
     logger:logDebug("TotoWar__Mod:onMctOptionsUpdated(): COMPLETED")
 end
@@ -125,17 +111,17 @@ end
 function TotoWar__Mod:subscribeToEvents()
     logger:logDebug("TotoWar__Mod:subscribeToEvents(): STARTED")
 
-    self.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.factionTurnStart,
-        function() TotoWar:onFactionTurnStart() end)
+        function() self:onFactionTurnStart() end)
 
-    self.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
-        function() TotoWar:onMctOptionsUpdated() end)
+        function() self:onMctOptionsUpdated() end)
 
-    self.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.optionsUpdated,
-        function() TotoWar:overwriteOptionsForDebug() end,
+        function() self:overwriteOptionsForDebug() end,
         nil,
         nil,
         9999) -- To force overwriteOptionsForDebug to be executed after other methods reacting to the optionsUpdated event

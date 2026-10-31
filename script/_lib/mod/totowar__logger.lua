@@ -66,7 +66,7 @@ local function write(logger, severity, message, ...)
 
     ModLog(fullLog)
 
-    local file = io.open(TotoWar.options.logFileName, "a")
+    local file = io.open(TotoWar__Mod.options.logFileName, "a")
 
     if file ~= nil then
         file:write(fullLog .. "\n")

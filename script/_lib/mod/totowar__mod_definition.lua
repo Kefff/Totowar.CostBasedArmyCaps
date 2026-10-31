@@ -8,12 +8,8 @@ TotoWar__ModDefinition = {
     caption = nil,
 
     ---Function for initializing the mod.
-    ---@type fun(modsManager: TotoWar__ModsManager): any
+    ---@type fun()
     initializeFunction = nil,
-
-    ---Instance of the mod.
-    ---`nil` until the mod has been initializes by the mod manager.
-    instance = nil,
 
     ---Name of the mod.
     ---@type string
@@ -24,7 +20,7 @@ TotoWar__ModDefinition.__index = TotoWar__ModDefinition
 ---Initializes a new instance.
 ---@param name string Name of the mod.
 ---@param caption string Caption of the mod displayed to the player.
----@param initializationFunction fun(modsManager: TotoWar__ModsManager) Function for initializing the mod.
+---@param initializationFunction fun() Function for initializing the mod.
 ---@return TotoWar__ModDefinition
 function TotoWar__ModDefinition.new(name, caption, initializationFunction)
     logger:logDebug(

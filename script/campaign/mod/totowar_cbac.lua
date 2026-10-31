@@ -1,12 +1,8 @@
 cm:add_first_tick_callback(
     function()
         ---Registering the mod
-        TotoWar.modsManager:registerMod(
+        TotoWar__ModsManager:registerMod(
             TotoWar_Cbac_Constant.modName,
             TotoWar_Cbac_Constant.modCaption,
-            ---@param modsManager TotoWar__ModsManager
-            ---@return TotoWar_Cbac_Mod
-            function(modsManager)
-                return TotoWar_Cbac_Mod.new()
-            end)
+            function() TotoWar_Cbac_Mod:initialize() end)
     end)

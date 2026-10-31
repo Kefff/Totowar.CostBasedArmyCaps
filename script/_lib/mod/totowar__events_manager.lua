@@ -19,22 +19,6 @@ TotoWar__EventsManager = {
     ---@type TotoWar__EventSubscription[]
     eventSubscriptions = nil
 }
-TotoWar__EventsManager.__index = TotoWar__EventsManager
-
----Initializes a new instance.
----@return TotoWar__EventsManager
-function TotoWar__EventsManager.new()
-    logger:logDebug("new(): STARTED")
-
-    local instance = setmetatable({}, TotoWar__EventsManager)
-
-    instance.idCounter = 0
-    instance.eventSubscriptions = {}
-
-    logger:logDebug("new(): COMPLETED")
-
-    return instance
-end
 
 ---Checks the condition for executing the callback function of an event subscription and executes it if conditions are met.
 ---@param eventSubscription TotoWar__EventSubscription Event subscription.
@@ -81,6 +65,16 @@ function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubs
         eventSubscription.id,
         event,
         context ~= nil and "context" or "nil")
+end
+
+---Initializes the events manager.
+function TotoWar__EventsManager:initialize()
+    logger:logDebug("initialize(): STARTED")
+
+    self.idCounter = 0
+    self.eventSubscriptions = {}
+
+    logger:logDebug("initialize(): COMPLETED")
 end
 
 ---Reacts to an error when executing the callback of an event subscription.

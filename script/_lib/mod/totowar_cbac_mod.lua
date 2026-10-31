@@ -3,11 +3,7 @@ local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
 ---TotoWar mod for managing army caps.
 ---@class TotoWar_Cbac_Mod
 TotoWar_Cbac_Mod = {
-    ---Manager for AI army supplies.
-    ---@type TotoWar_Cbac_AiManager
-    aiManager = nil,
-
-    ---Options
+    ---Options.
     options = {
         ---Total army supplies available in an army for the AI.
         aiArmySuppliesAmount = TotoWar_Cbac_Constant.optionDefaultValue_aiArmySuppliesAmount,
@@ -27,41 +23,22 @@ TotoWar_Cbac_Mod = {
 
         ---Indicates whether army supplies restrictions are enabled for player armies.
         playerArmySuppliesEnabled = TotoWar_Cbac_Constant.optionDefaultValue_playerArmySuppliesEnabled
-    },
-
-    ---Manager for player army supplies.
-    ---@type TotoWar_Cbac_PlayerManager
-    playerManager = nil,
-
-    ---Manager for displaying army supplies in the UI.
-    ---@type TotoWar_Cbac_UIManager
-    uiManager = nil
-
+    }
 }
-TotoWar_Cbac_Mod.__index = TotoWar_Cbac_Mod
 
----TotoWar: Army Cost mod instance.
----@type TotoWar_Cbac_Mod
-TotoWar_Cbac = nil
+---Initializes the mod and its services.
+function TotoWar_Cbac_Mod:initialize()
+    logger:logDebug("TotoWar_Cbac_Mod:initialize(): STARTED")
 
----Initializes a new instance.
----@return TotoWar_Cbac_Mod
-function TotoWar_Cbac_Mod.new()
-    TotoWar_Cbac = setmetatable({}, TotoWar_Cbac_Mod)
+    self:subscribeToEvents()
+    self:loadMctOptions()
 
-    logger:logDebug("TotoWar_Cbac_Mod.new(): STARTED")
-
-    TotoWar_Cbac:subscribeToEvents()
-    TotoWar_Cbac:loadMctOptions()
-
-    TotoWar_Cbac.aiManager = TotoWar_Cbac_AiManager.new()
-    TotoWar_Cbac.playerManager = TotoWar_Cbac_PlayerManager.new()
-    TotoWar_Cbac.uiManager = TotoWar_Cbac_UIManager.new()
+    TotoWar_Cbac_AiManager:initialize()
+    TotoWar_Cbac_PlayerManager:initialize()
+    TotoWar_Cbac_UIManager:initialize()
 
     logger:logInfo("Mod \"%s\" initialized", TotoWar_Cbac_Constant.modCaption)
-    logger:logDebug("TotoWar_Cbac_Mod.new(): COMPLETED")
-
-    return TotoWar_Cbac
+    logger:logDebug("TotoWar_Cbac_Mod:initialize(): COMPLETED")
 end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
@@ -78,13 +55,13 @@ function TotoWar_Cbac_Mod:loadMctOptions()
 
     local options = mct:get_mod_by_key(TotoWar__Constant.modName)
 
-    TotoWar_Cbac.options.aiArmySuppliesAmount = options
+    self.options.aiArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmySuppliesAmount)
         :get_finalized_setting()
-    TotoWar_Cbac.options.aiArmySuppliesBonusAmountPerLevel = options
+    self.options.aiArmySuppliesBonusAmountPerLevel = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmySuppliesBonusAmountPerLevel)
         :get_finalized_setting()
-    TotoWar_Cbac.options.aiArmySuppliesEnabled = options
+    self.options.aiArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_aiArmySuppliesEnabled)
         :get_finalized_setting()
 
@@ -106,31 +83,31 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         defaultComposition:set(unitCategory, options:get_option_by_key(optionName):get_finalized_setting())
     end
 
-    TotoWar_Cbac.options.playerArmySuppliesAmount = options
+    self.options.playerArmySuppliesAmount = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_playerArmySuppliesAmount)
         :get_finalized_setting()
-    TotoWar_Cbac.options.playerArmySuppliesBonusAmountPerLevel = options
+    self.options.playerArmySuppliesBonusAmountPerLevel = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_playerArmySuppliesBonusAmountPerLevel)
         :get_finalized_setting()
-    TotoWar_Cbac.options.playerArmySuppliesEnabled = options
+    self.options.playerArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_playerArmySuppliesEnabled)
         :get_finalized_setting()
 
     -- Signaling option changes
-    TotoWar.eventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
+    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
 
     logger:logInfo(
         "\"%s\" options loaded from the Mod Configuration Tool (Player armies restricted: %s | AI armies restricted: %s)",
         TotoWar_Cbac_Constant.modCaption,
-        TotoWar_Cbac.options.playerArmySuppliesEnabled,
-        TotoWar_Cbac.options.aiArmySuppliesEnabled)
+        self.options.playerArmySuppliesEnabled,
+        self.options.aiArmySuppliesEnabled)
 end
 
 ---Reacts to MCT options being updated.
 function TotoWar_Cbac_Mod:onMctOptionsUpdated()
     logger:logDebug("TotoWar_Cbac_Mod:onMctOptionsUpdated(): STARTED")
 
-    TotoWar_Cbac:loadMctOptions()
+    self:loadMctOptions()
 
     logger:logDebug("TotoWar_Cbac_Mod:onMctOptionsUpdated(): COMPLETED")
 end
@@ -146,13 +123,13 @@ end
 function TotoWar_Cbac_Mod:subscribeToEvents()
     logger:logDebug("TotoWar_Cbac_Mod:subscribeToEvents(): STARTED")
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
-        function() TotoWar_Cbac:onMctOptionsUpdated() end)
+        function() self:onMctOptionsUpdated() end)
 
-    TotoWar.eventsManager:subscribe(
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.optionsUpdated,
-        function() TotoWar_Cbac:overwriteOptionsForDebug() end,
+        function() self:overwriteOptionsForDebug() end,
         nil,
         nil,
         9999) -- To force overwriteOptionsForDebug to be executed after other methods reacting to the optionsUpdated event
