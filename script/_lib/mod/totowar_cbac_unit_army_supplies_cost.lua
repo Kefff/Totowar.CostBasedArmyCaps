@@ -1,3 +1,5 @@
+local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.armySuppliesCost)
+
 ---Army composition unit categories by key of parent unit group (ui_unit_group_parents table).
 ---Lords and heroes (`commander` and `heroes_agents` groups) are categorized from their character.
 ---@type table<string, TotoWar_Cbac_Enum_ArmyCompositionUnitCategories>
@@ -56,10 +58,6 @@ TotoWar_Cbac_UnitArmySuppliesCost.__index = TotoWar_Cbac_UnitArmySuppliesCost
 ---@param characterCqi integer Command queue index of the character.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost | nil
 function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(%s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end)
-
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
 
     local unitKey = common.get_context_value(
@@ -69,9 +67,17 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if unitKey == nil then
         -- For some reason, some characters may have no CcoCampaignCharacter so we cannot obtain information on them
-        TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
-            "Unit record found for character \"%s\" not found",
-            TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)))
+        logger:logWarning(
+            "The unit of the character \"%s\" could not be found: this character is ignored in army supplies",
+            function()
+                local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+                if character == nil then
+                    return characterCqi
+                end
+
+                return TotoWar__Gameplay:getCharacterCaption(character)
+            end)
 
         return nil
     end
@@ -86,8 +92,8 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         -- We use the absolute value as a fallback.
         local transformedCost = math.abs(instance.armySuppliesCost)
 
-        TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
-            "Invalid price found for unit \"%s\" (Price: %s | Used instead: %s)",
+        logger:logWarning(
+            "The skirmish cost of the unit \"%s\" is invalid (%s): %s is used as its army supplies cost",
             TotoWar__Gameplay:getUnitCaption(unitKey),
             instance.armySuppliesCost,
             transformedCost)
@@ -114,12 +120,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
     end
 
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(%s): COMPLETED => %s, %s",
-        function() return TotoWar__Gameplay:getCharacterCaption(TotoWar__Gameplay:getCharacter(characterCqi)) end,
-        function() return instance.baseUnitKey end,
-        function() return instance.armySuppliesCost end)
-
     return instance
 end
 
@@ -128,10 +128,6 @@ end
 ---@param unitCqi integer? Command queue index of the unit (if we are able to get one).
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost.newUnit(%s): STARTED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
-
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
     instance.armySuppliesCost = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
@@ -143,8 +139,8 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
         -- We use the absolute value as a fallback.
         local transformedCost = math.abs(instance.armySuppliesCost)
 
-        TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
-            "Invalid price found for unit \"%s\" (Price: %s | Used instead: %s)",
+        logger:logWarning(
+            "The skirmish cost of the unit \"%s\" is invalid (%s): %s is used as its army supplies cost",
             TotoWar__Gameplay:getUnitCaption(unitKey),
             instance.armySuppliesCost,
             transformedCost)
@@ -162,12 +158,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost.newUnit(%s): COMPLETED => %s, %s",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
-        function() return instance.baseUnitKey end,
-        function() return instance.armySuppliesCost end)
-
     return instance
 end
 
@@ -175,10 +165,6 @@ end
 ---@param unitKey string Unit key.
 ---@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
 function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): STARTED",
-        function() return unitKey end)
-
     local armyCompositionUnitType = _unitCategoriesByUnitKey[unitKey]
 
     if armyCompositionUnitType == nil then
@@ -192,22 +178,17 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
         end
 
         if armyCompositionUnitType == nil then
-            TotoWar_Cbac.loggers.armySuppliesCost:logWarning(
-                "Unknown unit group \"%s\" for unit \"%s\" (Category used instead: %s)",
-                unitGroup,
+            logger:logWarning(
+                "The unit \"%s\" (%s) belongs to an unknown recruitment category (%s): it is counted as cavalry & monsters",
+                TotoWar__Gameplay:getUnitCaption(unitKey),
                 unitKey,
-                TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters)
+                unitGroup)
 
             armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
         end
 
         _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
     end
-
-    TotoWar_Cbac.loggers.armySuppliesCost:logDebug(
-        "TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(%s): COMPLETED => %s",
-        function() return unitKey end,
-        function() return armyCompositionUnitType end)
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return armyCompositionUnitType

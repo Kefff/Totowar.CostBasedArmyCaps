@@ -123,6 +123,16 @@ TotoWar__Enum_GameEvents = {
     unitUpgraded = "UnitUpgraded"
 }
 
+---Log categories of the TotoWar base mod.
+---@class TotoWar__Enum_LogCategories
+TotoWar__Enum_LogCategories = {
+    eventsManager = "TotoWar__EventsManager",
+    generic = "TotoWar__Generic",
+    modsManager = "TotoWar__ModsManager",
+    ui = "TotoWar__UI",
+    utils = "TotoWar__Utils"
+}
+
 ---Log severities.
 ---@class TotoWar__Enum_LogSeverities
 TotoWar__Enum_LogSeverities = {
@@ -135,9 +145,6 @@ TotoWar__Enum_LogSeverities = {
 ---Events triggered by the mod.
 ---@class TotoWar__Enum_ModEvents
 TotoWar__Enum_ModEvents = {
-    ---Event triggered when the events manager has been initialized to indicate to loggers,
-    ---which are instaciated before, that they can now subscribe to events.
-    eventsManagerInitialized = "TotoWar__EventsManagerInitialized",
 
     ---Event triggered when options are updated in the Mod Configuration Tool if it is installed.
     mctOptionsUpdated = "MctFinalized",

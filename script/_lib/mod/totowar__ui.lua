@@ -1,3 +1,5 @@
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.ui)
+
 ---UI utility tools for TotoWar mods.
 ---@class TotoWarUI
 TotoWar__UI = {
@@ -36,28 +38,26 @@ end
 ---@param query string[] Query to the UI component from the parent UI component.
 ---@return UIC | nil
 function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
-    local queryText = table.concat(query, "/")
-
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "findUIComponentChild(%s/%s): STARTED",
         function() return parentUIComponent:Id() end,
-        function() return queryText end)
+        function() return table.concat(query, "/") end)
 
     local uiComponent = find_uicomponent(parentUIComponent, unpack(query))
 
-    if not uiComponent then
-        TotoWar.loggers.ui:logDebug(
+    if uiComponent == false then
+        logger:logDebug(
             "findUIComponentChild(%s/%s): NOT FOUND",
             function() return parentUIComponent:Id() end,
-            function() return queryText end)
+            function() return table.concat(query, "/") end)
 
         return nil
     end
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "findUIComponentChild(%s/%s): COMPLETED => %s",
         function() return parentUIComponent:Id() end,
-        function() return queryText end,
+        function() return table.concat(query, "/") end,
         function() return uiComponent:Id() end)
 
     return uiComponent
@@ -70,24 +70,10 @@ end
 function TotoWar__UI:getUIComponent(query)
     local uiComponent = self:findUIComponent(query)
 
-    if not uiComponent then
-        TotoWar.loggers.ui:logError("UI component \"%s\" not found", table.concat(query, "/"))
-    end
-
-    ---@diagnostic disable-next-line: return-type-mismatch
-    return uiComponent
-end
-
----Gets a UI component that is a child a parent UI component.
----If the child UI component is not found, throws an error.
----@param parentUIComponent UIC Parent UI component
----@param query string[] Query to the UI component from the parent UI component.
----@return UIC
-function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
-    local uiComponent = self:findUIComponentChild(parentUIComponent, query)
-
     if uiComponent == nil then
-        TotoWar.loggers.ui:logError("UI component \"%s\" not found", table.concat(query, "/"))
+        logger:logError(
+            "A part of the game interface used by the mod could not be found (\"%s\"): army supplies may not be displayed correctly",
+            table.concat(query, "/"))
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -99,39 +85,56 @@ end
 ---@param ccoContextTypeId string ID of the context object.
 ---@return ComponentContextObject
 function TotoWar__UI:getUIComponentCCO(uiComponent, ccoContextTypeId)
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "getUIComponentCCO(%s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return ccoContextTypeId end)
+        ccoContextTypeId)
 
     local contextId = uiComponent:GetContextObjectId(ccoContextTypeId)
     local componentContextObject = cco(ccoContextTypeId, contextId)
 
-    if not componentContextObject then
-        TotoWar.loggers.ui:logDebug(
+    if componentContextObject == nil then
+        logger:logDebug(
             "getUIComponentCCO(%s, %s): NOT FOUND",
             function() return uiComponent:Id() end,
-            function() return ccoContextTypeId end)
+            ccoContextTypeId)
     end
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "getUIComponentCCO(%s, %s): COMPLETED",
         function() return uiComponent:Id() end,
-        function() return ccoContextTypeId end)
+        ccoContextTypeId)
 
     return componentContextObject
+end
+
+---Gets a UI component that is a child a parent UI component.
+---If the child UI component is not found, throws an error.
+---@param parentUIComponent UIC Parent UI component
+---@param query string[] Query to the UI component from the parent UI component.
+---@return UIC
+function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
+    local uiComponent = self:findUIComponentChild(parentUIComponent, query)
+
+    if uiComponent == nil then
+        logger:logError(
+            "A part of the game interface used by the mod could not be found (\"%s/%s\"): army supplies may not be displayed correctly",
+            parentUIComponent:Id(),
+            table.concat(query, "/"))
+    end
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return uiComponent
 end
 
 ---Indicates whether a UI component is a child of other UI components.
 ---@param uiComponent UIC UI component.
 ---@param parentNames string[] Parent UI component names.
 function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
-    local parentNamesText = table.concat(parentNames, ", ")
-
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "isUIComponentChildOf(%s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return parentNamesText end)
+        function() return table.concat(parentNames, ", ") end)
 
     local isChildOfAll = TotoWar__Linq:all(
         parentNames,
@@ -142,11 +145,11 @@ function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
                 function(uic) return uic:Id() == pn end))
         end)
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "isUIComponentChildOf(%s, %s): COMPLETED => %s",
         function() return uiComponent:Id() end,
-        function() return parentNamesText end,
-        function() return isChildOfAll end)
+        function() return table.concat(parentNames, ", ") end,
+        isChildOfAll)
 
     return isChildOfAll
 end
@@ -155,44 +158,44 @@ end
 ---@param uiComponent UIC UI component which children must be offset.
 ---@param offsetX number X offset.
 ---@param offsetY number Y offset.
-function TotoWar__UI:offsetUIComponent(uiComponent, offsetX, offsetY)
-    TotoWar.loggers.ui:logDebug(
-        "offsetUIComponent(%s, %s, %s): STARTED",
-        function() return uiComponent:Id() end,
-        function() return offsetX end,
-        function() return offsetY end)
-
-    local uiComponentOffsetX, uiComponentOffsetY = uiComponent:GetDockOffset()
-    uiComponent:SetDockOffset(uiComponentOffsetX + offsetX, uiComponentOffsetY + offsetY)
-
-    TotoWar.loggers.ui:logDebug(
-        "offsetUIComponent(%s, %s, %s): COMPLETED",
-        function() return uiComponent:Id() end,
-        function() return offsetX end,
-        function() return offsetY end)
-end
-
----Offsets the children of a UI component.
----@param uiComponent UIC UI component which children must be offset.
----@param offsetX number X offset.
----@param offsetY number Y offset.
 function TotoWar__UI:offsetChildUIComponents(uiComponent, offsetX, offsetY)
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "offsetChildUIComponents(%s, %s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return offsetX end,
-        function() return offsetY end)
+        offsetX,
+        offsetY)
 
     for i = 0, uiComponent:ChildCount() - 1, 1 do
         local childUIComponent = find_child_uicomponent_by_index(uiComponent, i)
         self:offsetUIComponent(childUIComponent, offsetX, offsetY)
     end
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "offsetChildUIComponents(%s, %s, %s): COMPLETED",
         function() return uiComponent:Id() end,
-        function() return offsetX end,
-        function() return offsetY end)
+        offsetX,
+        offsetY)
+end
+
+---Offsets the children of a UI component.
+---@param uiComponent UIC UI component which children must be offset.
+---@param offsetX number X offset.
+---@param offsetY number Y offset.
+function TotoWar__UI:offsetUIComponent(uiComponent, offsetX, offsetY)
+    logger:logDebug(
+        "offsetUIComponent(%s, %s, %s): STARTED",
+        function() return uiComponent:Id() end,
+        offsetX,
+        offsetY)
+
+    local uiComponentOffsetX, uiComponentOffsetY = uiComponent:GetDockOffset()
+    uiComponent:SetDockOffset(uiComponentOffsetX + offsetX, uiComponentOffsetY + offsetY)
+
+    logger:logDebug(
+        "offsetUIComponent(%s, %s, %s): COMPLETED",
+        function() return uiComponent:Id() end,
+        offsetX,
+        offsetY)
 end
 
 ---Resizes a UI component.
@@ -200,20 +203,20 @@ end
 ---@param widthToAdd number Width to add.
 ---@param heightToAdd number Height to add.
 function TotoWar__UI:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "resizeUIComponent(%s, %s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return widthToAdd end,
-        function() return heightToAdd end)
+        widthToAdd,
+        heightToAdd)
 
     local uiComponentWidth, uiComponentHeight = uiComponent:Dimensions()
     self:setUIComponentSize(uiComponent, uiComponentWidth + widthToAdd, uiComponentHeight + heightToAdd)
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "resizeUIComponent(%s, %s, %s): COMPLETED",
         function() return uiComponent:Id() end,
-        function() return widthToAdd end,
-        function() return heightToAdd end)
+        widthToAdd,
+        heightToAdd)
 end
 
 ---Resizes a UI components and its children listed in a path.
@@ -222,11 +225,11 @@ end
 ---@param heightToAdd number Height to add.
 ---@param query string[] Path containing the names of the child UI components to resize.
 function TotoWar__UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, query)
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "resizeUIComponentAndChildren(%s, %s, %s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return widthToAdd end,
-        function() return heightToAdd end,
+        widthToAdd,
+        heightToAdd,
         function() return table.concat(query, "/") end)
 
     local currentChildUIComponentPath = {}
@@ -239,11 +242,11 @@ function TotoWar__UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heigh
         self:resizeUIComponent(childUIComponent, widthToAdd, heightToAdd)
     end
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "resizeUIComponentAndChildren(%s, %s, %s, %s): COMPLETED",
         function() return uiComponent:Id() end,
-        function() return widthToAdd end,
-        function() return heightToAdd end,
+        widthToAdd,
+        heightToAdd,
         function() return table.concat(query, "/") end)
 end
 
@@ -252,19 +255,19 @@ end
 ---@param width number Width to add.
 ---@param height number Height to add.
 function TotoWar__UI:setUIComponentSize(uiComponent, width, height)
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "setUIComponentSize(%s, %s, %s): STARTED",
         function() return uiComponent:Id() end,
-        function() return width end,
-        function() return height end)
+        width,
+        height)
 
     uiComponent:SetCanResizeWidth(true)
     uiComponent:SetCanResizeHeight(true)
     uiComponent:Resize(width, height, false)
 
-    TotoWar.loggers.ui:logDebug(
+    logger:logDebug(
         "setUIComponentSize(%s, %s, %s): COMPLETED",
         function() return uiComponent:Id() end,
-        function() return width end,
-        function() return height end)
+        width,
+        height)
 end

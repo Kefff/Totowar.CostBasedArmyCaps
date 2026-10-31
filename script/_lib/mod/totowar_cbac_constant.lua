@@ -16,6 +16,9 @@ TotoWar_Cbac_Constant = {
     ---Ratio applied to the maximum percentage of a unit category to get the minimum percentage this unit category can occupy in AI armies.
     minimumUnitCategoryPercentageRatio = 0.15,
 
+    ---Caption of the mod displayed to the player.
+    modCaption = "TotoWar: Army Caps",
+
     ---Name of the TotoWar: Army Caps mod.
     modName = "totowar_cost_based_army_caps",
 

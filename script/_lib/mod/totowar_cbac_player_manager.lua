@@ -1,3 +1,5 @@
+local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.playerManager)
+
 ---Manager in charge of managing the army supplies for the player armies.
 ---@class TotoWar_Cbac_PlayerManager
 TotoWar_Cbac_PlayerManager = {
@@ -33,20 +35,20 @@ TotoWar_Cbac_PlayerManager.__index = TotoWar_Cbac_PlayerManager
 ---Initializes a new instance.
 ---@return TotoWar_Cbac_PlayerManager
 function TotoWar_Cbac_PlayerManager.new()
-    TotoWar_Cbac.loggers.playerManager:logDebug("new(): STARTED")
+    logger:logDebug("new(): STARTED")
 
     local instance = setmetatable({}, TotoWar_Cbac_PlayerManager)
 
     instance:subscribeToEvents()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("new(): COMPLETED")
+    logger:logDebug("new(): COMPLETED")
 
     return instance
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWar_Cbac_PlayerManager:clearMercenaryRecruitment()
-    TotoWar_Cbac.loggers.playerManager:logDebug("clearMercenaryRecruitment(): STARTED")
+    logger:logDebug("clearMercenaryRecruitment(): STARTED")
 
     if #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
         self.selectedLordArmySuppliesCost:clearMercenaryRecruitment()
@@ -55,14 +57,16 @@ function TotoWar_Cbac_PlayerManager:clearMercenaryRecruitment()
         TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("clearMercenaryRecruitment(): COMPLETED")
+    logger:logDebug("clearMercenaryRecruitment(): COMPLETED")
 end
 
 ---Initializes the army supplies cost of the army of the selected lord.
 ---@param lord CHARACTER_SCRIPT_INTERFACE Selected lord.
 function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "initializeArmySuppliesCost(%s): STARTED",
+    logger:logDebug(
+        "initializeArmySuppliesCost(%s): STARTED => Faction: %s | Lord: %s",
+        function() return lord:cqi() end,
+        function() return TotoWar__Gameplay:getFactionCaption(lord:faction():name()) end,
         function() return TotoWar__Gameplay:getCharacterCaption(lord) end)
 
     self.selectedLordArmySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(false, lord:military_force())
@@ -100,15 +104,18 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "initializeArmySuppliesCost(%s): COMPLETED => %s",
+    logger:logDebug(
+        "initializeArmySuppliesCost(%s): COMPLETED => Faction: %s | Lord: %s | Total cost: %s | Available supplies: %s",
+        function() return lord:cqi() end,
+        function() return TotoWar__Gameplay:getFactionCaption(lord:faction():name()) end,
         function() return TotoWar__Gameplay:getCharacterCaption(lord) end,
-        function() return self.selectedLordArmySuppliesCost.totalCost end)
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to a character being deselected.
 function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onCharacterDeselected(): STARTED")
+    logger:logDebug("onCharacterDeselected(): STARTED")
 
     if self.selectedLord then
         cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
@@ -116,16 +123,17 @@ function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
         self.selectedLordArmySuppliesCost = nil
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onCharacterDeselected(): COMPLETED")
+    logger:logDebug("onCharacterDeselected(): COMPLETED")
 end
 
 ---Reacts to a character being selected.
 ---@param character CHARACTER_SCRIPT_INTERFACE Selected character.
 function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onCharacterSelected(%s from %s): STARTED",
-        function() return TotoWar__Gameplay:getCharacterCaption(character) end,
-        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end)
+    logger:logDebug(
+        "onCharacterSelected(%s): STARTED => Faction: %s | Character: %s",
+        function() return character:cqi() end,
+        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(character) end)
 
     if TotoWar__Gameplay:isLordCharacter(character)
         and (TotoWar__Gameplay:isLocalPlayerFaction(character:faction():name())
@@ -167,32 +175,33 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
         TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onCharacterSelected(%s from %s): COMPLETED",
-        function() return TotoWar__Gameplay:getCharacterCaption(character) end,
-        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end)
+    logger:logDebug(
+        "onCharacterSelected(%s): COMPLETED => Faction: %s | Character: %s",
+        function() return character:cqi() end,
+        function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(character) end)
 end
 
 ---Reacts to the click on the unit card of a mercenary unit in the selected army recruitment queue.
 ---@param uiComponentName string Name of the clicked UI component.
 function TotoWar_Cbac_PlayerManager:onInRecruitmentMercenaryUnitCardClick(uiComponentName)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
+    logger:logDebug(
         "onInRecruitmentMercenaryUnitCardClick(%s): STARTED",
-        function() return uiComponentName end)
+        uiComponentName)
 
     self.selectedLordArmySuppliesCost:removeUnit(uiComponentName)
 
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
+    logger:logDebug(
         "onInRecruitmentMercenaryUnitCardClick(%s): COMPLETED",
-        function() return uiComponentName end)
+        uiComponentName)
 end
 
 ---Reacts to the mercenary recruitment panel being closed.
 function TotoWar_Cbac_PlayerManager:onMercenaryRecruitmentPanelClosed()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onMercenaryRecruitmentPanelClosed(): STARTED")
+    logger:logDebug("onMercenaryRecruitmentPanelClosed(): STARTED")
 
     if #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
         self.selectedLordArmySuppliesCost:clearMercenaryRecruitment()
@@ -201,24 +210,28 @@ function TotoWar_Cbac_PlayerManager:onMercenaryRecruitmentPanelClosed()
         TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onMercenaryRecruitmentPanelClosed(): COMPLETED")
+    logger:logDebug("onMercenaryRecruitmentPanelClosed(): COMPLETED")
 end
 
 ---Reacts to the mercenary recruitment panel being opened or closed.
 function TotoWar_Cbac_PlayerManager:onMercenaryRecruitmentPanelOpened()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onMercenaryRecruitmentPanelOpened(): STARTED")
+    logger:logDebug("onMercenaryRecruitmentPanelOpened(): STARTED")
 
     self:clearMercenaryRecruitment()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onMercenaryRecruitmentPanelOpened(): COMPLETED")
+    logger:logDebug("onMercenaryRecruitmentPanelOpened(): COMPLETED")
 end
 
 ---Reacts to a mercenary unit being recruited in the selected lord army.
 ---@param unitKey string Unit key.
 ---@param cqi integer Unit command queue index.
 function TotoWar_Cbac_PlayerManager:onMercenaryUnitsRecruited(unitKey, cqi)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onMercenaryUnitRecruited(%s): STARTED",
+    logger:logDebug(
+        "onMercenaryUnitsRecruited(%s, %s): STARTED => Faction: %s | Lord: %s | Unit: %s",
+        unitKey,
+        cqi,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     self.selectedLordArmySuppliesCost:addUnit(unitKey, cqi)
@@ -226,18 +239,24 @@ function TotoWar_Cbac_PlayerManager:onMercenaryUnitsRecruited(unitKey, cqi)
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onMercenaryUnitRecruited(%s): COMPLETED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
+    logger:logDebug(
+        "onMercenaryUnitsRecruited(%s, %s): COMPLETED => Faction: %s | Lord: %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        unitKey,
+        cqi,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to the click on the unit card of a recruitable mercenary unit.
 ---@param uiComponentName string Name of the clicked UI component.
 ---@param unitUIComponent UIC Clicked UI component.
 function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUnitCardClick(uiComponentName, unitUIComponent)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUnitCardClick(%s): STARTED",
-        function() return uiComponentName end)
+    logger:logDebug(
+        "onRecruitableMercenaryUnitCardClick(%s, unitUIComponent): STARTED",
+        uiComponentName)
 
     -- Workaround for the fact that we cannot know whether a unit card was `inactive` before clicking
     -- on it or became `inactive` after clicking on it because the click event is triggered after.
@@ -265,11 +284,11 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUnitCardClick(uiCompon
         inRecruitmentMercenaryUnitCount = inRecruitmentMercenaryUnitCount + 1
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUnitCardClick(%s): %s mercenary units in the recruitment pool | %s mercenary units tracked in the army supplies cost",
-        function() return uiComponentName end,
-        function() return inRecruitmentMercenaryUnitCount end,
-        function() return #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits end)
+    logger:logDebug(
+        "onRecruitableMercenaryUnitCardClick(%s, unitUIComponent): MERCENARIES => In the recruitment queue: %s | Counted in army supplies: %s",
+        uiComponentName,
+        inRecruitmentMercenaryUnitCount,
+        #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits)
 
     if inRecruitmentMercenaryUnitCount > #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits then
         local unitContext = TotoWar__UI:getUIComponentCCO(
@@ -281,9 +300,9 @@ function TotoWar_Cbac_PlayerManager:onRecruitableMercenaryUnitCardClick(uiCompon
         self:onUnitAddedToRecruitment(unitKey, true)
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onRecruitableMercenaryUnitCardClick(%s): COMPLETED",
-        function() return uiComponentName end)
+    logger:logDebug(
+        "onRecruitableMercenaryUnitCardClick(%s, unitUIComponent): COMPLETED",
+        uiComponentName)
 end
 
 ---Reacts to the army supplies cost of the selected lord changing.
@@ -292,7 +311,7 @@ function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
         return
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onSelectedLordArmySuppliesCostChanged(): STARTED")
+    logger:logDebug("onSelectedLordArmySuppliesCostChanged(): STARTED")
 
     local needsSelectedLordMovementUpdate = true
 
@@ -306,34 +325,45 @@ function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
         self:updateSelectedLordMovement()
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
+    logger:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
 end
 
 ---Reacts to a unit being added to the recruitment queue of the selected lord army.
 ---@param unitKey string Unit key.
 ---@param isMercenary boolean Indicates whether the unit added to recruitment is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...).
 function TotoWar_Cbac_PlayerManager:onUnitAddedToRecruitment(unitKey, isMercenary)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitAddedToRecruitment(%s, %s): STARTED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
-        function() return isMercenary end)
+    logger:logDebug(
+        "onUnitAddedToRecruitment(%s, %s): STARTED => Faction: %s | Lord: %s | Unit: %s",
+        unitKey,
+        isMercenary,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     self.selectedLordArmySuppliesCost:addUnit(unitKey, nil, isMercenary)
 
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitAddedToRecruitment(%s, %s): COMPLETED",
+    logger:logDebug(
+        "onUnitAddedToRecruitment(%s, %s): COMPLETED => Faction: %s | Lord: %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        unitKey,
+        isMercenary,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
-        function() return isMercenary end)
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to a unit being disbanded.
 ---@param unitKey string Unit key
 function TotoWar_Cbac_PlayerManager:onUnitDisbanded(unitKey)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitDisbanded(%s): STARTED",
+    logger:logDebug(
+        "onUnitDisbanded(%s): STARTED => Faction: %s | Lord: %s | Unit: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     self.selectedLordArmySuppliesCost:removeUnit(unitKey)
@@ -341,33 +371,38 @@ function TotoWar_Cbac_PlayerManager:onUnitDisbanded(unitKey)
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitDisbanded(%s): COMPLETED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
+    logger:logDebug(
+        "onUnitDisbanded(%s): COMPLETED => Faction: %s | Lord: %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to the unit exchange panel being closed.
 function TotoWar_Cbac_PlayerManager:onUnitExchangePanelClosed()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePanelClosed(): STARTED")
+    logger:logDebug("onUnitExchangePanelClosed(): STARTED")
 
     self.unitExchangeArmySuppliesCost1 = nil
     self.unitExchangeArmySuppliesCost2 = nil
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePanelClosed(): COMPLETED")
+    logger:logDebug("onUnitExchangePanelClosed(): COMPLETED")
 end
 
 ---Reacts to the unit exchange panel being opened.
 function TotoWar_Cbac_PlayerManager:onUnitExchangePanelOpened()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePanelOpened(): STARTED")
+    logger:logDebug("onUnitExchangePanelOpened(): STARTED")
 
     self:updateUnitExchangeArmySuppliesCosts()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePanelOpened(): COMPLETED")
+    logger:logDebug("onUnitExchangePanelOpened(): COMPLETED")
 end
 
 ---Reacts to a unit card in the first army unit exchange pool being clicked.
 function TotoWar_Cbac_PlayerManager:onUnitExchangePoolUnitCardClick()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePoolUnitCardClick(): STARTED")
+    logger:logDebug("onUnitExchangePoolUnitCardClick(): STARTED")
 
     -- Each time a unit exchange unit card is clicked, we need to go through each unit exchange pool
     -- to see which units are selected and which are not.
@@ -375,14 +410,17 @@ function TotoWar_Cbac_PlayerManager:onUnitExchangePoolUnitCardClick()
     -- we have no other way to know which cards have been added to the selection.
     self:updateUnitExchangeArmySuppliesCosts()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onUnitExchangePoolUnitCardClick(): COMPLETED")
+    logger:logDebug("onUnitExchangePoolUnitCardClick(): COMPLETED")
 end
 
 ---Reacts to a unit being destroyed after having been merged with another unit.
 ---@param unitKey string Unit key.
 function TotoWar_Cbac_PlayerManager:onUnitMergedAndDestroyed(unitKey)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitMergedAndDestroyed(%s): STARTED",
+    logger:logDebug(
+        "onUnitMergedAndDestroyed(%s): STARTED => Faction: %s | Lord: %s | Unit: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     self.selectedLordArmySuppliesCost:removeUnit(unitKey)
@@ -390,15 +428,23 @@ function TotoWar_Cbac_PlayerManager:onUnitMergedAndDestroyed(unitKey)
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitMergedAndDestroyed(%s): COMPLETED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
+    logger:logDebug(
+        "onUnitMergedAndDestroyed(%s): COMPLETED => Faction: %s | Lord: %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to a unit being removed from the recruitment queue of the selected lord army.
 function TotoWar_Cbac_PlayerManager:onUnitRemovedFromRecruitment(unitKey)
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitRemovedFromRecruitment(%s): STARTED",
+    logger:logDebug(
+        "onUnitRemovedFromRecruitment(%s): STARTED => Faction: %s | Lord: %s | Unit: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
     self.selectedLordArmySuppliesCost:removeUnit(unitKey)
@@ -406,35 +452,40 @@ function TotoWar_Cbac_PlayerManager:onUnitRemovedFromRecruitment(unitKey)
     -- Signaling army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
-        "onUnitRemovedFromRecruitment(%s): COMPLETED",
-        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
+    logger:logDebug(
+        "onUnitRemovedFromRecruitment(%s): COMPLETED => Faction: %s | Lord: %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        unitKey,
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to the "Upgrade" button in the Warband Upgrade pnael being clicked.
 function TotoWar_Cbac_PlayerManager:onWarbandUpgradeButtonClicked()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeButtonClicked(): STARTED")
+    logger:logDebug("onWarbandUpgradeButtonClicked(): STARTED")
 
     -- Delay used here to allow the unit list to be updated before updating the army supplies
     TotoWar__Utils:delay(
         function() self:initializeArmySuppliesCost(self.selectedLord) end,
         0.1)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeButtonClicked(): COMPLETED")
+    logger:logDebug("onWarbandUpgradeButtonClicked(): COMPLETED")
 end
 
 ---Reacts to a unit card or a warband upgrade being clicked when the Warband Upgrade panel is open.
 function TotoWar_Cbac_PlayerManager:onWarbandUpgradeUnitClicked()
-    TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeUnitClicked(): STARTED")
+    logger:logDebug("onWarbandUpgradeUnitClicked(): STARTED")
 
     self:updateWarbandUpgradeArmySupplies()
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("onWarbandUpgradeUnitClicked(): COMPLETED")
+    logger:logDebug("onWarbandUpgradeUnitClicked(): COMPLETED")
 end
 
 ---Subscribes to events.
 function TotoWar_Cbac_PlayerManager:subscribeToEvents()
-    TotoWar_Cbac.loggers.playerManager:logDebug("subscribeToEvents(): STARTED")
+    logger:logDebug("subscribeToEvents(): STARTED")
 
     TotoWar.eventsManager:subscribe(
         TotoWar__Enum_GameEvents.characterDeselected,
@@ -689,17 +740,23 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                 and self.selectedLordArmySuppliesCost ~= nil
         end)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("subscribeToEvents(): COMPLETED")
+    logger:logDebug("subscribeToEvents(): COMPLETED")
 end
 
 ---Updates the ability to move of the selected lord depending on the army supplies cost of its army.
 function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
-    TotoWar_Cbac.loggers.playerManager:logDebug("updateSelectedLordMovement(): STARTED")
+    logger:logDebug(
+        "updateSelectedLordMovement(): STARTED => Faction: %s | Lord: %s | Lord CQI: %s | Available supplies: %s",
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return self.selectedLord:cqi() end,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 
     if self.selectedLordArmySuppliesCost.availableSupplies < 0 then
-        TotoWar_Cbac.loggers.playerManager:logDebug(
-            "updateSelectedLordMovement(): BLOCKED => %s",
-            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
+        logger:logInfo(
+            "The army of %s cannot move: its units exceed its army supplies by %s. Disband or transfer units to move it again",
+            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+            -self.selectedLordArmySuppliesCost.availableSupplies)
 
         cm:disable_movement_for_character(cm:char_lookup_str(self.selectedLord:cqi()))
 
@@ -710,27 +767,38 @@ function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
             local character = selectedLordArmyCharacters:item_at(i)
 
             if not TotoWar__Gameplay:isLordCharacter(character) then
-                TotoWar_Cbac.loggers.playerManager:logDebug(
-                    "updateSelectedLordMovement(): REACTIVATING MOVEMENT FOR HERO => %s",
-                    function() return TotoWar__Gameplay:getCharacterCaption(character) end)
+                logger:logDebug(
+                    "updateSelectedLordMovement(): HERO FREE TO MOVE => Faction: %s | Lord: %s | Lord CQI: %s | Hero: %s | Hero CQI: %s",
+                    function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+                    function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+                    function() return self.selectedLord:cqi() end,
+                    function() return TotoWar__Gameplay:getCharacterCaption(character) end,
+                    function() return character:cqi() end)
 
                 cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
             end
         end
     else
-        TotoWar_Cbac.loggers.playerManager:logDebug(
-            "updateSelectedLordMovement(): FREE TO MOVE => %s",
-            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end)
+        logger:logDebug(
+            "updateSelectedLordMovement(): FREE TO MOVE => Faction: %s | Lord: %s | Lord CQI: %s",
+            function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+            function() return self.selectedLord:cqi() end)
 
         cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
     end
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("updateSelectedLordMovement(): COMPLETED")
+    logger:logDebug(
+        "updateSelectedLordMovement(): COMPLETED => Faction: %s | Lord: %s | Lord CQI: %s | Available supplies: %s",
+        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
+        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
+        function() return self.selectedLord:cqi() end,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Updates unit exchange army supplies costs.
 function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
-    TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
+    logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
     local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(
         TotoWar__UI.uiComponentQueries.unitExchange_pool1)
@@ -765,12 +833,12 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     -- Signaling unit exchange army supplies cost change
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.unitExchangeArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
+    logger:logDebug("updateUnitExchangeArmySuppliesCosts(): COMPLETED")
 end
 
 ---Updates the army supplies displayed in the Warband Upgrade panel.
 function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
-    TotoWar_Cbac.loggers.playerManager:logDebug("updateWarbandUpgradeArmySupplies(): STARTED")
+    logger:logDebug("updateWarbandUpgradeArmySupplies(): STARTED")
 
     local unitToUpgradeUiComponent = TotoWar__UI:findUIComponent(
         TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgradesUnitToUpgrade)
@@ -782,9 +850,9 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
         or not unitToUpgradeUiComponent:Visible(true)
         or not upgradedUnitUiComponent:Visible(true)
     then
-        TotoWar_Cbac.loggers.playerManager:logDebug(
+        logger:logDebug(
             "updateWarbandUpgradeArmySupplies(): COMPLETED => %s",
-            function() return "Not calculated" end)
+            "Not calculated, no unit selected for upgrade")
 
         return
     end
@@ -793,9 +861,8 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
     local objectContextId = unitToUpgradeUiComponent:GetContextObjectId(TotoWar__Enum_CcoContextTypeIds.campaignUnit)
 
     if objectContextId == nil then
-        TotoWar_Cbac.loggers.playerManager:logDebug(
-            "updateWarbandUpgradeArmySupplies(): COMPLETED => %s",
-            function() return "Not calculated" end)
+        logger:logWarning(
+            "The unit to upgrade could not be identified in the warband upgrade panel: the army supplies after the upgrade cannot be displayed")
 
         return
     end
@@ -874,7 +941,7 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
     -- Sending an event to update the warband upgrade UI with the upgraded army supplies cost
     TotoWar.eventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.warbandUpgradeArmySuppliesCostChanged)
 
-    TotoWar_Cbac.loggers.playerManager:logDebug(
+    logger:logDebug(
         "updateWarbandUpgradeArmySupplies(): COMPLETED => %s",
         function()
             if self.warbandUpgradeArmySuppliesCost ~= nil then

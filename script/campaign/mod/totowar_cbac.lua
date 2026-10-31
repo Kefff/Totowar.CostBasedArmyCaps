@@ -3,6 +3,7 @@ cm:add_first_tick_callback(
         ---Registering the mod
         TotoWar.modsManager:registerMod(
             TotoWar_Cbac_Constant.modName,
+            TotoWar_Cbac_Constant.modCaption,
             ---@param modsManager TotoWar__ModsManager
             ---@return TotoWar_Cbac_Mod
             function(modsManager)

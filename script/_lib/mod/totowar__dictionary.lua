@@ -52,8 +52,6 @@ function TotoWar__Dictionary:get(key)
     local entry = TotoWar__Linq:firstOrDefault(self.entries, function(e) return e.key == key end)
 
     if entry == nil then
-        TotoWar.loggers.generic:logError("Dictionary key \"%s\" not found", tostring(key))
-
         ---@diagnostic disable-next-line: return-type-mismatch
         return nil
     end

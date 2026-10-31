@@ -1,4 +1,6 @@
----Manager for events.
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
+
+---Utility functions for TotoWar mods.
 ---@class TotoWar__Utils
 TotoWar__Utils = {}
 TotoWar__Utils.__index = TotoWar__Utils
@@ -7,14 +9,12 @@ TotoWar__Utils.__index = TotoWar__Utils
 ---@param callback fun() Function to executed with a delay.
 ---@param delay integer Delay in seconds.
 function TotoWar__Utils:delay(callback, delay)
-    TotoWar.loggers.generic:logDebug("TotoWar__Utils:delay(callback, %s): STARTED", function() return delay end)
-
     ---Reacts to an error when executing the callback
     ---@param error any Error.
     local onError = function(error)
         local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
-        TotoWar.loggers.generic:logError(
-            "Error while executing delayed function:\n%s",
+        logger:logError(
+            "An error occurred while executing a delayed action of the mod:\n%s",
             stacktrace)
     end
 
@@ -25,6 +25,4 @@ function TotoWar__Utils:delay(callback, delay)
                 function(error) onError(error) end)
         end,
         delay)
-
-    TotoWar.loggers.generic:logDebug("TotoWar__Utils:delay(callback, %s): COMPLETED", function() return delay end)
 end

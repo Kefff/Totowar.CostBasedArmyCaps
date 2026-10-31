@@ -9,6 +9,15 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
     warMachines = "warMachines"
 }
 
+---Log categories of the mod.
+---@class TotoWar_Cbac_Enum_LogCategories
+TotoWar_Cbac_Enum_LogCategories = {
+    aiManager = "TotoWar_Cbac_AiManager",
+    armySuppliesCost = "TotoWar_Cbac_ArmySuppliesCost",
+    playerManager = "TotoWar_Cbac_PlayerManager",
+    uiManager = "TotoWar_Cbac_UIManager"
+}
+
 ---Events triggered by the mod.
 ---@class TotoWar_Cbac_Enum_ModEvents
 TotoWar_Cbac_Enum_ModEvents = {
