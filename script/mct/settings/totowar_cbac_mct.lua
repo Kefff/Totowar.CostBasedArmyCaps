@@ -36,8 +36,8 @@ if mct then
     local playerArmySuppliesBonusAmountPerLevelOption = mctMod:add_new_option(
         TotoWar_Cbac_Constant.optionName_playerArmySuppliesBonusAmountPerLevel,
         "slider")
-    playerArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(10, 500)
-    playerArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(100)
+    playerArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(0, 500)
+    playerArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(10)
     playerArmySuppliesBonusAmountPerLevelOption:set_default_value(
         TotoWar_Cbac_Constant.optionDefaultValue_playerArmySuppliesBonusAmountPerLevel)
     playerArmySuppliesBonusAmountPerLevelOption:set_text(
@@ -73,8 +73,8 @@ if mct then
     local aiArmySuppliesBonusAmountPerLevelOption = mctMod:add_new_option(
         TotoWar_Cbac_Constant.optionName_aiArmySuppliesBonusAmountPerLevel,
         "slider")
-    aiArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(10, 500)
-    aiArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(100)
+    aiArmySuppliesBonusAmountPerLevelOption:slider_set_min_max(0, 500)
+    aiArmySuppliesBonusAmountPerLevelOption:slider_set_step_size(10)
     aiArmySuppliesBonusAmountPerLevelOption:set_default_value(
         TotoWar_Cbac_Constant.optionDefaultValue_aiArmySuppliesBonusAmountPerLevel)
     aiArmySuppliesBonusAmountPerLevelOption:set_text("totowar_cbac_mct_option_caption_aiArmySuppliesBonusAmountPerLevel")

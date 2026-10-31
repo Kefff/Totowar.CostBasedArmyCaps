@@ -48,6 +48,8 @@ Some armies will tend to include more war machines than others, some will tend t
 However, keep in mind that **the mod does not influence which units the AI decides to recruit**.  
 It only removes heroes and units in an attempt to match the `Army Supplies` budget, target army size, and to ensure units of different types stay under their maximum amount.
 
+The mod only lowers the priority the AI gives to recruiting units in its main army once it has `13` units (instead of `17` in the base game), so that the AI does not spend too much on armies whose units would then be disbanded.
+
 ## Impact on sieges and quest battles
 Since army compositions are weaker than usual due to the mod restrictions, **sieges and quest battles are much more difficult**.  
 This may force you to really siege settlements for some turns or use multiple armies for a frontal assault.  

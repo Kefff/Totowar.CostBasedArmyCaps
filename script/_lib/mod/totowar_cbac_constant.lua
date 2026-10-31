@@ -8,6 +8,7 @@ TotoWar_Cbac_Constant = {
     maximumUnitCategoryTargetPercentage = 75,
 
     ---Minimum size of an army to target for adjustments.
+    ---Must match the `min` value of the `totowar_cbac_army_min_size` CAI query variable set (db/cai_query_variable_set_junctions_tables).
     minimumTargetArmySize = 13,
 
     ---Ratio applied to the maximum percentage of a unit category to get the minimum percentage this unit category can occupy in AI armies.
