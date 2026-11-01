@@ -32,23 +32,11 @@ local function onConditionError(eventSubscription, error)
         stacktrace)
 end
 
----Manager for events.
----@class TotoWar__EventsManager
-TotoWar__EventsManager = {
-    ---Counter that determines the ID of new event subscriptions.
-    ---@type integer
-    idCounter = nil,
-
-    ---List of event subscriptions.
-    ---@type TotoWar__EventSubscription[]
-    eventSubscriptions = nil
-}
-
 ---Checks the condition for executing the callback function of an event subscription and executes it if conditions are met.
 ---@param eventSubscription TotoWar__EventSubscription Event subscription.
 ---@param event string Triggered event.
 ---@param context any Event context.
-function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
+local function executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
     logger:logDebug(
         "executeEventSubscriptionIfConditionMet(%s, %s, %s): STARTED",
         eventSubscription.id,
@@ -91,6 +79,18 @@ function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubs
         context ~= nil and "context" or "nil")
 end
 
+---Manager for events.
+---@class TotoWar__EventsManager
+TotoWar__EventsManager = {
+    ---Counter that determines the ID of new event subscriptions.
+    ---@type integer
+    idCounter = nil,
+
+    ---List of event subscriptions.
+    ---@type TotoWar__EventSubscription[]
+    eventSubscriptions = nil
+}
+
 ---Initializes the events manager.
 function TotoWar__EventsManager:initialize()
     logger:logDebug("initialize(): STARTED")
@@ -114,7 +114,7 @@ function TotoWar__EventsManager:onEvent(event, context)
     table.sort(eventSubscriptions, function(a, b) return a.priority < b.priority end)
 
     for index, eventSubscription in ipairs(eventSubscriptions) do
-        self:executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
+        executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
     end
 
     -- Removing event subscriptions that have been executed the maximum number of times they were allowed

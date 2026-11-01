@@ -35,8 +35,6 @@ TotoWar_Cbac_Enum_ModEvents = {
 ---@enum TotoWar_Cbac_Enum_UiRecruitmentPools
 TotoWar_Cbac_Enum_UiRecruitmentPools = {
     allied = "allied",
-    global = "global",
-    local1 = "local1",
-    local2 = "local2",
-    mercenary = "mercenary"
+    mercenary = "mercenary",
+    standard = "standard"
 }
