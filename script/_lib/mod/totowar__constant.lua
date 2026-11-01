@@ -12,6 +12,12 @@ TotoWar__Constant = {
     ---Default value for the option that enables debug logs.
     optionDefaultValue_debugEnabled = false,
 
+    ---Default value for the option that removes the fog of war from the whole campaign map.
+    optionDefaultValue_mapRevealed = false,
+
     ---Name of the option that enables debug logs.
-    optionName_debugEnabled = "totowar_debugEnabled"
+    optionName_debugEnabled = "totowar_debugEnabled",
+
+    ---Name of the option that removes the fog of war from the whole campaign map.
+    optionName_mapRevealed = "totowar_mapRevealed"
 }

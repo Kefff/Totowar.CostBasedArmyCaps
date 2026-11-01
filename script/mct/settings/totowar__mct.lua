@@ -31,4 +31,12 @@ if mct then
     debugEnabledOption:set_text("totowar_mct_option_caption_debugEnabled")
     debugEnabledOption:set_tooltip_text("totowar_mct_option_tooltip_debugEnabled")
     debugAndLogsSection:assign_option(debugEnabledOption)
+
+    local mapRevealedOption = mctMod:add_new_option(
+        TotoWar__Constant.optionName_mapRevealed,
+        "checkbox")
+    mapRevealedOption:set_default_value(TotoWar__Constant.optionDefaultValue_mapRevealed)
+    mapRevealedOption:set_text("totowar_mct_option_caption_mapRevealed")
+    mapRevealedOption:set_tooltip_text("totowar_mct_option_tooltip_mapRevealed")
+    debugAndLogsSection:assign_option(mapRevealedOption)
 end

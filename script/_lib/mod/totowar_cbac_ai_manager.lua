@@ -1372,7 +1372,7 @@ function TotoWar_Cbac_AiManager:removeUnitFromAiArmy(army, unitKey, unitCqi)
         reimbursedCost = unitRealCost
     end
 
-    cm:remove_unit_from_character(cm:char_lookup_str(army:general_character()), unitKey)
+    cm:remove_unit_by_cqi(unitCqi)
 
     logger:logInfo(
         "%s: army adjusted, disbanded %s (%s reimbursed)",

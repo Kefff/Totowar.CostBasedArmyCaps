@@ -11,7 +11,10 @@ TotoWar__Mod = {
 
         ---Log file name.
         ---@type string
-        logFileName = "totowar_logs.txt"
+        logFileName = "totowar_logs.txt",
+
+        ---Indicates whether the fog of war is removed from the whole campaign map.
+        mapRevealed = TotoWar__Constant.optionDefaultValue_mapRevealed
     },
 
     ---Number of the current turn.
@@ -64,15 +67,22 @@ function TotoWar__Mod:loadMctOptions()
         :get_option_by_key(TotoWar__Constant.optionName_debugEnabled)
         :get_finalized_setting()
 
+    self.options.mapRevealed = options
+        :get_option_by_key(TotoWar__Constant.optionName_mapRevealed)
+        :get_finalized_setting()
+
     if self.options.debugEnabled then
         TotoWar__Logger.level = TotoWar__Enum_LogSeverities.debug
     else
         TotoWar__Logger.level = TotoWar__Constant.defaultLogLevel
     end
 
+    self:updateMapShroud()
+
     logger:logInfo(
-        "TotoWar options loaded from the Mod Configuration Tool (Debug logs: %s)",
-        self.options.debugEnabled)
+        "TotoWar options loaded from the Mod Configuration Tool (Debug logs: %s | Map revealed: %s)",
+        self.options.debugEnabled,
+        self.options.mapRevealed)
 
     -- Signaling option changes
     TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
@@ -128,3 +138,41 @@ function TotoWar__Mod:subscribeToEvents()
 
     logger:logDebug("TotoWar__Mod:subscribeToEvents(): COMPLETED")
 end
+
+---Shows or removes the fog of war of the campaign map depending on the options.
+function TotoWar__Mod:updateMapShroud()
+    logger:logDebug("TotoWar__Mod:updateMapShroud(): STARTED")
+
+    cm:show_shroud(not self.options.mapRevealed)
+
+    logger:logDebug(
+        "TotoWar__Mod:updateMapShroud(): COMPLETED => Map revealed: %s",
+        self.options.mapRevealed)
+end
+
+-- Alternative implementation to test if show_shroud is not enough to see the armies of other factions:
+-- grants the local faction a permanent vision over every region (as the "Auto-Run & Spectate AI" mod describes it).
+-- ---Grants or removes the vision of the local faction over every region of the campaign map, depending on the options.
+-- ---The vision is kept in the save, so it is also removed from every region when the option is disabled.
+-- function TotoWar__Mod:updateMapVision()
+--     logger:logDebug("TotoWar__Mod:updateMapVision(): STARTED")
+--
+--     local localFaction = cm:get_faction(cm:get_local_faction_name())
+--     local world = cm:model():world()
+--
+--     for _, regionDataList in ipairs({ world:land_region_data(), world:sea_region_data() }) do
+--         for i = 0, regionDataList:num_items() - 1, 1 do
+--             local regionData = regionDataList:item_at(i)
+--
+--             if self.options.mapRevealed then
+--                 cm:grant_faction_additional_vision(localFaction, regionData)
+--             else
+--                 cm:remove_faction_additional_vision(localFaction, regionData)
+--             end
+--         end
+--     end
+--
+--     logger:logDebug(
+--         "TotoWar__Mod:updateMapVision(): COMPLETED => Map revealed: %s",
+--         self.options.mapRevealed)
+-- end
