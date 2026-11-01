@@ -2,8 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
   "completion.autoRequire": false,
   "diagnostics.disable": [
-    "lowercase-global",
-    "trailing-space"
+    "lowercase-global"
   ],
   "diagnostics.workspaceDelay": 500,
   "diagnostics.workspaceRate": 30,

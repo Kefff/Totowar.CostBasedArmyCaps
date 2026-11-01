@@ -840,7 +840,10 @@ function TotoWar_Cbac_AiManager:getTargetArmyComposition(army)
             function() return TotoWar__Gameplay:getArmyLordCaption(army) end)
 
         -- Reading existing values from the game state
-        local unitCategories = { TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord, unpack(TotoWar_Cbac_Constant.randomUnitCategories) }
+        local unitCategories = {
+            TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord,
+            unpack(TotoWar_Cbac_Constant.randomUnitCategories)
+        }
 
         for index, unitCategory in ipairs(unitCategories) do
             if aiArmyData.composition[unitCategory] ~= nil then
@@ -1009,6 +1012,7 @@ function TotoWar_Cbac_AiManager:getTargetArmyCompositionUnitCategoryMaximumPerce
     ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategories[]
     local cappedUnitCategories = {}
 
+    ---@diagnostic disable-next-line: param-type-mismatch
     local defaultTargetComposition = TotoWar_Cbac_ArmyCompositionTarget:get("default")
     local defaultTotal = 0
     local realTotal = 0
@@ -1044,7 +1048,9 @@ function TotoWar_Cbac_AiManager:getTargetArmyCompositionUnitCategoryMaximumPerce
             end)
 
         if #unitCategoriesToUpdate > 0 then
-            local percentageToAddPerUnitCategory = TotoWar__Number:roundToMultipleOf(difference / #unitCategoriesToUpdate, 5)
+            local percentageToAddPerUnitCategory = TotoWar__Number:roundToMultipleOf(
+                difference / #unitCategoriesToUpdate,
+                5)
 
             for index, unitCategory in ipairs(unitCategoriesToUpdate) do
                 local updatedPercentage = result:get(unitCategory) + percentageToAddPerUnitCategory
