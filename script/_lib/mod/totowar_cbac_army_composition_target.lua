@@ -1,5 +1,5 @@
-require("totowar_cbac_constant")
-require("totowar_cbac_enum")
+require("script._lib.mod.totowar_cbac_constant")
+require("script._lib.mod.totowar_cbac_enum")
 
 ---@type TotoWar__Dictionary<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer>
 local beastmen = TotoWar__Dictionary.new()

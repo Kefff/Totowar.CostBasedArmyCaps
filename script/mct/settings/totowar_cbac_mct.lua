@@ -1,5 +1,5 @@
-require("totowar__constant")
-require("totowar_cbac_constant")
+require("script._lib.mod.totowar__constant")
+require("script._lib.mod.totowar_cbac_constant")
 
 -- get_mct() is defined in the Mod Configuration Tool mod
 local mct = get_mct()

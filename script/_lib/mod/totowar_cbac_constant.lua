@@ -1,4 +1,4 @@
-require("totowar_cbac_enum")
+require("script._lib.mod.totowar_cbac_enum")
 
 ---Constants of the TotoWar: Army Caps mod.
 ---@class TotoWar_Cbac_Constant

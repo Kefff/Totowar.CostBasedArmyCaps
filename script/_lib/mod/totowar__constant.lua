@@ -1,4 +1,4 @@
-require("totowar__enum")
+require("script._lib.mod.totowar__enum")
 
 ---Constants of the TotoWar mod.
 ---@class TotoWar__Constant

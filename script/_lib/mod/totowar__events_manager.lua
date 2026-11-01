@@ -1,4 +1,4 @@
-require("totowar__logger")
+require("script._lib.mod.totowar__logger")
 
 local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.eventsManager)
 

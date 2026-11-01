@@ -1,4 +1,4 @@
-require("totowar_cbac_enum")
+require("script._lib.mod.totowar_cbac_enum")
 
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.aiManager)
 
