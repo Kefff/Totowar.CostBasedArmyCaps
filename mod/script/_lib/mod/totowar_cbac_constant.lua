@@ -3,6 +3,10 @@ require("script._lib.mod.totowar_cbac_enum")
 ---Constants of the TotoWar: Army Caps mod.
 ---@class TotoWar_Cbac_Constant
 TotoWar_Cbac_Constant = {
+    ---Key of the effect bundle that prevents an army whose army supplies are exceeded from moving.
+    ---Defined in db/effect_bundles_tables.
+    armySuppliesExceededEffectBundleKey = "totowar_cbac_army_supplies_exceeded",
+
     ---Maximum size of an army to target for adjustments.
     maximumTargetArmySize = 20,
 

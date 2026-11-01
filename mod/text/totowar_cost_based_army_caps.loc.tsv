@@ -1,5 +1,7 @@
 key	text	tooltip
 #Loc;1;text/totowar_cost_based_army_caps.loc		
+effect_bundles_localised_description_totowar_cbac_army_supplies_exceeded	Insufficient [[img:totowar_cbac_army_supplies]][[/img]]Army supplies.\\nThe army cannot move until enough units are disbanded or transferred to another army, or until heroes leave it.	false
+effect_bundles_localised_title_totowar_cbac_army_supplies_exceeded	Army supplies exceeded	false
 totowar_cbac_mct_option_caption_aiArmyCavalryAndMonstersMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_cavalryAndMonsters]]cavalry & monster[[/col]] units in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmyHeroMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_hero]]heroes[[/col]] in restricted armies	false
 totowar_cbac_mct_option_caption_aiArmyMeleeInfantryMaximumPercentage	Maximum percentage of [[col:totowar_cbac_unit_category_meleeInfantry]]melee infantry[[/col]] units in restricted armies	false
