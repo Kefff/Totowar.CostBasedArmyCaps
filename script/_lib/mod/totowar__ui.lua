@@ -105,6 +105,7 @@ function TotoWar__UI:getUIComponentCCO(uiComponent, ccoContextTypeId)
         function() return uiComponent:Id() end,
         ccoContextTypeId)
 
+    ---@diagnostic disable-next-line: return-type-mismatch
     return componentContextObject
 end
 

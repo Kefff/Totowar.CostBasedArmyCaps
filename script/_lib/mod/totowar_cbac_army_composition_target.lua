@@ -79,6 +79,7 @@ woodElves:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines, 10)
 TotoWar_Cbac_ArmyCompositionTarget = TotoWar__Dictionary.new()
 TotoWar_Cbac_ArmyCompositionTarget:set(TotoWar__Enum_Cultures.beastmen, beastmen)
 TotoWar_Cbac_ArmyCompositionTarget:set(TotoWar__Enum_Cultures.chaos, chaos)
+---@diagnostic disable-next-line: param-type-mismatch
 TotoWar_Cbac_ArmyCompositionTarget:set("default", default)
 TotoWar_Cbac_ArmyCompositionTarget:set(TotoWar__Enum_Cultures.dwarfs, dwarfs)
 TotoWar_Cbac_ArmyCompositionTarget:set(TotoWar__Enum_Cultures.khorne, khorne)

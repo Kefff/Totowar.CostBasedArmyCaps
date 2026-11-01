@@ -1,17 +1,17 @@
 {
-    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
-    "runtime.version": "Lua 5.1",
-    "completion.autoRequire": false,
-    "diagnostics.disable": [
-        "lowercase-global",
-        "trailing-space"
-    ],
-    "diagnostics.workspaceDelay": 500,
-    "diagnostics.workspaceRate": 30,
-    "intelliSense.traceBeSetted": true,
-    "intelliSense.traceFieldInject": true,
-    "intelliSense.traceLocalSet": true,
-    "intelliSense.traceReturn": true,
-    "workspace.ignoreSubmodules": false,
-    "workspace.preloadFileSize": 1500
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "completion.autoRequire": false,
+  "diagnostics.disable": [
+    "lowercase-global",
+    "trailing-space"
+  ],
+  "diagnostics.workspaceDelay": 500,
+  "diagnostics.workspaceRate": 30,
+  "intelliSense.traceBeSetted": true,
+  "intelliSense.traceFieldInject": true,
+  "intelliSense.traceLocalSet": true,
+  "intelliSense.traceReturn": true,
+  "runtime.version": "Lua 5.1",
+  "workspace.ignoreSubmodules": false,
+  "workspace.preloadFileSize": 1500
 }

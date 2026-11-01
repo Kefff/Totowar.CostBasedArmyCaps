@@ -77,6 +77,7 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.warMachines] =
             TotoWar_Cbac_Constant.optionName_aiArmyWarMachinesMaximumPercentage
     }
+    ---@diagnostic disable-next-line: param-type-mismatch
     local defaultComposition = TotoWar_Cbac_ArmyCompositionTarget:get("default")
 
     for unitCategory, optionName in pairs(compositionOptionNames) do

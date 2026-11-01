@@ -26,8 +26,7 @@ end
 function TotoWar__Gameplay:clearSavedValue(modName, key)
     logger:logDebug("clearSavedValue(%s, %s): STARTED", modName, key)
 
-    -- Defined in lib_campaign_manager.lua but missing from the type definitions
-    ---@diagnostic disable-next-line: undefined-field
+    -- cm:clear_saved_value is defined in lib_campaign_manager.lua but missing from the type definitions
     cm:clear_saved_value(string.format("%s_%s", modName, key))
 
     logger:logDebug("clearSavedValue(%s, %s): COMPLETED", modName, key)

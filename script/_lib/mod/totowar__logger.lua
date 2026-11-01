@@ -35,7 +35,6 @@ local function write(logger, severity, message, ...)
         elseif type(parameterValue) == "table" then
             -- Savegame format to get the table on a single line.
             -- table.tostring is defined in lib_lua_extensions.lua but missing from the type definitions.
-            ---@diagnostic disable-next-line: undefined-field
             parameters[i] = table.tostring(parameterValue, true)
         else
             parameters[i] = tostring(parameterValue)

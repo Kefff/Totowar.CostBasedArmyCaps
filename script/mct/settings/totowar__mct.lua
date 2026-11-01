@@ -1,6 +1,6 @@
 require("totowar__constant")
 
----@diagnostic disable-next-line: undefined-global
+-- get_mct() is defined in the Mod Configuration Tool mod
 local mct = get_mct()
 
 if mct then
