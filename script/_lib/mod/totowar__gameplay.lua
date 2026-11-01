@@ -96,40 +96,6 @@ function TotoWar__Gameplay:getCharacterCaption(character)
     return caption
 end
 
----Gets the unit of a character in the army he commands (lord) or is embedded in (hero).
----Does not rely on the UI contexts, which some characters do not have (Sorceress (Shadow) heroes for example).
----@param character CHARACTER_SCRIPT_INTERFACE Character.
----@return UNIT_SCRIPT_INTERFACE | nil
-function TotoWar__Gameplay:getCharacterUnit(character)
-    local army = nil
-
-    if character:has_military_force() then
-        army = character:military_force()
-    elseif character:is_embedded_in_military_force() then
-        army = character:embedded_in_military_force()
-    else
-        return nil
-    end
-
-    local units = army:unit_list()
-
-    for i = 0, units:num_items() - 1, 1 do
-        local unit = units:item_at(i)
-        -- The unit of a lord has a unit commander, the unit of a hero has an associated character
-        local unitCharacter = unit:associated_character()
-
-        if unit:has_unit_commander() then
-            unitCharacter = unit:unit_commander()
-        end
-
-        if not unitCharacter:is_null_interface() and unitCharacter:cqi() == character:cqi() then
-            return unit
-        end
-    end
-
-    return nil
-end
-
 ---Gets the caption of a culture.
 ---@param cultureName string Culture name.
 function TotoWar__Gameplay:getCultureCaption(cultureName)

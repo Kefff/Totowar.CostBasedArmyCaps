@@ -72,53 +72,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     local unitCqi = tonumber(unitUniqueUiId) -- UnitContext.UniqueUiId is a string
 
     if unitKey == nil then
-        -- Some characters have no unit context (Sorceress (Shadow) heroes for example): their unit is searched in their army
-        local character = TotoWar__Gameplay:getCharacter(characterCqi)
-        local unit = nil
-
-        if character ~= nil then
-            unit = TotoWar__Gameplay:getCharacterUnit(character)
-        end
-
-        if unit ~= nil then
-            unitKey = unit:unit_key()
-            unitCqi = unit:command_queue_index()
-        else
-            logger:logDebug(
-                "newCharacter(%s): UNIT NOT FOUND => Type: %s | Subtype: %s | Commands an army: %s | Embedded in an army: %s | Units linked to a character in its army: %s",
-                characterCqi,
-                function() return character ~= nil and character:character_type_key() or "character not found" end,
-                function() return character ~= nil and character:character_subtype_key() or "character not found" end,
-                function() return character ~= nil and character:has_military_force() end,
-                function() return character ~= nil and character:is_embedded_in_military_force() end,
-                function()
-                    if character == nil or not character:is_embedded_in_military_force() then
-                        return "none"
-                    end
-
-                    local units = character:embedded_in_military_force():unit_list()
-                    local commandedUnits = {}
-
-                    for i = 0, units:num_items() - 1, 1 do
-                        local armyUnit = units:item_at(i)
-
-                        if armyUnit:has_unit_commander() then
-                            table.insert(
-                                commandedUnits,
-                                string.format("%s (commander: %s)", armyUnit:unit_key(), armyUnit:unit_commander():cqi()))
-                        elseif not armyUnit:associated_character():is_null_interface() then
-                            table.insert(
-                                commandedUnits,
-                                string.format("%s (character: %s)", armyUnit:unit_key(), armyUnit:associated_character():cqi()))
-                        end
-                    end
-
-                    return string.format("%s of %s units: %s", #commandedUnits, units:num_items(), table.concat(commandedUnits, ", "))
-                end)
-        end
-    end
-
-    if unitKey == nil then
+        -- Some characters have no unit context, probably because of a bug of the game (a Sorceress (Shadow) hero for example)
         logger:logWarning(
             "The unit of the character \"%s\" could not be found: this character is ignored in army supplies",
             function()
