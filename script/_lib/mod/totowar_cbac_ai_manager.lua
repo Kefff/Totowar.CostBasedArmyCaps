@@ -786,7 +786,7 @@ function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi)
                 function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end)
         else
             -- In theory, we should never be in this case because the army adjustment should have removed enough units to prevent it
-            logger:logWarning(
+            logger:logInfo(
                 "%s: unit not reinstated, %s (cost %s, available army supplies %s)",
                 function() return TotoWar__Gameplay:getArmyCaption(army) end,
                 function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end,

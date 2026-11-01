@@ -64,10 +64,12 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "UnitContext.UnitRecordContext.Key")
-    local unitCqi = tonumber(common.get_context_value(
+    ---@type string | nil
+    local unitUniqueUiId = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
-        "UnitContext.UniqueUiId")) -- UnitContext.UniqueUiId is a string
+        "UnitContext.UniqueUiId")
+    local unitCqi = tonumber(unitUniqueUiId) -- UnitContext.UniqueUiId is a string
 
     if unitKey == nil then
         -- Some characters have no unit context (Sorceress (Shadow) heroes for example): their unit is searched in their army
