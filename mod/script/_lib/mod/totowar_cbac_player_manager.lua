@@ -1,5 +1,10 @@
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.playerManager)
 
+-- TEST (phase 8, point 9): effect bundle that blocks the army movement.
+-- Candidates: "wh3_dlc29_neferata_actions_block_movement" (scope force_to_force_own)
+-- and "wh3_main_bundle_military_upkeep_free_force_no_movement" (scope force_to_general_own).
+local _testMovementBlockingEffectBundleKey = "wh3_dlc29_neferata_actions_block_movement"
+
 ---Adds the unit cards of a unit exchange pool to the army supplies costs of the armies exchanging units.
 ---@param unitCards TotoWar_Cbac_UnitExchangePoolCard[] Unit cards of the unit exchange pool.
 ---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army of the unit exchange pool.
@@ -218,7 +223,7 @@ function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
     self:cancelArmySuppliesCostInitialization()
 
     if self.selectedLord ~= nil then
-        cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
+        -- TEST (phase 8, point 9): the army stays blocked after the deselection
         self.selectedLord = nil
         self.selectedLordArmySuppliesCost = nil
     end
@@ -881,56 +886,39 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
 end
 
 ---Updates the ability to move of the selected lord depending on the army supplies cost of its army.
+---TEST (phase 8, point 9): the movement is blocked by an effect bundle.
 function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
-    logger:logDebug(
-        "updateSelectedLordMovement(): STARTED => %s | %s | Lord CQI: %s | Available supplies: %s",
-        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
-        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
-        function() return self.selectedLord:cqi() end,
-        self.selectedLordArmySuppliesCost.availableSupplies)
+    local army = self.selectedLord:military_force()
+    local armyCqi = army:command_queue_index()
+    local bundleKey = _testMovementBlockingEffectBundleKey
+
+    -- Removing the blocking of the previous versions of the mod so that it does not distort the test
+    cm:enable_movement_for_character(cm:char_lookup_str(self.selectedLord:cqi()))
 
     if self.selectedLordArmySuppliesCost.availableSupplies < 0 then
-        logger:logInfo(
-            "%s: army cannot move, army supplies exceeded by %s",
-            function() return TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) end,
-            -self.selectedLordArmySuppliesCost.availableSupplies)
-
-        cm:disable_movement_for_character(cm:char_lookup_str(self.selectedLord:cqi()))
-
-        -- Reactivating movement for heroes contained in the army as they should be able to leave the army
-        local selectedLordArmyCharacters = self.selectedLord:military_force():character_list()
-
-        for i = 0, selectedLordArmyCharacters:num_items() - 1, 1 do
-            local character = selectedLordArmyCharacters:item_at(i)
-
-            if not TotoWar__Gameplay:isLordCharacter(character) then
-                logger:logDebug(
-                    "updateSelectedLordMovement(): HERO FREE TO MOVE => %s | %s | Lord CQI: %s | Hero: %s | Hero CQI: %s",
-                    function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
-                    function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
-                    function() return self.selectedLord:cqi() end,
-                    function() return TotoWar__Gameplay:getCharacterCaption(character) end,
-                    function() return character:cqi() end)
-
-                cm:enable_movement_for_character(cm:char_lookup_str(character:cqi()))
-            end
+        if army:has_effect_bundle(bundleKey) == false then
+            cm:apply_effect_bundle_to_force(bundleKey, armyCqi, 0)
         end
+
+        logger:logInfo(
+            "TEST %s: army supplies exceeded by %s, effect bundle %s applied (present: %s | action points: %s%%)",
+            TotoWar__Gameplay:getArmyCaption(army),
+            -self.selectedLordArmySuppliesCost.availableSupplies,
+            bundleKey,
+            tostring(army:has_effect_bundle(bundleKey)),
+            self.selectedLord:action_points_remaining_percent())
     else
-        logger:logDebug(
-            "updateSelectedLordMovement(): FREE TO MOVE => %s | %s | Lord CQI: %s",
-            function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
-            function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
-            function() return self.selectedLord:cqi() end)
+        if army:has_effect_bundle(bundleKey) then
+            cm:remove_effect_bundle_from_force(bundleKey, armyCqi)
+        end
 
-        cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
+        logger:logInfo(
+            "TEST %s: army supplies not exceeded, effect bundle %s removed (present: %s | action points: %s%%)",
+            TotoWar__Gameplay:getArmyCaption(army),
+            bundleKey,
+            tostring(army:has_effect_bundle(bundleKey)),
+            self.selectedLord:action_points_remaining_percent())
     end
-
-    logger:logDebug(
-        "updateSelectedLordMovement(): COMPLETED => %s | %s | Lord CQI: %s | Available supplies: %s",
-        function() return TotoWar__Gameplay:getFactionCaption(self.selectedLord:faction():name()) end,
-        function() return TotoWar__Gameplay:getCharacterCaption(self.selectedLord) end,
-        function() return self.selectedLord:cqi() end,
-        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Updates unit exchange army supplies costs.
