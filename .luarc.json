@@ -10,6 +10,12 @@
   "intelliSense.traceFieldInject": true,
   "intelliSense.traceLocalSet": true,
   "intelliSense.traceReturn": true,
+  "runtime.path": [
+    "?.lua",
+    "?/init.lua",
+    "mod/?.lua",
+    "mod/?/init.lua"
+  ],
   "runtime.version": "Lua 5.1",
   "workspace.ignoreSubmodules": false,
   "workspace.preloadFileSize": 1500
