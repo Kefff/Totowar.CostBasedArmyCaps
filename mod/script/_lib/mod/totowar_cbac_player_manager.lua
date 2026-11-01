@@ -95,6 +95,10 @@ TotoWar_Cbac_PlayerManager = {
     ---@type integer | nil
     pendingInitializationSubscriptionId = nil,
 
+    ---Army supplies cost of the hero selected alone on the campaign map.
+    ---@type TotoWar_Cbac_UnitArmySuppliesCost | nil
+    selectedHeroArmySuppliesCost = nil,
+
     ---Unique identifier of the selected lord.
     ---@type CHARACTER_SCRIPT_INTERFACE  | nil
     selectedLord = nil,
@@ -159,6 +163,7 @@ function TotoWar_Cbac_PlayerManager:initialize()
 
     self.isInitializingArmySuppliesCost = false
     self.pendingInitializationSubscriptionId = nil
+    self.selectedHeroArmySuppliesCost = nil
     self.selectedLord = nil
     self.selectedLordArmySuppliesCost = nil
     self.unitExchangeArmySuppliesCost1 = nil
@@ -245,6 +250,8 @@ function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
         self.selectedLordArmySuppliesCost = nil
     end
 
+    self.selectedHeroArmySuppliesCost = nil
+
     logger:logDebug("onCharacterDeselected(): COMPLETED")
 end
 
@@ -263,6 +270,7 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
         and (TotoWar__Gameplay:isLocalPlayerFaction(character:faction():name())
             or TotoWar__Mod.options.debugEnabled) -- In debug mode, we see the army supplies cost or other faction lords
     then
+        self.selectedHeroArmySuppliesCost = nil
         self.selectedLord = character
         self.isInitializingArmySuppliesCost = true
 
@@ -289,17 +297,31 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
                 1)
             self.pendingInitializationSubscriptionId = pendingInitializationSubscription.id
         end
-    elseif self.selectedLordArmySuppliesCost then
+    elseif cm:char_is_agent(character)
+        and (TotoWar__Gameplay:isLocalPlayerFaction(character:faction():name())
+            or TotoWar__Mod.options.debugEnabled) -- In debug mode, we see the army supplies cost or other faction heroes
+    then
+        -- A hero selected on the campaign map is alone: heroes embedded in an army are selected with its lord.
+        -- Its army supplies cost is displayed in the units panel, like the army supplies of an army.
         self.selectedLord = nil
         self.selectedLordArmySuppliesCost = nil
+        self.selectedHeroArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(character:cqi())
+
+        -- Signaling army supplies cost change
+        TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedHeroArmySuppliesCostChanged)
+    elseif self.selectedLordArmySuppliesCost ~= nil or self.selectedHeroArmySuppliesCost ~= nil then
+        self.selectedLord = nil
+        self.selectedLordArmySuppliesCost = nil
+        self.selectedHeroArmySuppliesCost = nil
 
         -- Signaling army supplies cost change.
-        -- This is only useful in the case we the player has one of its armies selected
-        -- and selects on of its isolated heroes.
-        -- In this case, the units panel is not closed and the CharactedDeselected event is not triggered by the game.
-        -- So we set selectedLordArmySuppliesCost to nil and we still trigger the selectedLordArmySuppliesCostChanged
-        -- event to make the UI manager react.
-        -- In this case, it will hide the army supplies because selectedLordArmySuppliesCost is nil.
+        -- This is only useful in the case the player has one of their armies or heroes selected
+        -- and selects a character whose army supplies are not displayed (a character of another faction for example).
+        -- In this case, the units panel is not closed and the CharacterDeselected event is not triggered by the game.
+        -- So we set selectedLordArmySuppliesCost and selectedHeroArmySuppliesCost to nil and we still trigger
+        -- the selectedLordArmySuppliesCostChanged event to make the UI manager react.
+        -- In this case, it will hide the army supplies because selectedLordArmySuppliesCost and
+        -- selectedHeroArmySuppliesCost are nil.
         TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
     end
 

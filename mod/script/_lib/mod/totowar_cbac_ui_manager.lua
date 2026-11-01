@@ -310,10 +310,10 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
         local visibleComponentsCount = 0
         local visibleComponentsHeight = 0
 
-        for i = 0, unitCardUIComponent:ChildCount() - 1, 1 do
+        for i = 0, externalHolderUIComponent:ChildCount() - 1, 1 do
             local childUIComponent = find_child_uicomponent_by_index(externalHolderUIComponent, i)
 
-            if childUIComponent:Visible() then
+            if childUIComponent ~= false and childUIComponent:Visible() then
                 visibleComponentsCount = visibleComponentsCount + 1
                 visibleComponentsHeight = childUIComponent:Height()
             end
@@ -448,20 +448,31 @@ end
 local function updateUnitsPanel()
     logger:logDebug("updateUnitsPanel(): STARTED")
 
-    if TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost == nil then
-        -- This occurs when a player faction army is selected, and we select an isolated player faction hero.
+    local unitsPanelIconListUIComponent = TotoWar__UI:findUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanel_iconList)
+
+    if TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost == nil
+        and TotoWar_Cbac_PlayerManager.selectedHeroArmySuppliesCost == nil
+    then
+        -- This occurs when a player faction army or hero is selected, and we select a character whose
+        -- army supplies are not displayed (a character of another faction for example).
         -- The units panel is not closed and the CharacterDeselected event is not triggered by the game.
-        -- We still manage to set selectedLordArmySuppliesCost to nil.
+        -- We still manage to set selectedLordArmySuppliesCost and selectedHeroArmySuppliesCost to nil.
         -- In that case, we need to hide the army supplies component.
         hideArmySuppliesCostUIComponent()
+    elseif TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost == nil then
+        -- A hero selected alone: its army supplies cost is displayed instead of the army supplies of an army
+        if unitsPanelIconListUIComponent ~= nil then
+            createOrUpdateArmySuppliesUIComponent(
+                unitsPanelIconListUIComponent,
+                tostring(TotoWar_Cbac_PlayerManager.selectedHeroArmySuppliesCost.armySuppliesCost),
+                common.get_localised_string("totowar_cbac_tooltip_hero_armySuppliesCost"))
+        end
     else
         local armySuppliesCostText = getArmySuppliesCostText(
             TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost)
         local armySuppliesCostTooltip =
             TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()
-
-        local unitsPanelIconListUIComponent = TotoWar__UI:findUIComponent(
-            TotoWar__UI.uiComponentQueries.unitsPanel_iconList)
 
         if unitsPanelIconListUIComponent ~= nil then
             createOrUpdateArmySuppliesUIComponent(
@@ -626,6 +637,16 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
                 and cm:is_local_players_turn(true)
                 and (context.string == TotoWar__Enum_Panels.standardRecruitment
                     or context.string == TotoWar__Enum_Panels.mercenaryRecruitment)
+        end)
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar_Cbac_Enum_ModEvents.selectedHeroArmySuppliesCostChanged,
+        -- The units panel of a hero selected alone displays its army supplies cost
+        function() self:scheduleScreenUpdate() end,
+        function()
+            return
+                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
+                and cm:is_local_players_turn(true)
         end)
 
     TotoWar__EventsManager:subscribe(

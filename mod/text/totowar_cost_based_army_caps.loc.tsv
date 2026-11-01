@@ -27,6 +27,7 @@ totowar_cbac_mct_option_tooltip_playerArmySuppliesEnabled	Enables [[col:white]][
 totowar_cbac_mct_section_title_ai	Army Caps - Restrictions for AI armies	false
 totowar_cbac_mct_section_title_player	Army Caps - Restrictions for player armies	false
 totowar_cbac_tooltip_armySuppliesCost	Army supplies\\nAmount of [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]Army supplies[[/col]] available to sustain additional units.\\n\\nTotal army supplies: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]\\nConsumed by units: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]\\nAvailable for recruitment: [[img:totowar_cbac_army_supplies]][[/img]]%s%s\\n%s	true
+totowar_cbac_tooltip_hero_armySuppliesCost	Army supplies\\nAmount of [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]Army supplies[[/col]] this hero consumes in an army.	true
 totowar_cbac_tooltip_unit_armySuppliesCost	Army supplies\\nAmount of [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]Army supplies[[/col]] this unit consumes.	true
 totowar_cbac_tooltip_unit_armySuppliesCostDepleted	Insufficient [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]Army supplies[[/col]].\\nThe army cannot move until enough units are disbanded or transferred to another army.	false
 totowar_cbac_tooltip_unit_armySuppliesCostOfHero	[[col:white]]%s[[/col]] | [[col:totowar_cbac_unit_category_hero]]%s[[/col]]: [[col:white]][[img:totowar_cbac_army_supplies]][[/img]]%s[[/col]]	true

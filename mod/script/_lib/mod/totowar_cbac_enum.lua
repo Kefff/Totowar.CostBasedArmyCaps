@@ -21,6 +21,9 @@ TotoWar_Cbac_Enum_LogCategories = {
 ---Events triggered by the mod.
 ---@enum TotoWar_Cbac_Enum_ModEvents
 TotoWar_Cbac_Enum_ModEvents = {
+    ---Event triggered when the army supplies cost of the selected hero changes.
+    selectedHeroArmySuppliesCostChanged = "TotoWar_Cbac_SelectedHeroArmySuppliesCostChanged",
+
     ---Event triggered when the army supplies cost of the selected army changes.
     selectedLordArmySuppliesCostChanged = "TotoWar_Cbac_SelectedLordArmySuppliesCostChanged",
 
