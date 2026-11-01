@@ -64,9 +64,27 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "UnitContext.UnitRecordContext.Key")
+    local unitCqi = tonumber(common.get_context_value(
+        TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
+        tostring(characterCqi),
+        "UnitContext.UniqueUiId")) -- UnitContext.UniqueUiId is a string
 
     if unitKey == nil then
-        -- For some reason, some characters may have no CcoCampaignCharacter so we cannot obtain information on them
+        -- Some characters have no unit context (Sorceress (Shadow) heroes for example): their unit is searched in their army
+        local character = TotoWar__Gameplay:getCharacter(characterCqi)
+        local unit = nil
+
+        if character ~= nil then
+            unit = TotoWar__Gameplay:getCharacterUnit(character)
+        end
+
+        if unit ~= nil then
+            unitKey = unit:unit_key()
+            unitCqi = unit:command_queue_index()
+        end
+    end
+
+    if unitKey == nil then
         logger:logWarning(
             "The unit of the character \"%s\" could not be found: this character is ignored in army supplies",
             function()
@@ -106,10 +124,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         unitKey,
         "UnmountedUnitRecordContext.Key")
     instance.characterCqi = characterCqi
-    instance.unitCqi = tonumber(common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
-        tostring(characterCqi),
-        "UnitContext.UniqueUiId")) -- UnitContext.UniqueUiId is a string
+    instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
     if TotoWar__Gameplay:isLordUnit(characterCqi) then

@@ -149,30 +149,3 @@ function TotoWar__Mod:updateMapShroud()
         "TotoWar__Mod:updateMapShroud(): COMPLETED => Map revealed: %s",
         self.options.mapRevealed)
 end
-
--- Alternative implementation to test if show_shroud is not enough to see the armies of other factions:
--- grants the local faction a permanent vision over every region (as the "Auto-Run & Spectate AI" mod describes it).
--- ---Grants or removes the vision of the local faction over every region of the campaign map, depending on the options.
--- ---The vision is kept in the save, so it is also removed from every region when the option is disabled.
--- function TotoWar__Mod:updateMapVision()
---     logger:logDebug("TotoWar__Mod:updateMapVision(): STARTED")
---
---     local localFaction = cm:get_faction(cm:get_local_faction_name())
---     local world = cm:model():world()
---
---     for _, regionDataList in ipairs({ world:land_region_data(), world:sea_region_data() }) do
---         for i = 0, regionDataList:num_items() - 1, 1 do
---             local regionData = regionDataList:item_at(i)
---
---             if self.options.mapRevealed then
---                 cm:grant_faction_additional_vision(localFaction, regionData)
---             else
---                 cm:remove_faction_additional_vision(localFaction, regionData)
---             end
---         end
---     end
---
---     logger:logDebug(
---         "TotoWar__Mod:updateMapVision(): COMPLETED => Map revealed: %s",
---         self.options.mapRevealed)
--- end
