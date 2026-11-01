@@ -99,6 +99,11 @@ function TotoWar__Mod:onFactionTurnStart()
     logger:logInfo(
         "\n\n\n==================== TURN %s ====================\n\n",
         self.turnNumber)
+
+    -- The game restores the shroud over settlements and armies when a turn ends
+    if self.options.mapRevealed then
+        self:updateMapShroud()
+    end
 end
 
 ---Reacts to MCT options being updated.
