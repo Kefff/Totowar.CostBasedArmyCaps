@@ -1,5 +1,5 @@
 ---Unit categories composing an army.
----@class TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
+---@enum TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
 TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
     cavalryAndMonsters = "cavalryAndMonsters",
     hero = "hero",
@@ -10,7 +10,7 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
 }
 
 ---Log categories of the mod.
----@class TotoWar_Cbac_Enum_LogCategories
+---@enum TotoWar_Cbac_Enum_LogCategories
 TotoWar_Cbac_Enum_LogCategories = {
     aiManager = "TotoWar_Cbac_AiManager",
     armySuppliesCost = "TotoWar_Cbac_ArmySuppliesCost",
@@ -19,7 +19,7 @@ TotoWar_Cbac_Enum_LogCategories = {
 }
 
 ---Events triggered by the mod.
----@class TotoWar_Cbac_Enum_ModEvents
+---@enum TotoWar_Cbac_Enum_ModEvents
 TotoWar_Cbac_Enum_ModEvents = {
     ---Event triggered when the army supplies cost of the selected army changes.
     selectedLordArmySuppliesCostChanged = "TotoWar_Cbac_SelectedLordArmySuppliesCostChanged",
@@ -32,7 +32,7 @@ TotoWar_Cbac_Enum_ModEvents = {
 }
 
 ---Recruitment pool.
----@class TotoWar_Cbac_Enum_UiRecruitmentPools
+---@enum TotoWar_Cbac_Enum_UiRecruitmentPools
 TotoWar_Cbac_Enum_UiRecruitmentPools = {
     allied = "allied",
     global = "global",

@@ -113,10 +113,8 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     instance.unitKey = unitKey
 
     if TotoWar__Gameplay:isLordUnit(characterCqi) then
-        ---@diagnostic disable-next-line: assign-type-mismatch
         instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
     else
-        ---@diagnostic disable-next-line: assign-type-mismatch
         instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
     end
 
@@ -190,6 +188,5 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
         _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
     end
 
-    ---@diagnostic disable-next-line: return-type-mismatch
     return armyCompositionUnitType
 end

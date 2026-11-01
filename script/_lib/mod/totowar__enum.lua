@@ -1,5 +1,5 @@
 ---Component context object type IDs.
----@class TotoWar__Enum_CcoContextTypeIds
+---@enum TotoWar__Enum_CcoContextTypeIds
 TotoWar__Enum_CcoContextTypeIds = {
     ---Character. ID: character CQI.
     campaignCharacter = "CcoCampaignCharacter",
@@ -15,7 +15,7 @@ TotoWar__Enum_CcoContextTypeIds = {
 }
 
 ---Cultures.
----@class TotoWar__Enum_Cultures
+---@enum TotoWar__Enum_Cultures
 TotoWar__Enum_Cultures = {
     beastmen = "wh_dlc03_bst_beastmen",
     bretonnia = "wh_main_brt_bretonnia",
@@ -47,7 +47,7 @@ TotoWar__Enum_Cultures = {
 }
 
 ---Docking points.
----@class TotoWar__Enum_DockingPoints
+---@enum TotoWar__Enum_DockingPoints
 TotoWar__Enum_DockingPoints = {
     bottomLeft = 7,
     bottomMiddle = 8,
@@ -61,7 +61,7 @@ TotoWar__Enum_DockingPoints = {
 }
 
 ---Events triggered by the game.
----@class TotoWar__Enum_GameEvents
+---@enum TotoWar__Enum_GameEvents
 TotoWar__Enum_GameEvents = {
     ---Event triggered when an army changes its stance.
     armyStanceChanged = "ForceAdoptsStance",
@@ -124,7 +124,7 @@ TotoWar__Enum_GameEvents = {
 }
 
 ---Log categories of the TotoWar base mod.
----@class TotoWar__Enum_LogCategories
+---@enum TotoWar__Enum_LogCategories
 TotoWar__Enum_LogCategories = {
     eventsManager = "TotoWar__EventsManager",
     generic = "TotoWar__Generic",
@@ -134,7 +134,7 @@ TotoWar__Enum_LogCategories = {
 }
 
 ---Log severities.
----@class TotoWar__Enum_LogSeverities
+---@enum TotoWar__Enum_LogSeverities
 TotoWar__Enum_LogSeverities = {
     debug = "DEBUG",
     error = "ERROR",
@@ -143,7 +143,7 @@ TotoWar__Enum_LogSeverities = {
 }
 
 ---Events triggered by the mod.
----@class TotoWar__Enum_ModEvents
+---@enum TotoWar__Enum_ModEvents
 TotoWar__Enum_ModEvents = {
 
     ---Event triggered when options are updated in the Mod Configuration Tool if it is installed.
@@ -156,7 +156,7 @@ TotoWar__Enum_ModEvents = {
 }
 
 ---Panels.
----@class TotoWar__Enum_Panels
+---@enum TotoWar__Enum_Panels
 TotoWar__Enum_Panels = {
     ---Mercenary recruitment panel (allied recruitment, units of renown, dwarf grudge settlers, Waaagh mobs, ...)
     mercenaryRecruitment = "mercenary_recruitment",
@@ -175,7 +175,7 @@ TotoWar__Enum_Panels = {
 }
 
 ---Patterns for finding UI elements.
----@class TotoWar__Enum_Patterns
+---@enum TotoWar__Enum_Patterns
 TotoWar__Enum_Patterns = {
     ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
     ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
@@ -201,7 +201,7 @@ TotoWar__Enum_Patterns = {
 }
 
 ---UI component states.
----@class TotoWar__Enum_UIComponentStates
+---@enum TotoWar__Enum_UIComponentStates
 TotoWar__Enum_UIComponentStates = {
     ---Active.
     active = "active",

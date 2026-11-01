@@ -1,5 +1,5 @@
-require("script._lib.mod.totowar__constant")
-require("script._lib.mod.totowar_cbac_constant")
+require("totowar__constant")
+require("totowar_cbac_constant")
 
 ---@diagnostic disable-next-line: undefined-global
 local mct = get_mct()

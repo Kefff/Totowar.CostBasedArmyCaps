@@ -338,14 +338,12 @@ function TotoWar_Cbac_AiManager:adjustAiArmyCompositionAndUnits(
                     local baseState = TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(stateKey, categories,
                         maxPerCategory)
 
-                    ---@diagnostic disable-next-line: param-type-mismatch
                     if baseState:canAdd(unit.unitCategory) then
                         for removedCost, picked in pairs(costTable) do
                             local newCost = removedCost + unit.armySuppliesCost
 
                             if newCost <= maxCost then
                                 local newState = baseState:clone()
-                                ---@diagnostic disable-next-line: param-type-mismatch
                                 newState:add(unit.unitCategory)
 
                                 local newKey = newState:getKey()
@@ -1092,7 +1090,6 @@ function TotoWar_Cbac_AiManager:getUnitCategoryExcessCounts(armySuppliesCost, ta
             current = categoryCounts:get(unitArmySuppliesCost.unitCategory)
         end
 
-        ---@diagnostic disable-next-line: param-type-mismatch
         categoryCounts:set(unitArmySuppliesCost.unitCategory, current + 1)
         totalUnitCount = totalUnitCount + 1
     end
