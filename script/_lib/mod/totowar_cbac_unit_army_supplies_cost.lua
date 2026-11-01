@@ -85,7 +85,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
             unitCqi = unit:command_queue_index()
         else
             logger:logDebug(
-                "newCharacter(%s): UNIT NOT FOUND => Type: %s | Subtype: %s | Commands an army: %s | Embedded in an army: %s | Units with a commander in its army: %s",
+                "newCharacter(%s): UNIT NOT FOUND => Type: %s | Subtype: %s | Commands an army: %s | Embedded in an army: %s | Units linked to a character in its army: %s",
                 characterCqi,
                 function() return character ~= nil and character:character_type_key() or "character not found" end,
                 function() return character ~= nil and character:character_subtype_key() or "character not found" end,
@@ -106,6 +106,10 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
                             table.insert(
                                 commandedUnits,
                                 string.format("%s (commander: %s)", armyUnit:unit_key(), armyUnit:unit_commander():cqi()))
+                        elseif not armyUnit:associated_character():is_null_interface() then
+                            table.insert(
+                                commandedUnits,
+                                string.format("%s (character: %s)", armyUnit:unit_key(), armyUnit:associated_character():cqi()))
                         end
                     end
 

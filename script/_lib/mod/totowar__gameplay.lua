@@ -115,8 +115,14 @@ function TotoWar__Gameplay:getCharacterUnit(character)
 
     for i = 0, units:num_items() - 1, 1 do
         local unit = units:item_at(i)
+        -- The unit of a lord has a unit commander, the unit of a hero has an associated character
+        local unitCharacter = unit:associated_character()
 
-        if unit:has_unit_commander() and unit:unit_commander():cqi() == character:cqi() then
+        if unit:has_unit_commander() then
+            unitCharacter = unit:unit_commander()
+        end
+
+        if not unitCharacter:is_null_interface() and unitCharacter:cqi() == character:cqi() then
             return unit
         end
     end
