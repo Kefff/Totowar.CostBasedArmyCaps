@@ -1,4 +1,4 @@
-require("totowar_cbac_enum")
+require("script._lib.mod.totowar_cbac_enum")
 
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.armySuppliesCost)
 
@@ -87,7 +87,7 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
     local instance = TotoWar_Cbac_ArmySuppliesCost.new(isAi, rank)
 
     logger:logDebug(
-        "newFromArmy(%s, %s): STARTED => Faction: %s | Lord: %s",
+        "newFromArmy(%s, %s): STARTED => %s | %s",
         isAi,
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
@@ -121,7 +121,7 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
     end
 
     logger:logDebug(
-        "newFromArmy(%s, %s): COMPLETED => Faction: %s | Lord: %s | Units: %s | Total cost: %s | Available supplies: %s",
+        "newFromArmy(%s, %s): COMPLETED => %s | %s | Units: %s | Total cost: %s | Available supplies: %s",
         isAi,
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,

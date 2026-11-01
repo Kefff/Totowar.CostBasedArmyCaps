@@ -216,7 +216,7 @@ function TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePoolUIComp
     end
 
     logger:logDebug(
-        "getLordInUnitExchangePool(%s): COMPLETED => Faction: %s | Lord: %s",
+        "getLordInUnitExchangePool(%s): COMPLETED => %s | %s",
         function() return unitExchangePoolUIComponent:Id() end,
         function() return character ~= nil and TotoWar__Gameplay:getFactionCaption(character:faction():name()) or "NOT FOUND" end,
         function() return character ~= nil and TotoWar__Gameplay:getCharacterCaption(character) or "NOT FOUND" end)

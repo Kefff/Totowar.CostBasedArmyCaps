@@ -47,14 +47,14 @@ function TotoWar__Gameplay:getArmy(armyCqi)
     return army
 end
 
----Gets the caption of an army: caption of its lord and of its faction.
+---Gets the caption of an army: caption of its faction and of its lord (`Faction | Lord`).
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return string
 function TotoWar__Gameplay:getArmyCaption(army)
     return string.format(
-        "%s from %s",
-        self:getArmyLordCaption(army),
-        self:getFactionCaption(army:faction():name()))
+        "%s | %s",
+        self:getFactionCaption(army:faction():name()),
+        self:getArmyLordCaption(army))
 end
 
 ---Gets the caption of the lord of an army.
