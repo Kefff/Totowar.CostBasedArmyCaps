@@ -8,6 +8,30 @@ local _multiplayerEventDataSeparator = "|"
 ---Maximum amount of characters that can be passed in a multiplayer event.
 local _multiplayerEventMaximumDataLength = 100
 
+---Reacts to an error when executing the callback of an event subscription.
+---@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
+---@param error any Error.
+local function onCallbackError(eventSubscription, error)
+    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
+    logger:logError(
+        "An error occurred while reacting to the game event \"%s\" (subscription %s):\n%s",
+        eventSubscription.event,
+        eventSubscription.id,
+        stacktrace)
+end
+
+---Reacts to an error when executing the callback of an event subscription.
+---@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
+---@param error any Error.
+local function onConditionError(eventSubscription, error)
+    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
+    logger:logError(
+        "An error occurred while checking whether to react to the game event \"%s\" (subscription %s):\n%s",
+        eventSubscription.event,
+        eventSubscription.id,
+        stacktrace)
+end
+
 ---Manager for events.
 ---@class TotoWar__EventsManager
 TotoWar__EventsManager = {
@@ -33,7 +57,7 @@ function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubs
 
     local isSuccess, isToBeExecuted = xpcall(
         function() return eventSubscription.conditionFunction(context) end,
-        function(error) self:onConditionError(eventSubscription, error) end)
+        function(error) onConditionError(eventSubscription, error) end)
 
     logger:logDebug(
         "executeEventSubscriptionIfConditionMet(%s, %s, %s): CONDITION => Execute: %s (Condition succeeded: %s | Condition result: %s)",
@@ -53,7 +77,7 @@ function TotoWar__EventsManager:executeEventSubscriptionIfConditionMet(eventSubs
 
         isSuccess = xpcall(
             function() eventSubscription.callbackFunction(context) end,
-            function(error) self:onCallbackError(eventSubscription, error) end)
+            function(error) onCallbackError(eventSubscription, error) end)
 
         if isSuccess then
             eventSubscription.executions = eventSubscription.executions + 1
@@ -75,30 +99,6 @@ function TotoWar__EventsManager:initialize()
     self.eventSubscriptions = {}
 
     logger:logDebug("initialize(): COMPLETED")
-end
-
----Reacts to an error when executing the callback of an event subscription.
----@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
----@param error any Error.
-function TotoWar__EventsManager:onCallbackError(eventSubscription, error)
-    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
-    logger:logError(
-        "An error occurred while reacting to the game event \"%s\" (subscription %s):\n%s",
-        eventSubscription.event,
-        eventSubscription.id,
-        stacktrace)
-end
-
----Reacts to an error when executing the callback of an event subscription.
----@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
----@param error any Error.
-function TotoWar__EventsManager:onConditionError(eventSubscription, error)
-    local stacktrace = debug.traceback(error, 2) -- 2 avoids the inclusion of the stacktrace of this error handling method
-    logger:logError(
-        "An error occurred while checking whether to react to the game event \"%s\" (subscription %s):\n%s",
-        eventSubscription.event,
-        eventSubscription.id,
-        stacktrace)
 end
 
 ---Reacts to an event being triggered by executing

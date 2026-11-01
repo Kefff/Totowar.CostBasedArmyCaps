@@ -1,5 +1,61 @@
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.playerManager)
 
+---Adds the unit cards of a unit exchange pool to the army supplies costs of the armies exchanging units.
+---@param unitCards TotoWar_Cbac_UnitExchangePoolCard[] Unit cards of the unit exchange pool.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army of the unit exchange pool.
+---@param otherArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the other army.
+local function addUnitExchangePoolCards(unitCards, armySuppliesCost, otherArmySuppliesCost)
+    logger:logDebug(
+        "addUnitExchangePoolCards(unitCards, armySuppliesCost, otherArmySuppliesCost): STARTED => Unit cards: %s",
+        #unitCards)
+
+    for index, unitCard in ipairs(unitCards) do
+        -- Selected cards are transferred to the other army
+        local targetArmySuppliesCost = unitCard.isSelected and otherArmySuppliesCost or armySuppliesCost
+
+        if unitCard.characterCqi ~= nil then
+            targetArmySuppliesCost:addCharacter(unitCard.characterCqi)
+        else
+            targetArmySuppliesCost:addUnit(unitCard.unitKey)
+        end
+    end
+
+    logger:logDebug(
+        "addUnitExchangePoolCards(unitCards, armySuppliesCost, otherArmySuppliesCost): COMPLETED => Unit cards: %s | Available supplies: %s | Other army available supplies: %s",
+        #unitCards,
+        armySuppliesCost.availableSupplies,
+        otherArmySuppliesCost.availableSupplies)
+end
+
+---Gets the lord among the unit cards of a unit exchange pool.
+---@param unitCards TotoWar_Cbac_UnitExchangePoolCard[] Unit cards of the unit exchange pool.
+---@return CHARACTER_SCRIPT_INTERFACE | nil
+local function getLordInUnitExchangePoolCards(unitCards)
+    logger:logDebug(
+        "getLordInUnitExchangePoolCards(unitCards): STARTED => Unit cards: %s",
+        #unitCards)
+
+    for index, unitCard in ipairs(unitCards) do
+        if unitCard.characterCqi ~= nil then
+            local character = TotoWar__Gameplay:getCharacter(unitCard.characterCqi)
+
+            if character ~= nil and TotoWar__Gameplay:isLordCharacter(character) then
+                logger:logDebug(
+                    "getLordInUnitExchangePoolCards(unitCards): COMPLETED => Unit cards: %s | %s | %s",
+                    #unitCards,
+                    function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end,
+                    function() return TotoWar__Gameplay:getCharacterCaption(character) end)
+
+                return character
+            end
+        end
+    end
+
+    logger:logError("Unit exchange: lord of one of the armies not found, its army supplies not displayed")
+
+    return nil
+end
+
 ---Manager in charge of managing the army supplies for the player armies.
 ---@class TotoWar_Cbac_PlayerManager
 TotoWar_Cbac_PlayerManager = {
@@ -10,6 +66,11 @@ TotoWar_Cbac_PlayerManager = {
     ---supplies cost initialization.
     ---@type boolean
     isInitializingArmySuppliesCost = nil,
+
+    ---ID of the one-time subscription that waits for the units panel to open before initializing
+    ---the army supplies cost of the selected lord.
+    ---@type integer | nil
+    pendingInitializationSubscriptionId = nil,
 
     ---Unique identifier of the selected lord.
     ---@type CHARACTER_SCRIPT_INTERFACE  | nil
@@ -31,6 +92,25 @@ TotoWar_Cbac_PlayerManager = {
     ---@type TotoWar_Cbac_ArmySuppliesCost | nil
     warbandUpgradeArmySuppliesCost = nil
 }
+
+---Cancels the pending initialization of the army supplies cost of the previously selected lord.
+function TotoWar_Cbac_PlayerManager:cancelArmySuppliesCostInitialization()
+    logger:logDebug(
+        "cancelArmySuppliesCostInitialization(): STARTED => %s | Pending subscription: %s",
+        function() return self.selectedLord ~= nil and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) or "No selected lord" end,
+        self.pendingInitializationSubscriptionId)
+
+    if self.pendingInitializationSubscriptionId ~= nil then
+        TotoWar__EventsManager:unsubscribe(self.pendingInitializationSubscriptionId)
+        self.pendingInitializationSubscriptionId = nil
+    end
+
+    self.isInitializingArmySuppliesCost = false
+
+    logger:logDebug(
+        "cancelArmySuppliesCostInitialization(): COMPLETED => %s",
+        function() return self.selectedLord ~= nil and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) or "No selected lord" end)
+end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
 function TotoWar_Cbac_PlayerManager:clearMercenaryRecruitment()
@@ -55,6 +135,7 @@ function TotoWar_Cbac_PlayerManager:initialize()
     logger:logDebug("initialize(): STARTED")
 
     self.isInitializingArmySuppliesCost = false
+    self.pendingInitializationSubscriptionId = nil
     self.selectedLord = nil
     self.selectedLordArmySuppliesCost = nil
     self.unitExchangeArmySuppliesCost1 = nil
@@ -75,34 +156,45 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
         function() return TotoWar__Gameplay:getFactionCaption(lord:faction():name()) end,
         function() return TotoWar__Gameplay:getCharacterCaption(lord) end)
 
+    -- The initialization is delayed, another lord may have been selected or the lord deselected in the meantime
+    if self.selectedLord == nil or self.selectedLord:cqi() ~= lord:cqi() then
+        logger:logDebug(
+            "initializeArmySuppliesCost(%s): COMPLETED => %s | %s | Not calculated, lord no longer selected",
+            function() return lord:cqi() end,
+            function() return TotoWar__Gameplay:getFactionCaption(lord:faction():name()) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end)
+
+        return
+    end
+
     self.selectedLordArmySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(false, lord:military_force())
 
-    -- Adding units being recruited in the lord army
-    local unitsUIComponent = TotoWar__UI:getUIComponent(TotoWar__UI.uiComponentQueries.unitsPanel_units)
+    -- Adding units being recruited in the lord army.
+    -- The units panel can be closed during the delay before the initialization (end of turn for example).
+    local unitsUIComponent = TotoWar__UI:findUIComponent(TotoWar__UI.uiComponentQueries.unitsPanel_units)
 
-    -- Adding units from the recruitment queue
-    for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
-        -- Iterating from the last unit card since units being recruited are at the end
-        local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
-        local isInRecruitmentStandardUnitCard =
-            unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentStandardUnitCard) ~= nil
+    if unitsUIComponent == nil then
+        logger:logDebug(
+            "initializeArmySuppliesCost(%s): UNITS PANEL CLOSED => %s | %s | Units being recruited not counted",
+            function() return lord:cqi() end,
+            function() return TotoWar__Gameplay:getFactionCaption(lord:faction():name()) end,
+            function() return TotoWar__Gameplay:getCharacterCaption(lord) end)
+    else
+        for i = unitsUIComponent:ChildCount() - 1, 0, -1 do
+            -- Iterating from the last unit card since units being recruited are at the end
+            local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
+            local isInRecruitmentStandardUnitCard =
+                unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.inRecruitmentStandardUnitCard) ~= nil
 
-        if not isInRecruitmentStandardUnitCard
-        then
-            -- Stopping the iteration as soon as we encounter a unit that is not being recruited
-            break
+            if not isInRecruitmentStandardUnitCard
+            then
+                -- Stopping the iteration as soon as we encounter a unit that is not being recruited
+                break
+            end
+
+            local unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+            self.selectedLordArmySuppliesCost:addUnit(unitKey)
         end
-
-        local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-            unitCardUIComponent,
-            { "card_image_holder" })
-        local unitContext = TotoWar__UI:getUIComponentCCO(
-            cardImageHolderUIComponent,
-            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
-
-        ---@type string
-        local unitKey = unitContext:Call("Key")
-        self.selectedLordArmySuppliesCost:addUnit(unitKey)
     end
 
     self.isInitializingArmySuppliesCost = false
@@ -123,7 +215,9 @@ end
 function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
     logger:logDebug("onCharacterDeselected(): STARTED")
 
-    if self.selectedLord then
+    self:cancelArmySuppliesCostInitialization()
+
+    if self.selectedLord ~= nil then
         cm:enable_movement_for_character("character_cqi:" .. self.selectedLord:cqi())
         self.selectedLord = nil
         self.selectedLordArmySuppliesCost = nil
@@ -140,6 +234,8 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
         function() return character:cqi() end,
         function() return TotoWar__Gameplay:getFactionCaption(character:faction():name()) end,
         function() return TotoWar__Gameplay:getCharacterCaption(character) end)
+
+    self:cancelArmySuppliesCostInitialization()
 
     if TotoWar__Gameplay:isLordCharacter(character)
         and (TotoWar__Gameplay:isLocalPlayerFaction(character:faction():name())
@@ -160,12 +256,16 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
             --- Adding a one-time listener that waits for the unit_panel to open before
             --- initializing the army supplies cost because we need to get the cost of the
             --- units being recruited
-            TotoWar__EventsManager:subscribe(
+            local pendingInitializationSubscription = TotoWar__EventsManager:subscribe(
                 TotoWar__Enum_GameEvents.panelOpened,
-                function() self:initializeArmySuppliesCost(character) end,
+                function()
+                    self.pendingInitializationSubscriptionId = nil
+                    self:initializeArmySuppliesCost(character)
+                end,
                 ---@param context TotoWar__GameEventContext_PanelOpenedOrClosed
                 function(context) return context.string == TotoWar__Enum_Panels.unitsPanel end,
                 1)
+            self.pendingInitializationSubscriptionId = pendingInitializationSubscription.id
         end
     elseif self.selectedLordArmySuppliesCost then
         self.selectedLord = nil
@@ -491,9 +591,11 @@ function TotoWar_Cbac_PlayerManager:onWarbandUpgradeButtonClicked()
         "onWarbandUpgradeButtonClicked(): STARTED => %s",
         function() return self.selectedLord ~= nil and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) or "No selected lord" end)
 
+    local lord = self.selectedLord
+
     -- Delay used here to allow the unit list to be updated before updating the army supplies
     TotoWar__Utils:delay(
-        function() self:initializeArmySuppliesCost(self.selectedLord) end,
+        function() self:initializeArmySuppliesCost(lord) end,
         0.1)
 
     logger:logDebug(
@@ -762,13 +864,17 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         end,
         ---@param context TotoWar__GameEventContext_UnitTrained
         function(context)
-            -- When the UnitTrained event is triggered while an army is selected, it means that we have
-            -- clicked on the mercenary panel recruitment button
+            -- A unit trained in the army of the selected lord comes from the recruitment button
+            -- of the mercenary panel
+            local army = context:unit():military_force()
+
             return
                 TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
                 and cm:is_local_players_turn(true)
-                and TotoWar__Gameplay:isLocalPlayerFaction(context:unit():military_force():faction():name())
+                and self.selectedLord ~= nil
                 and self.selectedLordArmySuppliesCost ~= nil
+                and army:has_general()
+                and army:general_character():cqi() == self.selectedLord:cqi()
         end)
 
     logger:logDebug("subscribeToEvents(): COMPLETED")
@@ -831,14 +937,12 @@ end
 function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
-    local unitExchangePool1UIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitExchange_pool1)
-    local unitExchangePool2UIComponent = TotoWar__UI:getUIComponent(
-        TotoWar__UI.uiComponentQueries.unitExchange_pool2)
+    local unitCards1 = TotoWar_Cbac_UIManager:getUnitExchangePoolCards(TotoWar__UI.uiComponentQueries.unitExchange_pool1)
+    local unitCards2 = TotoWar_Cbac_UIManager:getUnitExchangePoolCards(TotoWar__UI.uiComponentQueries.unitExchange_pool2)
 
-    local lord1 = TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePool1UIComponent)
+    local lord1 = getLordInUnitExchangePoolCards(unitCards1)
     local lord1Rank = 1
-    local lord2 = TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePool2UIComponent)
+    local lord2 = getLordInUnitExchangePoolCards(unitCards2)
     local lord2Rank = 1
 
     if lord1 ~= nil then
@@ -852,14 +956,8 @@ function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     self.unitExchangeArmySuppliesCost1 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord1Rank)
     self.unitExchangeArmySuppliesCost2 = TotoWar_Cbac_ArmySuppliesCost.new(false, lord2Rank)
 
-    TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
-        unitExchangePool1UIComponent,
-        self.unitExchangeArmySuppliesCost1,
-        self.unitExchangeArmySuppliesCost2)
-    TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
-        unitExchangePool2UIComponent,
-        self.unitExchangeArmySuppliesCost2,
-        self.unitExchangeArmySuppliesCost1)
+    addUnitExchangePoolCards(unitCards1, self.unitExchangeArmySuppliesCost1, self.unitExchangeArmySuppliesCost2)
+    addUnitExchangePoolCards(unitCards2, self.unitExchangeArmySuppliesCost2, self.unitExchangeArmySuppliesCost1)
 
     -- Signaling unit exchange army supplies cost change
     TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.unitExchangeArmySuppliesCostChanged)
@@ -915,24 +1013,12 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
     for i = 0, unitsUIComponent:ChildCount() - 1, 1 do
         local unitCardUIComponent = find_child_uicomponent_by_index(unitsUIComponent, i)
 
-        local isSelected =
-            unitCardUIComponent:CurrentState() == TotoWar__Enum_UIComponentStates.selected
-            or unitCardUIComponent:CurrentState() == TotoWar__Enum_UIComponentStates.selectedHover
         local isInRecruitmentStandardUnitCard =
             unitCardUIComponent:Id():match(TotoWar__Enum_Patterns.standardUnitCard) ~= nil
 
-        if isSelected and isInRecruitmentStandardUnitCard
+        if TotoWar__UI:isUIComponentSelected(unitCardUIComponent) and isInRecruitmentStandardUnitCard
         then
-            local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-                unitCardUIComponent,
-                { "card_image_holder" })
-
-            local unitContext = TotoWar__UI:getUIComponentCCO(
-                cardImageHolderUIComponent,
-                TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
-
-            --- @type string
-            local unitKey = unitContext:Call("Key")
+            local unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
 
             if unitKey == unitToUpgradeKey then
                 unitsToUpgradeCount = unitsToUpgradeCount + 1

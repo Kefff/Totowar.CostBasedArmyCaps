@@ -128,6 +128,34 @@ function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
     return uiComponent
 end
 
+---Gets the CQI of the character represented by a unit card.
+---@param unitCardUIComponent UIC Unit card UI component.
+---@return integer | nil # `nil` when the unit card does not represent a character.
+function TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
+    local objectContextId = unitCardUIComponent:GetContextObjectId(TotoWar__Enum_CcoContextTypeIds.campaignUnit)
+
+    ---@type integer | nil
+    local characterCqi = common.get_context_value(
+        TotoWar__Enum_CcoContextTypeIds.campaignUnit,
+        objectContextId,
+        "CharacterContext.CQI")
+
+    return characterCqi
+end
+
+---Gets the key of the unit represented by a unit card.
+---@param unitCardUIComponent UIC Unit card UI component.
+---@return string
+function TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+    local cardImageHolderUIComponent = self:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
+    local unitContext = self:getUIComponentCCO(cardImageHolderUIComponent, TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
+
+    ---@type string
+    local unitKey = unitContext:Call("Key")
+
+    return unitKey
+end
+
 ---Indicates whether a UI component is a child of other UI components.
 ---@param uiComponent UIC UI component.
 ---@param parentNames string[] Parent UI component names.
@@ -153,6 +181,13 @@ function TotoWar__UI:isUIComponentChildOf(uiComponent, parentNames)
         isChildOfAll)
 
     return isChildOfAll
+end
+
+---Indicates whether a UI component is selected (hovered or not).
+---@param uiComponent UIC UI component.
+---@return boolean
+function TotoWar__UI:isUIComponentSelected(uiComponent)
+    return TotoWar__String:startsWith(uiComponent:CurrentState(), TotoWar__Enum_UIComponentStates.selected)
 end
 
 ---Offsets the children of a UI component.

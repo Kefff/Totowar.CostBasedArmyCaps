@@ -38,6 +38,94 @@ local _defaultUIComponentHeight_warbandUpgrade = nil
 ---Template of the UI component that displays unit army supplies.
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
 
+---Unit card of a unit exchange pool.
+---@class TotoWar_Cbac_UnitExchangePoolCard
+---@field characterCqi integer | nil CQI of the character represented by the card, `nil` for a unit card.
+---@field isSelected boolean Indicates whether the card is selected to be transferred to the other army.
+---@field unitKey string | nil Key of the unit represented by the card, `nil` for a character card.
+
+---Creates the army supplies UI component and registers it as a child of a parent component.
+---@param parentUIComponent UIC Parent UI component.
+local function createArmySuppliesUIComponent(parentUIComponent)
+    local uiComponentAddress = parentUIComponent:CreateComponent(
+        _armySuppliesUIComponentName,
+        _unitArmySuppliesUIComponentTemplate)
+    local armySuppliesUIComponent = UIComponent(uiComponentAddress)
+    armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
+    parentUIComponent:Adopt(uiComponentAddress)
+
+    return armySuppliesUIComponent
+end
+
+---Gets the text representing an army supplies cost.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost.
+local function getArmySuppliesCostText(armySuppliesCost)
+    ---@type string
+    local armySuppliesCostText
+
+    if armySuppliesCost.availableSupplies < 0 then
+        armySuppliesCostText = string.format(
+            "[[col:%s]]%s[[/col]][[img:%s]][[/img]]",
+            "red",
+            armySuppliesCost.availableSupplies,
+            _armySuppliesDepletedWarningIconId)
+    else
+        armySuppliesCostText = tostring(armySuppliesCost.availableSupplies)
+    end
+
+    return armySuppliesCostText
+end
+
+---Hides the army supplies cost UI component.
+local function hideArmySuppliesCostUIComponent()
+    logger:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
+
+    local unitsPanelIconListUIComponent = TotoWar__UI:findUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanel_iconList)
+
+    if unitsPanelIconListUIComponent then
+        local armyCostUIComponent = TotoWar__UI:findUIComponentChild(
+            unitsPanelIconListUIComponent,
+            { _armySuppliesUIComponentName })
+
+        if armyCostUIComponent then
+            armyCostUIComponent:SetVisible(false)
+        end
+    end
+
+    logger:logDebug("hideArmySuppliesCostUIComponent(): COMPLETED")
+end
+
+---Reacts to options being updated.
+local function onOptionsUpdated()
+    logger:logDebug("onOptionsUpdated(): STARTED")
+
+    -- Clearing the selection for two reasons :
+    -- - it resets its movement if the selected character was not able to move, otherwise the character could not be move anymore if the player army supplies option has been disabled
+    -- - it closes the unit list and recruitment UI which will hide army supplies if the player army supplies option has been disabled
+    CampaignUI.ClearSelection()
+
+    logger:logDebug("onOptionsUpdated(): COMPLETED")
+end
+
+---Updates army supplies costs on recruitment pools.
+---@param recruitmentPools TotoWar_Cbac_RecruitmentPoolUI Recruitment pools.
+local function updateRecruitmentPools(recruitmentPools)
+    logger:logDebug("updateRecruitmentPools(recruitmentPools): STARTED")
+
+    for key, recruitmentPool in pairs(recruitmentPools) do
+        ---@cast recruitmentPool TotoWar_Cbac_RecruitmentPoolUI
+
+        logger:logDebug(
+            "updateRecruitmentPools(recruitmentPools): UPDATING => %s",
+            recruitmentPool.name)
+
+        recruitmentPool.updateUIFunction()
+    end
+
+    logger:logDebug("updateRecruitmentPools(recruitmentPools): COMPLETED")
+end
+
 ---Manager in charge of displaying army supplies cost in the UI.
 ---@class TotoWar_Cbac_UIManager
 TotoWar_Cbac_UIManager = {
@@ -53,19 +141,6 @@ TotoWar_Cbac_UIManager = {
     ---@type TotoWar__Dictionary<string, TotoWar_Cbac_RecruitmentPoolUI>
     recruitmentPools = nil
 }
-
----Creates the army supplies UI component and registers it as a child of a parent component.
----@param parentUIComponent UIC Parent UI component.
-function TotoWar_Cbac_UIManager:createArmySuppliesUIComponent(parentUIComponent)
-    local uiComponentAddress = parentUIComponent:CreateComponent(
-        _armySuppliesUIComponentName,
-        _unitArmySuppliesUIComponentTemplate)
-    local armySuppliesUIComponent = UIComponent(uiComponentAddress)
-    armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
-    parentUIComponent:Adopt(uiComponentAddress)
-
-    return armySuppliesUIComponent
-end
 
 ---Creates the UI component that displays army supplies.
 ---@param parentUIComponent UIC UI component that contains or will contain the army cost UI component.
@@ -87,7 +162,7 @@ function TotoWar_Cbac_UIManager:createOrUpdateArmySuppliesUIComponent(
         { _armySuppliesUIComponentName })
 
     if armySuppliesUIComponent == nil then
-        armySuppliesUIComponent = self:createArmySuppliesUIComponent(parentUIComponent)
+        armySuppliesUIComponent = createArmySuppliesUIComponent(parentUIComponent)
         armySuppliesUIComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.topLeft)
     end
 
@@ -158,90 +233,45 @@ function TotoWar_Cbac_UIManager:findRecruitmentPoolsInPanel(panelName)
     return recruitmentPools
 end
 
----Gets the text representing an army supplies cost.
----@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost.
-function TotoWar_Cbac_UIManager:getArmySuppliesCostText(armySuppliesCost)
-    ---@type string
-    local armySuppliesCostText
-
-    if armySuppliesCost.availableSupplies < 0 then
-        armySuppliesCostText = string.format(
-            "[[col:%s]]%s[[/col]][[img:%s]][[/img]]",
-            "red",
-            armySuppliesCost.availableSupplies,
-            _armySuppliesDepletedWarningIconId)
-    else
-        armySuppliesCostText = tostring(armySuppliesCost.availableSupplies)
-    end
-
-    return armySuppliesCostText
-end
-
----Gets the lord of a unit exchange pool UI component.
----@param unitExchangePoolUIComponent UIC Unit exchange pool UI component that contains the army units.
----@return CHARACTER_SCRIPT_INTERFACE | nil
-function TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePoolUIComponent)
+---Gets the unit cards of a unit exchange pool.
+---@param unitExchangePoolUIComponentQuery string[] Query to the unit exchange pool UI component.
+---@return TotoWar_Cbac_UnitExchangePoolCard[]
+function TotoWar_Cbac_UIManager:getUnitExchangePoolCards(unitExchangePoolUIComponentQuery)
     logger:logDebug(
-        "getLordInUnitExchangePool(%s): STARTED",
-        function() return unitExchangePoolUIComponent:Id() end)
+        "getUnitExchangePoolCards(%s): STARTED",
+        function() return table.concat(unitExchangePoolUIComponentQuery, "/") end)
 
-    ---@type CHARACTER_SCRIPT_INTERFACE | nil
-    local character = nil
-    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
+    ---@type TotoWar_Cbac_UnitExchangePoolCard[]
+    local unitCards = {}
+    local unitExchangePoolUIComponent = TotoWar__UI:getUIComponent(unitExchangePoolUIComponentQuery)
+    local unitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
 
-    for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
+    for i = 0, unitListUIComponent:ChildCount() - 1, 1 do
         ---@type UIC | false
-        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
+        local unitCardUIComponent = find_child_uicomponent_by_index(unitListUIComponent, i)
 
         if unitCardUIComponent then
-            local objectContextId = unitCardUIComponent:GetContextObjectId(
-                TotoWar__Enum_CcoContextTypeIds.campaignUnit)
-            local characterCqi = common.get_context_value(
-                TotoWar__Enum_CcoContextTypeIds.campaignUnit,
-                objectContextId,
-                "CharacterContext.CQI")
+            local characterCqi = TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
+            local unitKey = nil
 
-            if characterCqi ~= nil then
-                character = TotoWar__Gameplay:getCharacter(characterCqi)
-
-                if character ~= nil and TotoWar__Gameplay:isLordCharacter(character) then
-                    break
-                end
+            if characterCqi == nil then
+                unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
             end
-        end
-    end
 
-    if character == nil then
-        logger:logError("Unit exchange: lord of one of the armies not found, its army supplies not displayed")
+            table.insert(unitCards, {
+                characterCqi = characterCqi,
+                isSelected = TotoWar__UI:isUIComponentSelected(unitCardUIComponent),
+                unitKey = unitKey
+            })
+        end
     end
 
     logger:logDebug(
-        "getLordInUnitExchangePool(%s): COMPLETED => %s | %s",
-        function() return unitExchangePoolUIComponent:Id() end,
-        function() return character ~= nil and TotoWar__Gameplay:getFactionCaption(character:faction():name()) or "NOT FOUND" end,
-        function() return character ~= nil and TotoWar__Gameplay:getCharacterCaption(character) or "NOT FOUND" end)
+        "getUnitExchangePoolCards(%s): COMPLETED => %s unit card(s)",
+        function() return table.concat(unitExchangePoolUIComponentQuery, "/") end,
+        #unitCards)
 
-    return character
-end
-
----Hides the army supplies cost UI component.
-function TotoWar_Cbac_UIManager:hideArmySuppliesCostUIComponent()
-    logger:logDebug("hideArmySuppliesCostUIComponent(): STARTED")
-
-    local unitsPanelIconListUIComponent = TotoWar__UI:findUIComponent(
-        TotoWar__UI.uiComponentQueries.unitsPanel_iconList)
-
-    if unitsPanelIconListUIComponent then
-        local armyCostUIComponent = TotoWar__UI:findUIComponentChild(
-            unitsPanelIconListUIComponent,
-            { _armySuppliesUIComponentName })
-
-        if armyCostUIComponent then
-            armyCostUIComponent:SetVisible(false)
-        end
-    end
-
-    logger:logDebug("hideArmySuppliesCostUIComponent(): COMPLETED")
+    return unitCards
 end
 
 ---Initializes the UI manager.
@@ -316,29 +346,17 @@ end
 function TotoWar_Cbac_UIManager:onCharacterDeselected()
     logger:logDebug("onCharacterDeselected(): STARTED")
 
-    self:hideArmySuppliesCostUIComponent()
+    hideArmySuppliesCostUIComponent()
     self:resetUIChangeFlags()
 
     logger:logDebug("onCharacterDeselected(): COMPLETED")
-end
-
----Reacts to options being updated.
-function TotoWar_Cbac_UIManager:onOptionsUpdated()
-    logger:logDebug("onOptionsUpdated(): STARTED")
-
-    -- Clearing the selection for two reasons :
-    -- - it resets its movement if the selected character was not able to move, otherwise the character could not be move anymore if the player army supplies option has been disabled
-    -- - it closes the unit list and recruitment UI which will hide army supplies if the player army supplies option has been disabled
-    CampaignUI.ClearSelection()
-
-    logger:logDebug("onOptionsUpdated(): COMPLETED")
 end
 
 ---Reacts to the another faction character being selected.
 function TotoWar_Cbac_UIManager:onOtherFactionCharacterSelected()
     logger:logDebug("onOtherFactionCharacterSelected(): STARTED")
 
-    self:hideArmySuppliesCostUIComponent()
+    hideArmySuppliesCostUIComponent()
 
     logger:logDebug("onOtherFactionCharacterSelected(): COMPLETED")
 end
@@ -377,7 +395,7 @@ function TotoWar_Cbac_UIManager:onRecruitmentPanelOpened(panelName)
         end
     end
 
-    self:updateRecruitmentPools(recruitmentPools)
+    updateRecruitmentPools(recruitmentPools)
 
     self.lastOpenedPanel = panelName
     self.lastOpenedRecruitmentPools = recruitmentPools
@@ -394,7 +412,7 @@ function TotoWar_Cbac_UIManager:onSelectedLordArmySuppliesCostChanged()
     self:updateUnitsPanel()
 
     local recruitmentPools = self:findOpenRecruitmentPools()
-    self:updateRecruitmentPools(recruitmentPools)
+    updateRecruitmentPools(recruitmentPools)
 
     logger:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED")
 end
@@ -442,7 +460,7 @@ function TotoWar_Cbac_UIManager:onWarbandUpgradeArmySuppliesCostChanged()
 
     -- Adding / updating the army supplies after upgrade component
     if (TotoWar_Cbac_PlayerManager.warbandUpgradeArmySuppliesCost ~= nil) then
-        local armySuppliesCostText = self:getArmySuppliesCostText(
+        local armySuppliesCostText = getArmySuppliesCostText(
             TotoWar_Cbac_PlayerManager.warbandUpgradeArmySuppliesCost)
         local armySuppliesCostTooltip =
             TotoWar_Cbac_PlayerManager.warbandUpgradeArmySuppliesCost:toArmySuppliesCostTooltipText()
@@ -525,7 +543,7 @@ function TotoWar_Cbac_UIManager:subscribeToEvents()
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.optionsUpdated,
-        function() self:onOptionsUpdated() end)
+        function() onOptionsUpdated() end)
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.panelClosed,
@@ -747,7 +765,7 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
             end
         end
 
-        armySuppliesCostUIComponent = self:createArmySuppliesUIComponent(externalHolderUIComponent)
+        armySuppliesCostUIComponent = createArmySuppliesUIComponent(externalHolderUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
             common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
@@ -805,89 +823,6 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCardList(
         function() return unitCardListUIComponent:Id() end)
 end
 
----Updates army supplies costs on recruitment pools.
----@param recruitmentPools TotoWar_Cbac_RecruitmentPoolUI Recruitment pools.
-function TotoWar_Cbac_UIManager:updateRecruitmentPools(recruitmentPools)
-    logger:logDebug("updateRecruitmentPools(recruitmentPools): STARTED")
-
-    for key, recruitmentPool in pairs(recruitmentPools) do
-        ---@cast recruitmentPool TotoWar_Cbac_RecruitmentPoolUI
-
-        logger:logDebug(
-            "updateRecruitmentPools(recruitmentPools): UPDATING => %s",
-            recruitmentPool.name)
-
-        recruitmentPool.updateUIFunction()
-    end
-
-    logger:logDebug("updateRecruitmentPools(recruitmentPools): COMPLETED")
-end
-
----Updates unit exchange army supplies cost of two unit exchange pools base on which unit cards
----are selected in one of the pools.
----@param unitExchangePoolUIComponent UIC Current unit exchange pool.
----@param unitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the current unit exchange pool.
----@param otherUnitExchangePoolArmySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the other unit exchange pool.
-function TotoWar_Cbac_UIManager:updateUnitExchangeArmySuppliesCost(
-    unitExchangePoolUIComponent,
-    unitExchangePoolArmySuppliesCost,
-    otherUnitExchangePoolArmySuppliesCost)
-    logger:logDebug(
-        "updateUnitExchangeArmySuppliesCost(%s, unitExchangePoolArmySuppliesCost, otherUnitExchangePoolArmySuppliesCost): STARTED => Army 1: %s | Army 2: %s",
-        function() return unitExchangePoolUIComponent:Id() end,
-        unitExchangePoolArmySuppliesCost.availableSupplies,
-        otherUnitExchangePoolArmySuppliesCost.availableSupplies)
-
-    local unitExchangePoolUnitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "units" })
-
-    for i = 0, unitExchangePoolUnitListUIComponent:ChildCount() - 1, 1 do
-        ---@type UIC | false
-        local unitCardUIComponent = find_child_uicomponent_by_index(unitExchangePoolUnitListUIComponent, i)
-
-        if unitCardUIComponent then
-            local objectContextId = unitCardUIComponent:GetContextObjectId(
-                TotoWar__Enum_CcoContextTypeIds.campaignUnit)
-            local characterCqi = common.get_context_value(
-                TotoWar__Enum_CcoContextTypeIds.campaignUnit,
-                objectContextId,
-                "CharacterContext.CQI")
-
-            if characterCqi ~= nil then
-                -- Adding a character
-                if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
-                    otherUnitExchangePoolArmySuppliesCost:addCharacter(characterCqi)
-                else
-                    unitExchangePoolArmySuppliesCost:addCharacter(characterCqi)
-                end
-            else
-                -- Adding a unit
-                local cardImageHolderUIComponent = TotoWar__UI:getUIComponentChild(
-                    unitCardUIComponent,
-                    { "card_image_holder" })
-
-                local unitContext = TotoWar__UI:getUIComponentCCO(
-                    cardImageHolderUIComponent,
-                    TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
-
-                ---@type string
-                local unitKey = unitContext:Call("Key")
-
-                if string.match(unitCardUIComponent:CurrentState(), "^" .. TotoWar__Enum_UIComponentStates.selected) then
-                    otherUnitExchangePoolArmySuppliesCost:addUnit(unitKey)
-                else
-                    unitExchangePoolArmySuppliesCost:addUnit(unitKey)
-                end
-            end
-        end
-    end
-
-    logger:logDebug(
-        "updateUnitExchangeArmySuppliesCost(%s, unitExchangePoolArmySuppliesCost, otherUnitExchangePoolArmySuppliesCost): COMPLETED => Army 1: %s | Army 2: %s",
-        function() return unitExchangePoolUIComponent:Id() end,
-        unitExchangePoolArmySuppliesCost.availableSupplies,
-        otherUnitExchangePoolArmySuppliesCost.availableSupplies)
-end
-
 ---Updates the army supplies cost of a unit exchange pool.
 ---@param unitExchangePoolUIComponent UIC Unit exchange pool UI component.
 ---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost.
@@ -897,7 +832,7 @@ function TotoWar_Cbac_UIManager:updateUnitExchangePool(unitExchangePoolUICompone
         function() return unitExchangePoolUIComponent:Id() end)
 
     local parent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, { "panel_smoke_t" })
-    local armySuppliesCostText = self:getArmySuppliesCostText(armySuppliesCost)
+    local armySuppliesCostText = getArmySuppliesCostText(armySuppliesCost)
     local armySuppliesCostTooltip = armySuppliesCost:toArmySuppliesCostTooltipText()
     self:createOrUpdateArmySuppliesUIComponent(
         parent,
@@ -918,9 +853,9 @@ function TotoWar_Cbac_UIManager:updateUnitsPanel()
         -- The units panel is not close and the CharactedDeselected event is not triggered by the game.
         -- We still manage to set selectedLordArmySuppliesCost to nil.
         -- In that case, we need to hide the army supplies component.
-        self:hideArmySuppliesCostUIComponent()
+        hideArmySuppliesCostUIComponent()
     else
-        local armySuppliesCostText = self:getArmySuppliesCostText(
+        local armySuppliesCostText = getArmySuppliesCostText(
             TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost)
         local armySuppliesCostTooltip =
             TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost:toArmySuppliesCostTooltipText()

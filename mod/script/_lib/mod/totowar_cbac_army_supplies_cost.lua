@@ -2,6 +2,47 @@ require("script._lib.mod.totowar_cbac_enum")
 
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.armySuppliesCost)
 
+---Gets the unit army supplies cost for a unit as a tooltip string.
+---@param unitArmySuppliesCost TotoWar_Cbac_UnitArmySuppliesCost Army supplies cost of the unit.
+---@return string
+local function toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
+    ---@type string
+    local tooltipText
+
+    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
+        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
+    then
+        local character = TotoWar__Gameplay:getCharacter(unitArmySuppliesCost.characterCqi)
+
+        if character == nil then
+            -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
+            return ''
+        end
+
+        if character:has_military_force() then
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfLord"),
+                TotoWar__Gameplay:getCharacterCaption(character),
+                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
+                unitArmySuppliesCost.armySuppliesCost)
+        else
+            tooltipText = string.format(
+                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfHero"),
+                TotoWar__Gameplay:getCharacterCaption(character),
+                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
+                unitArmySuppliesCost.armySuppliesCost)
+        end
+    else
+        tooltipText = string.format(
+            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
+            'totowar_cbac_unit_category_' .. unitArmySuppliesCost.unitCategory,
+            TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
+            unitArmySuppliesCost.armySuppliesCost)
+    end
+
+    return tooltipText
+end
+
 ---Army supplies cost of the units in an army.
 ---@class TotoWar_Cbac_ArmySuppliesCost
 TotoWar_Cbac_ArmySuppliesCost = {
@@ -350,14 +391,14 @@ function TotoWar_Cbac_ArmySuppliesCost:toArmySuppliesCostTooltipText()
         unitsArmySuppliesCostTooltipText =
             unitsArmySuppliesCostTooltipText
             .. "\n"
-            .. self:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
+            .. toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
     end
 
     for index, mercenaryUnitArmySuppliesCost in ipairs(self.inRecruitmentMercenaryUnits) do
         unitsArmySuppliesCostTooltipText =
             unitsArmySuppliesCostTooltipText
             .. "\n"
-            .. self:toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost)
+            .. toUnitArmySuppliesCostTooltipText(mercenaryUnitArmySuppliesCost)
     end
 
     local availableArmySuppliesString = string.format("[[col:white]]%s[[/col]]", self.availableSupplies)
@@ -378,47 +419,6 @@ function TotoWar_Cbac_ArmySuppliesCost:toArmySuppliesCostTooltipText()
         availableArmySuppliesString,
         depletedArmySuppliesWarning,
         unitsArmySuppliesCostTooltipText)
-
-    return tooltipText
-end
-
----Gets the unit army supplies cost for a unit as a tooltip string.
----@param unitArmySuppliesCost TotoWar_Cbac_UnitArmySuppliesCost Army supplies cost of the unit.
----@return string
-function TotoWar_Cbac_ArmySuppliesCost:toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
-    ---@type string
-    local tooltipText
-
-    if unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
-        or unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
-    then
-        local character = TotoWar__Gameplay:getCharacter(unitArmySuppliesCost.characterCqi)
-
-        if character == nil then
-            -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
-            return ''
-        end
-
-        if character:has_military_force() then
-            tooltipText = string.format(
-                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfLord"),
-                TotoWar__Gameplay:getCharacterCaption(character),
-                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
-                unitArmySuppliesCost.armySuppliesCost)
-        else
-            tooltipText = string.format(
-                common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfHero"),
-                TotoWar__Gameplay:getCharacterCaption(character),
-                TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
-                unitArmySuppliesCost.armySuppliesCost)
-        end
-    else
-        tooltipText = string.format(
-            common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCostOfUnit"),
-            'totowar_cbac_unit_category_' .. unitArmySuppliesCost.unitCategory,
-            TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
-            unitArmySuppliesCost.armySuppliesCost)
-    end
 
     return tooltipText
 end

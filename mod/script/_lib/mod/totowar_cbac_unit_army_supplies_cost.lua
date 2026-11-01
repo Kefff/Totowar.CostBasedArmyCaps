@@ -20,6 +20,38 @@ local _unitCategoriesByParentGroup = {
 ---@type table<string, TotoWar_Cbac_Enum_ArmyCompositionUnitCategories>
 local _unitCategoriesByUnitKey = {}
 
+---Gets the unit army composition type based on the category of a unit.
+---@param unitKey string Unit key.
+---@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
+local function getUnitArmyCompositionUnitType(unitKey)
+    local armyCompositionUnitType = _unitCategoriesByUnitKey[unitKey]
+
+    if armyCompositionUnitType == nil then
+        local unitGroup = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+            unitKey,
+            "UiUnitGroupContext.ParentGroup.Key")
+
+        if unitGroup ~= nil then
+            armyCompositionUnitType = _unitCategoriesByParentGroup[unitGroup]
+        end
+
+        if armyCompositionUnitType == nil then
+            logger:logWarning(
+                "%s (%s): unknown recruitment category %s, counted as cavalry & monsters",
+                TotoWar__Gameplay:getUnitCaption(unitKey),
+                unitKey,
+                unitGroup)
+
+            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
+        end
+
+        _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
+    end
+
+    return armyCompositionUnitType
+end
+
 ---@class TotoWar_Cbac_UnitArmySuppliesCost
 TotoWar_Cbac_UnitArmySuppliesCost = {
     ---Army supplies cost of the unit.
@@ -161,43 +193,11 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
-    instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
+    instance.unitCategory = getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
     return instance
-end
-
----Gets the unit army composition type based on the category of a unit.
----@param unitKey string Unit key.
----@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
-function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKey)
-    local armyCompositionUnitType = _unitCategoriesByUnitKey[unitKey]
-
-    if armyCompositionUnitType == nil then
-        local unitGroup = common.get_context_value(
-            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-            unitKey,
-            "UiUnitGroupContext.ParentGroup.Key")
-
-        if unitGroup ~= nil then
-            armyCompositionUnitType = _unitCategoriesByParentGroup[unitGroup]
-        end
-
-        if armyCompositionUnitType == nil then
-            logger:logWarning(
-                "%s (%s): unknown recruitment category %s, counted as cavalry & monsters",
-                TotoWar__Gameplay:getUnitCaption(unitKey),
-                unitKey,
-                unitGroup)
-
-            armyCompositionUnitType = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.cavalryAndMonsters
-        end
-
-        _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
-    end
-
-    return armyCompositionUnitType
 end
 
 ---Gets the army supplies cost of a unit: the recruitment cost of its unmounted version,
