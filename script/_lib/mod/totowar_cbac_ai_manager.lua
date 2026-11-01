@@ -701,7 +701,7 @@ function TotoWar_Cbac_AiManager:adjustAiArmyHeroes(army, armySuppliesCost, heros
         if heroTargetPositionX == -1 then
             -- No valid position around the army (at sea, in the Underway, etc.), other heroes would fail the same way
             logger:logWarning(
-                "%s: army adjusted, %s hero(es) in excess stay in the army (no free position around it)",
+                "%s: army adjusted, %s hero(es) stay in the army (no free position to leave)",
                 function() return TotoWar__Gameplay:getArmyCaption(army) end,
                 herosInExcess)
 
@@ -1113,7 +1113,7 @@ function TotoWar_Cbac_AiManager:getUnitCategoryExcessCounts(armySuppliesCost, ta
 
                 if targetCount == nil then
                     logger:logWarning(
-                        "The target composition of an army has no value for the unit category \"%s\": 0 is used",
+                        "Target army composition: no value for %s (0 used)",
                         entry.key)
 
                     targetCount = 0

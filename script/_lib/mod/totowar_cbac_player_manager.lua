@@ -896,7 +896,7 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
 
     if objectContextId == nil then
         logger:logWarning(
-            "The unit to upgrade could not be identified in the warband upgrade panel: the army supplies after the upgrade cannot be displayed")
+            "Warband upgrade: unit to upgrade not found, army supplies after the upgrade not displayed")
 
         return
     end

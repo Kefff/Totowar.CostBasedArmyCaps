@@ -73,46 +73,71 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if unitKey == nil then
         -- Some characters have no unit context, probably because of a bug of the game (a Sorceress (Shadow) hero for example)
-        logger:logWarning(
-            "The unit of the character \"%s\" could not be found: this character is ignored in army supplies",
-            function()
-                local character = TotoWar__Gameplay:getCharacter(characterCqi)
+        local character = TotoWar__Gameplay:getCharacter(characterCqi)
 
+        logger:logWarning(
+            "%s: %s, unit not found, character not counted in army supplies",
+            function()
                 if character == nil then
-                    return characterCqi
+                    return "Unknown army"
                 end
 
-                return TotoWar__Gameplay:getCharacterCaption(character)
-            end)
+                if character:has_military_force() then
+                    return TotoWar__Gameplay:getArmyCaption(character:military_force())
+                end
+
+                if character:is_embedded_in_military_force() then
+                    return TotoWar__Gameplay:getArmyCaption(character:embedded_in_military_force())
+                end
+
+                return string.format(
+                    "%s | %s",
+                    TotoWar__Gameplay:getCultureCaption(character:faction():culture()),
+                    TotoWar__Gameplay:getFactionCaption(character:faction():name()))
+            end,
+            function() return character ~= nil and TotoWar__Gameplay:getCharacterCaption(character) or characterCqi end)
 
         return nil
     end
 
-    instance.armySuppliesCost = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+    instance.unitCqi = unitCqi
+    instance.armySuppliesCost = instance:getUnitCost(
         unitKey,
-        "UnmountedUnitRecordContext.BaseCost") or 0
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
 
-    if instance.armySuppliesCost <= 0 then
-        -- For some reason, some units have a negative base cost (the Blue Scribes from Tzeench for example).
-        -- We use the absolute value as a fallback.
-        local transformedCost = math.abs(instance.armySuppliesCost)
+            if character == nil then
+                return nil
+            end
 
-        logger:logWarning(
-            "The skirmish cost of the unit \"%s\" is invalid (%s): %s is used as its army supplies cost",
-            TotoWar__Gameplay:getUnitCaption(unitKey),
-            instance.armySuppliesCost,
-            transformedCost)
+            -- A lord commands its army, a hero is embedded in an army
+            local army = nil
 
-        instance.armySuppliesCost = transformedCost
-    end
+            if character:has_military_force() then
+                army = character:military_force()
+            elseif character:is_embedded_in_military_force() then
+                army = character:embedded_in_military_force()
+            else
+                return nil
+            end
 
+            local units = army:unit_list()
+
+            for i = 0, units:num_items() - 1, 1 do
+                local unit = units:item_at(i)
+
+                if unit:command_queue_index() == instance.unitCqi then
+                    return unit
+                end
+            end
+
+            return nil
+        end)
     instance.baseUnitKey = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
     instance.characterCqi = characterCqi
-    instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
     if TotoWar__Gameplay:isLordUnit(characterCqi) then
@@ -127,34 +152,15 @@ end
 ---Initializes a new instance from a unit.
 ---@param unitKey string Unit key.
 ---@param unitCqi integer? Command queue index of the unit (if we are able to get one).
+---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
-function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
+function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
-    instance.armySuppliesCost = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UnmountedUnitRecordContext.BaseCost")
-
-    if instance.armySuppliesCost <= 0 then
-        -- For some reason, some units have a negative base cost (the Blue Scribes from Tzeench for example).
-        -- We use the absolute value as a fallback.
-        local transformedCost = math.abs(instance.armySuppliesCost)
-
-        logger:logWarning(
-            "The skirmish cost of the unit \"%s\" is invalid (%s): %s is used as its army supplies cost",
-            TotoWar__Gameplay:getUnitCaption(unitKey),
-            instance.armySuppliesCost,
-            transformedCost)
-
-        instance.armySuppliesCost = transformedCost
-    end
-
+    instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
     instance.baseUnitKey = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
         unitKey,
         "UnmountedUnitRecordContext.Key")
-
-
     instance.unitCategory = instance:getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
@@ -180,7 +186,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
 
         if armyCompositionUnitType == nil then
             logger:logWarning(
-                "The unit \"%s\" (%s) belongs to an unknown recruitment category (%s): it is counted as cavalry & monsters",
+                "%s (%s): unknown recruitment category %s, counted as cavalry & monsters",
                 TotoWar__Gameplay:getUnitCaption(unitKey),
                 unitKey,
                 unitGroup)
@@ -192,4 +198,61 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitArmyCompositionUnitType(unitKe
     end
 
     return armyCompositionUnitType
+end
+
+---Gets the army supplies cost of a unit: the recruitment cost of its unmounted version,
+---or of the unit itself when its unmounted version has no cost (0 when neither has a cost).
+---@param unitKey string Unit key.
+---@param findUnit (fun(): UNIT_SCRIPT_INTERFACE | nil) | nil Function returning the unit, called only when its recruitment cost is negative.
+---@return integer
+function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
+    ---@type integer | nil
+    local cost = common.get_context_value(
+        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+        unitKey,
+        "UnmountedUnitRecordContext.BaseCost")
+
+    if cost == nil or cost == 0 then
+        cost = common.get_context_value(TotoWar__Enum_CcoContextTypeIds.mainUnitRecord, unitKey, "BaseCost")
+    end
+
+    if cost == nil then
+        logger:logWarning(
+            "%s (%s): recruitment cost not found, not counted in army supplies",
+            TotoWar__Gameplay:getUnitCaption(unitKey),
+            unitKey)
+
+        return 0
+    end
+
+    if cost >= 0 then
+        return cost
+    end
+
+    -- Some units have a negative recruitment cost (the Blue Scribes from Tzeentch for example)
+    local unit = nil
+
+    if findUnit ~= nil then
+        unit = findUnit()
+    end
+
+    if unit == nil then
+        logger:logWarning(
+            "%s: invalid recruitment cost (%s), not counted in army supplies (custom battle cost only readable in an army)",
+            TotoWar__Gameplay:getUnitCaption(unitKey),
+            cost)
+
+        return 0
+    end
+
+    local customBattleCost = unit:get_unit_custom_battle_cost()
+
+    logger:logWarning(
+        "%s: %s, invalid recruitment cost (%s), custom battle cost used (%s)",
+        function() return TotoWar__Gameplay:getArmyCaption(unit:military_force()) end,
+        TotoWar__Gameplay:getUnitCaption(unitKey),
+        cost,
+        customBattleCost)
+
+    return customBattleCost
 end

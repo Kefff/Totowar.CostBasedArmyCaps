@@ -116,7 +116,7 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
             end)
 
         if not isAlreadyAddedCharacter then
-            instance:addUnit(unit:unit_key(), unit:command_queue_index())
+            instance:addUnit(unit:unit_key(), unit:command_queue_index(), false, unit)
         end
     end
 
@@ -150,7 +150,8 @@ end
 ---@param unitKey string Unit key.
 ---@param unitCqi integer? Unit command queue index if we are able to get one.
 ---@param isInRecruitmentMercenary boolean? Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
-function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary)
+---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
+function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary, unit)
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
     end
@@ -159,10 +160,10 @@ function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitment
     local unitArmySuppliesCost
 
     if isInRecruitmentMercenary then
-        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
+        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
         table.insert(self.inRecruitmentMercenaryUnits, unitArmySuppliesCost)
     else
-        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi)
+        unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
         table.insert(self.unitArmySuppliesCosts, unitArmySuppliesCost)
     end
 
@@ -199,7 +200,7 @@ function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
         end
 
         logger:logError(
-            "Army supplies: the character \"%s\" could not be removed because it was not counted in the army",
+            "%s: character not counted in army supplies, not removed",
             characterCaption)
 
         return
@@ -238,6 +239,15 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
         local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
         local unit = self.inRecruitmentMercenaryUnits[index]
 
+        if unit == nil then
+            logger:logWarning(
+                "Mercenary recruitment: unit at position %s not counted, not removed (%s mercenaries counted)",
+                index,
+                #self.inRecruitmentMercenaryUnits)
+
+            return nil
+        end
+
         self.totalCost = self.totalCost - unit.armySuppliesCost
         self.availableSupplies = self.totalArmySupplies - self.totalCost
         table.remove(self.inRecruitmentMercenaryUnits, index)
@@ -273,7 +283,7 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
     end
 
     logger:logError(
-        "Army supplies: the unit \"%s\" could not be removed because it was not counted in the army",
+        "%s: unit not counted in army supplies, not removed",
         TotoWar__Gameplay:getUnitCaption(unitKey))
 end
 

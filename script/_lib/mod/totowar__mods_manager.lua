@@ -49,7 +49,7 @@ function TotoWar__ModsManager:getMod(modName)
             "getMod(%s): COMPLETED",
             modName)
     else
-        logger:logError("The TotoWar mod \"%s\" could not be found", modName)
+        logger:logError("%s: TotoWar mod not found", modName)
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -98,7 +98,7 @@ function TotoWar__ModsManager:registerMod(modName, modCaption, initializeFunctio
 
     if mod ~= nil then
         logger:logWarning(
-            "Mod \"%s\" is already registered. New registration has been ignored",
+            "%s: mod already registered, new registration ignored",
             modCaption)
     else
         mod = TotoWar__ModDefinition.new(modName, modCaption, initializeFunction)

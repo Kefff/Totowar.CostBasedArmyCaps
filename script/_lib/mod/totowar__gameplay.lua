@@ -47,12 +47,13 @@ function TotoWar__Gameplay:getArmy(armyCqi)
     return army
 end
 
----Gets the caption of an army: caption of its faction and of its lord (`Faction | Lord`).
+---Gets the caption of an army: caption of its culture, of its faction and of its lord (`Culture | Faction | Lord`).
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return string
 function TotoWar__Gameplay:getArmyCaption(army)
     return string.format(
-        "%s | %s",
+        "%s | %s | %s",
+        self:getCultureCaption(army:faction():culture()),
         self:getFactionCaption(army:faction():name()),
         self:getArmyLordCaption(army))
 end
@@ -75,7 +76,7 @@ function TotoWar__Gameplay:getCharacter(characterCqi)
     local character = cm:get_character_by_cqi(characterCqi)
 
     if character == false then
-        logger:logWarning("A character could not be found in the campaign (CQI: %s)", characterCqi)
+        logger:logWarning("Character %s: not found in the campaign", characterCqi)
 
         return nil
     end
@@ -147,7 +148,7 @@ function TotoWar__Gameplay:getUnitCaption(unitKey)
     if caption == nil then
         caption = ''
 
-        logger:logWarning("The name of the unit \"%s\" could not be found", unitKey)
+        logger:logWarning("%s: unit name not found", unitKey)
     end
 
     return caption

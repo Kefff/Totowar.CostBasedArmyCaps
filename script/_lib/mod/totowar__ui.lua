@@ -72,7 +72,7 @@ function TotoWar__UI:getUIComponent(query)
 
     if uiComponent == nil then
         logger:logError(
-            "A part of the game interface used by the mod could not be found (\"%s\"): army supplies may not be displayed correctly",
+            "Game interface: %s not found, army supplies may not be displayed correctly",
             table.concat(query, "/"))
     end
 
@@ -119,7 +119,7 @@ function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
 
     if uiComponent == nil then
         logger:logError(
-            "A part of the game interface used by the mod could not be found (\"%s/%s\"): army supplies may not be displayed correctly",
+            "Game interface: %s/%s not found, army supplies may not be displayed correctly",
             parentUIComponent:Id(),
             table.concat(query, "/"))
     end

@@ -212,7 +212,7 @@ function TotoWar_Cbac_UIManager:getLordInUnitExchangePool(unitExchangePoolUIComp
     end
 
     if character == nil then
-        logger:logError("The lord of one of the armies exchanging units could not be found: its army supplies cannot be displayed")
+        logger:logError("Unit exchange: lord of one of the armies not found, its army supplies not displayed")
     end
 
     logger:logDebug(
@@ -727,9 +727,7 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
         unitCardUIComponent,
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
-    local unitName = unitContext:Call("Name")
-    ---@type number
-    local unitBaseCost = unitContext:Call("UnmountedUnitRecordContext.BaseCost")
+    local unitCost = TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitContext:Call("Key"))
 
     local armySuppliesCostUIComponent = TotoWar__UI:findUIComponentChild(
         unitCardUIComponent,
@@ -775,15 +773,17 @@ function TotoWar_Cbac_UIManager:updateRecruitableUnitCard(unitCardUIComponent)
         armySuppliesCostUIComponent:SetDockOffset(-2, 0) -- Cancelling the offset of the army supplies cost component itself (-2 du align the right border with the other cost compoments)
     end
 
-    local unitBaseCostText = tostring(unitBaseCost)
+    local unitCostText = tostring(unitCost)
+    local selectedLordArmySuppliesCost = TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost
 
-    if unitBaseCost > TotoWar_Cbac_PlayerManager.selectedLordArmySuppliesCost.availableSupplies then
+    -- The army supplies cost of the selected lord is nil while it is being initialized
+    if selectedLordArmySuppliesCost ~= nil and unitCost > selectedLordArmySuppliesCost.availableSupplies then
         -- Displaying the army supplies cost is red when it exceeds the available army supplies
-        unitBaseCostText = string.format("[[col:%s]]%s[[/col]]", "red", unitBaseCostText)
+        unitCostText = string.format("[[col:%s]]%s[[/col]]", "red", unitCostText)
     end
 
     if armySuppliesCostUIComponent ~= nil then
-        armySuppliesCostUIComponent:SetText(unitBaseCostText, "")
+        armySuppliesCostUIComponent:SetText(unitCostText, "")
     end
 end
 
