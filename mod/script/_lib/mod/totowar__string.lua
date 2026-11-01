@@ -48,6 +48,28 @@ function TotoWar__String:padRight(text, length, paddingCharacter)
     return text
 end
 
+---Splits a text on a separator.
+---@param text string Text.
+---@param separator string Separator, as plain text (not a pattern).
+---@return string[]
+function TotoWar__String:split(text, separator)
+    local parts = {}
+    local partStart = 1
+
+    while true do
+        local separatorStart, separatorEnd = string.find(text, separator, partStart, true)
+
+        if separatorStart == nil then
+            table.insert(parts, string.sub(text, partStart))
+
+            return parts
+        end
+
+        table.insert(parts, string.sub(text, partStart, separatorStart - 1))
+        partStart = separatorEnd + 1
+    end
+end
+
 ---Indicates whether a text starts with another text.
 ---@param text string Text.
 ---@param searchedText string Searched text.

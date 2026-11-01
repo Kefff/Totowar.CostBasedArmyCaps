@@ -545,7 +545,7 @@ function TotoWar_Cbac_PlayerManager:onUnitExchangePanelOpened()
     logger:logDebug("onUnitExchangePanelOpened(): COMPLETED")
 end
 
----Reacts to a unit card in the first army unit exchange pool being clicked.
+---Reacts to a unit card of one of the unit exchange pools being clicked.
 function TotoWar_Cbac_PlayerManager:onUnitExchangePoolUnitCardClick()
     logger:logDebug("onUnitExchangePoolUnitCardClick(): STARTED")
 
@@ -753,7 +753,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.componentLeftClick,
-        function() self:updateUnitExchangeArmySuppliesCosts() end,
+        function() self:onUnitExchangePoolUnitCardClick() end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
             if TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled

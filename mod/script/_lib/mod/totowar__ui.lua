@@ -3,27 +3,27 @@ local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.ui)
 ---UI utility tools for TotoWar mods.
 ---@class TotoWarUI
 TotoWar__UI = {
-    ---Queries for finding UI components.
+    ---Queries for finding UI components: names of the UI components from the root, separated by "/".
     ---@class TotoWarUIUtils_UIComponentQuery
     uiComponentQueries = {
-        unitExchange_pool1 = { "unit_exchange", "main_units_panel_1" },
-        unitExchange_pool2 = { "unit_exchange", "main_units_panel_2" },
-        unitsPanel_iconList = { "units_panel", "main_units_panel", "icon_list" },
-        unitsPanel_recruitmentOptions_alliedRecruitmentPool = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "allied_recuitment_display", "recruitment_holder", "unit_list" },                                 -- The typo in "allied_recuitment_display" is from CA
-        unitsPanel_recruitmentOptions_closeButton = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "title_docker", "button_holder", "button_minimise" },
-        unitsPanel_recruitmentOptions_mercenaryRecruitmentPoolList = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "mercenary_display", "mercenary_recruitment_pool_list", "list_clip", "list_box" },
-        unitsPanel_recruitmentOptions_standardRecruitmentPoolList = { "units_panel", "main_units_panel", "recruitment_docker", "recruitment_options", "recruitment_listbox", "recruitment_pool_list", "list_clip", "list_box" },
-        unitsPanel_units = { "units_panel", "main_units_panel", "units" },
-        unitsPanel_warbandUpgrades = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades" },
-        unitsPanel_warbandUpgradesRequirements = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "unit_info_costs", "holder_requirements", "body" },
-        unitsPanel_warbandUpgradesUnitToUpgrade = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade_small", "card_image_holder" },
-        unitsPanel_warbandUpgradesUpgradedUnit = { "units_panel", "main_units_panel", "warband_upgrades_docker", "warband_upgrades", "body", "info_holder", "upgrade_info_holder", "holder_card_upgrade", "unit_card_upgrade", "card_image_holder" }
+        unitExchange_pool1 = "unit_exchange/main_units_panel_1",
+        unitExchange_pool2 = "unit_exchange/main_units_panel_2",
+        unitsPanel_iconList = "units_panel/main_units_panel/icon_list",
+        unitsPanel_recruitmentOptions_alliedRecruitmentDisplay = "units_panel/main_units_panel/recruitment_docker/recruitment_options/allied_recuitment_display", -- The typo in "allied_recuitment_display" is from CA
+        unitsPanel_recruitmentOptions_mercenaryRecruitmentPoolList = "units_panel/main_units_panel/recruitment_docker/recruitment_options/mercenary_display/mercenary_recruitment_pool_list/list_clip/list_box",
+        unitsPanel_recruitmentOptions_standardRecruitmentPoolList = "units_panel/main_units_panel/recruitment_docker/recruitment_options/recruitment_listbox/recruitment_pool_list/list_clip/list_box",
+        unitsPanel_units = "units_panel/main_units_panel/units",
+        unitsPanel_warbandUpgrades = "units_panel/main_units_panel/warband_upgrades_docker/warband_upgrades",
+        unitsPanel_warbandUpgradesRequirements = "units_panel/main_units_panel/warband_upgrades_docker/warband_upgrades/body/info_holder/upgrade_info_holder/unit_info_costs/holder_requirements/body",
+        unitsPanel_warbandUpgradesRequirementsHolder = "units_panel/main_units_panel/warband_upgrades_docker/warband_upgrades/body/info_holder/upgrade_info_holder/unit_info_costs/holder_requirements",
+        unitsPanel_warbandUpgradesUnitToUpgrade = "units_panel/main_units_panel/warband_upgrades_docker/warband_upgrades/body/info_holder/upgrade_info_holder/holder_card_upgrade/unit_card_upgrade_small/card_image_holder",
+        unitsPanel_warbandUpgradesUpgradedUnit = "units_panel/main_units_panel/warband_upgrades_docker/warband_upgrades/body/info_holder/upgrade_info_holder/holder_card_upgrade/unit_card_upgrade/card_image_holder"
     }
 }
 TotoWar__UI.__index = TotoWar__UI
 
 ---Finds a UI component from the root.
----@param query string[] Query to the UI component from the root.
+---@param query string Query to the UI component from the root: names of the UI components separated by "/".
 ---@return UIC | nil
 function TotoWar__UI:findUIComponent(query)
     local childUIComponent = self:findUIComponentChild(core:get_ui_root(), query)
@@ -33,21 +33,21 @@ end
 
 ---Finds a UI component that is a child a parent UI component.
 ---@param parentUIComponent UIC Parent UI component
----@param query string[] Query to the UI component from the parent UI component.
+---@param query string Query to the UI component from the parent UI component: names of the UI components separated by "/".
 ---@return UIC | nil
 function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     logger:logDebug(
         "findUIComponentChild(%s/%s): STARTED",
         function() return parentUIComponent:Id() end,
-        function() return table.concat(query, "/") end)
+        query)
 
-    local uiComponent = find_uicomponent(parentUIComponent, unpack(query))
+    local uiComponent = find_uicomponent(parentUIComponent, unpack(TotoWar__String:split(query, "/")))
 
     if uiComponent == false then
         logger:logDebug(
             "findUIComponentChild(%s/%s): NOT FOUND",
             function() return parentUIComponent:Id() end,
-            function() return table.concat(query, "/") end)
+            query)
 
         return nil
     end
@@ -55,7 +55,7 @@ function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     logger:logDebug(
         "findUIComponentChild(%s/%s): COMPLETED => %s",
         function() return parentUIComponent:Id() end,
-        function() return table.concat(query, "/") end,
+        query,
         function() return uiComponent:Id() end)
 
     return uiComponent
@@ -63,7 +63,7 @@ end
 
 ---Gets a UI component from the root.
 ---If the UI component is not found, throws an error.
----@param query string[] Query to the UI component from the root.
+---@param query string Query to the UI component from the root: names of the UI components separated by "/".
 ---@return UIC
 function TotoWar__UI:getUIComponent(query)
     local uiComponent = self:findUIComponent(query)
@@ -71,7 +71,7 @@ function TotoWar__UI:getUIComponent(query)
     if uiComponent == nil then
         logger:logError(
             "Game interface: %s not found, army supplies may not be displayed correctly",
-            table.concat(query, "/"))
+            query)
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -110,7 +110,7 @@ end
 ---Gets a UI component that is a child a parent UI component.
 ---If the child UI component is not found, throws an error.
 ---@param parentUIComponent UIC Parent UI component
----@param query string[] Query to the UI component from the parent UI component.
+---@param query string Query to the UI component from the parent UI component: names of the UI components separated by "/".
 ---@return UIC
 function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
     local uiComponent = self:findUIComponentChild(parentUIComponent, query)
@@ -119,7 +119,7 @@ function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
         logger:logError(
             "Game interface: %s/%s not found, army supplies may not be displayed correctly",
             parentUIComponent:Id(),
-            table.concat(query, "/"))
+            query)
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch
@@ -145,7 +145,7 @@ end
 ---@param unitCardUIComponent UIC Unit card UI component.
 ---@return string
 function TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
-    local cardImageHolderUIComponent = self:getUIComponentChild(unitCardUIComponent, { "card_image_holder" })
+    local cardImageHolderUIComponent = self:getUIComponentChild(unitCardUIComponent, "card_image_holder")
     local unitContext = self:getUIComponentCCO(cardImageHolderUIComponent, TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
     ---@type string
@@ -253,35 +253,82 @@ function TotoWar__UI:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
         heightToAdd)
 end
 
----Resizes a UI components and its children listed in a path.
----@param uiComponent UIC UI component to resize.
+---Resizes, with `TotoWar__UI:resizeUIComponentOnce`, each child UI component along a query, without the parent UI component.
+---@param parentUIComponent UIC Parent UI component.
+---@param query string Query to the last child UI component to resize: names of the UI components separated by "/".
 ---@param widthToAdd number Width to add.
 ---@param heightToAdd number Height to add.
----@param query string[] Path containing the names of the child UI components to resize.
-function TotoWar__UI:resizeUIComponentAndChildren(uiComponent, widthToAdd, heightToAdd, query)
+---@param sizePropertyName string Name of the property that stores the size reached (one per mod to avoid conflicts).
+function TotoWar__UI:resizeUIComponentChildrenOnce(parentUIComponent, query, widthToAdd, heightToAdd, sizePropertyName)
     logger:logDebug(
-        "resizeUIComponentAndChildren(%s, %s, %s, %s): STARTED",
-        function() return uiComponent:Id() end,
+        "resizeUIComponentChildrenOnce(%s, %s, %s, %s, %s): STARTED",
+        function() return parentUIComponent:Id() end,
+        query,
         widthToAdd,
         heightToAdd,
-        function() return table.concat(query, "/") end)
+        sizePropertyName)
 
-    local currentChildUIComponentPath = {}
+    local childUIComponentQuery = nil
 
-    self:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
+    for index, childUIComponentName in ipairs(TotoWar__String:split(query, "/")) do
+        childUIComponentQuery = childUIComponentQuery == nil
+            and childUIComponentName
+            or childUIComponentQuery .. "/" .. childUIComponentName
 
-    for i, childUIComponentName in ipairs(query) do
-        currentChildUIComponentPath[i] = childUIComponentName
-        local childUIComponent = find_uicomponent(uiComponent, unpack(currentChildUIComponentPath))
-        self:resizeUIComponent(childUIComponent, widthToAdd, heightToAdd)
+        self:resizeUIComponentOnce(
+            self:getUIComponentChild(parentUIComponent, childUIComponentQuery),
+            widthToAdd,
+            heightToAdd,
+            sizePropertyName)
     end
 
     logger:logDebug(
-        "resizeUIComponentAndChildren(%s, %s, %s, %s): COMPLETED",
+        "resizeUIComponentChildrenOnce(%s, %s, %s, %s, %s): COMPLETED",
+        function() return parentUIComponent:Id() end,
+        query,
+        widthToAdd,
+        heightToAdd,
+        sizePropertyName)
+end
+
+---Resizes a UI component, unless it already has the size it reached the last time it was resized by this function.
+---This size is stored in a property of the UI component: the UI component is resized again when the game recreates it or changes its size.
+---@param uiComponent UIC UI component.
+---@param widthToAdd number Width to add.
+---@param heightToAdd number Height to add.
+---@param sizePropertyName string Name of the property that stores the size reached (one per mod to avoid conflicts).
+---@return boolean # `true` when the UI component has been resized.
+function TotoWar__UI:resizeUIComponentOnce(uiComponent, widthToAdd, heightToAdd, sizePropertyName)
+    local width, height = uiComponent:Dimensions()
+
+    if tostring(uiComponent:GetProperty(sizePropertyName)) == string.format("%sx%s", width, height) then
+        logger:logDebug(
+            "resizeUIComponentOnce(%s, %s, %s, %s): COMPLETED => Already resized (%sx%s)",
+            function() return uiComponent:Id() end,
+            widthToAdd,
+            heightToAdd,
+            sizePropertyName,
+            width,
+            height)
+
+        return false
+    end
+
+    self:resizeUIComponent(uiComponent, widthToAdd, heightToAdd)
+
+    width, height = uiComponent:Dimensions()
+    uiComponent:SetProperty(sizePropertyName, string.format("%sx%s", width, height))
+
+    logger:logDebug(
+        "resizeUIComponentOnce(%s, %s, %s, %s): COMPLETED => Resized (%sx%s)",
         function() return uiComponent:Id() end,
         widthToAdd,
         heightToAdd,
-        function() return table.concat(query, "/") end)
+        sizePropertyName,
+        width,
+        height)
+
+    return true
 end
 
 ---Sets the size of a UI component.
