@@ -32,6 +32,42 @@ function TotoWar__Gameplay:clearSavedValue(modName, key)
     logger:logDebug("clearSavedValue(%s, %s): COMPLETED", modName, key)
 end
 
+---Gets an army.
+---@param armyCqi integer Army command queue index.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE|nil
+function TotoWar__Gameplay:getArmy(armyCqi)
+    local army = cm:get_military_force_by_cqi(armyCqi)
+
+    if army == false then
+        logger:logDebug("getArmy(%s): NOT FOUND", armyCqi)
+
+        return nil
+    end
+
+    return army
+end
+
+---Gets the caption of an army: caption of its lord and of its faction.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@return string
+function TotoWar__Gameplay:getArmyCaption(army)
+    return string.format(
+        "%s from %s",
+        self:getArmyLordCaption(army),
+        self:getFactionCaption(army:faction():name()))
+end
+
+---Gets the caption of the lord of an army.
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@return string
+function TotoWar__Gameplay:getArmyLordCaption(army)
+    if not army:has_general() then
+        return "No lord"
+    end
+
+    return self:getCharacterCaption(army:general_character())
+end
+
 ---Gets a character.
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return CHARACTER_SCRIPT_INTERFACE|nil
@@ -84,42 +120,6 @@ end
 ---@return any
 function TotoWar__Gameplay:getMct()
     return core:get_static_object("mod_configuration_tool")
-end
-
----Gets an army.
----@param militaryForceCqi integer Army command queue index.
----@return MILITARY_FORCE_SCRIPT_INTERFACE|nil
-function TotoWar__Gameplay:getMilitaryForce(militaryForceCqi)
-    local militaryForce = cm:get_military_force_by_cqi(militaryForceCqi)
-
-    if militaryForce == false then
-        logger:logDebug("getMilitaryForce(%s): NOT FOUND", militaryForceCqi)
-
-        return nil
-    end
-
-    return militaryForce
-end
-
----Gets the caption of an army: caption of its general and of its faction.
----@param militaryForce MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@return string
-function TotoWar__Gameplay:getMilitaryForceCaption(militaryForce)
-    return string.format(
-        "%s from %s",
-        self:getMilitaryForceGeneralCaption(militaryForce),
-        self:getFactionCaption(militaryForce:faction():name()))
-end
-
----Gets the caption of the general of an army.
----@param militaryForce MILITARY_FORCE_SCRIPT_INTERFACE Army.
----@return string
-function TotoWar__Gameplay:getMilitaryForceGeneralCaption(militaryForce)
-    if not militaryForce:has_general() then
-        return "No general"
-    end
-
-    return self:getCharacterCaption(militaryForce:general_character())
 end
 
 ---Gets a value in the game state.

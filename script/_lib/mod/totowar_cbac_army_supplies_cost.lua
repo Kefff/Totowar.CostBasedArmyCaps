@@ -91,7 +91,7 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
         isAi,
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar__Gameplay:getMilitaryForceGeneralCaption(army) end)
+        function() return TotoWar__Gameplay:getArmyLordCaption(army) end)
 
     local characters = army:character_list()
 
@@ -125,7 +125,7 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
         isAi,
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar__Gameplay:getMilitaryForceGeneralCaption(army) end,
+        function() return TotoWar__Gameplay:getArmyLordCaption(army) end,
         #instance.unitArmySuppliesCosts,
         instance.totalCost,
         instance.availableSupplies)
