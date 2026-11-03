@@ -58,23 +58,89 @@ local function getLordInUnitExchangePoolCards(unitCards)
     return nil
 end
 
+---Reacts to the request to block an army of a player, or to allow it to move again, received by all the players of the game.
+---The request is sent by `updateSelectedLordMovement` on the machine of the player who owns the army.
+---The effect bundle that blocks the army is applied or removed here, on all the machines, so that the game stays synchronized.
+---@param factionCqi integer Command queue index of the faction of the player who sent the request.
+---@param dataString string Data of the event: `<army command queue index>|<1 to block the army, 0 to allow it to move>`.
+local function onArmyMovementUpdateRequested(factionCqi, dataString)
+    logger:logDebug("onArmyMovementUpdateRequested(%s, %s): STARTED", factionCqi, dataString)
+
+    local data = TotoWar__String:split(dataString, "|")
+    local armyCqi = tonumber(data[1])
+    local isBlocked = data[2] == "1"
+
+    ---@type MILITARY_FORCE_SCRIPT_INTERFACE | nil
+    local army = nil
+
+    if armyCqi ~= nil then
+        army = TotoWar__Gameplay:getArmy(armyCqi)
+    end
+
+    -- Ignoring a request that does not concern an army of the human player who sent it
+    if army == nil
+        or army:faction():command_queue_index() ~= factionCqi
+        or army:faction():is_human() == false
+    then
+        logger:logWarning(
+            "Request to block or unblock an army ignored, the army is not found in the faction of the player who sent it (data: %s)",
+            dataString)
+        logger:logDebug(
+            "onArmyMovementUpdateRequested(%s, %s): COMPLETED => Army not found in the faction of the sender",
+            factionCqi,
+            dataString)
+
+        return
+    end
+
+    local effectBundleKey = TotoWar_Cbac_Constant.armySuppliesExceededEffectBundleKey
+    local hasEffectBundle = army:has_effect_bundle(effectBundleKey)
+
+    -- The request may have been sent several times before being received: it is only applied once
+    if isBlocked and hasEffectBundle == false then
+        logger:logInfo(
+            "%s: army cannot move, army supplies exceeded",
+            function() return TotoWar__Gameplay:getArmyCaption(army) end)
+
+        cm:apply_effect_bundle_to_force(effectBundleKey, armyCqi, 0)
+    elseif isBlocked == false and hasEffectBundle then
+        logger:logInfo(
+            "%s: army can move again, army supplies no longer exceeded",
+            function() return TotoWar__Gameplay:getArmyCaption(army) end)
+
+        cm:remove_effect_bundle_from_force(effectBundleKey, armyCqi)
+    end
+
+    logger:logDebug(
+        "onArmyMovementUpdateRequested(%s, %s): COMPLETED => %s | Blocked: %s",
+        factionCqi,
+        dataString,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
+        isBlocked)
+end
+
 ---Reacts to the restriction of the player armies being disabled.
+---The armies of all the human players are processed, and not only those of the local player:
+---this method is executed on all the machines of the game, which must all make the same changes to stay synchronized.
 local function onPlayerArmySuppliesDisabled()
     logger:logDebug("onPlayerArmySuppliesDisabled(): STARTED")
 
     local effectBundleKey = TotoWar_Cbac_Constant.armySuppliesExceededEffectBundleKey
-    local armies = cm:get_local_faction(true):military_force_list()
 
-    -- Allowing the armies blocked by the mod to move again
-    for i = 0, armies:num_items() - 1, 1 do
-        local army = armies:item_at(i)
+    for index, factionKey in ipairs(cm:get_human_factions()) do
+        local armies = cm:get_faction(factionKey):military_force_list()
 
-        if army:has_effect_bundle(effectBundleKey) then
-            logger:logDebug(
-                "onPlayerArmySuppliesDisabled(): EFFECT BUNDLE REMOVED => %s",
-                function() return TotoWar__Gameplay:getArmyCaption(army) end)
+        -- Allowing the armies blocked by the mod to move again
+        for i = 0, armies:num_items() - 1, 1 do
+            local army = armies:item_at(i)
 
-            cm:remove_effect_bundle_from_force(effectBundleKey, army:command_queue_index())
+            if army:has_effect_bundle(effectBundleKey) then
+                logger:logDebug(
+                    "onPlayerArmySuppliesDisabled(): EFFECT BUNDLE REMOVED => %s",
+                    function() return TotoWar__Gameplay:getArmyCaption(army) end)
+
+                cm:remove_effect_bundle_from_force(effectBundleKey, army:command_queue_index())
+            end
         end
     end
 
@@ -913,10 +979,17 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                 and army:general_character():cqi() == self.selectedLord:cqi()
         end)
 
+    -- Received on all the machines, including the one of the player who sent the request
+    TotoWar__EventsManager:subscribeMultiplayer(
+        TotoWar_Cbac_Enum_MultiplayerEvents.armyMovementUpdateRequested,
+        function(factionCqi, dataString) onArmyMovementUpdateRequested(factionCqi, dataString) end,
+        function() return TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled end)
+
     logger:logDebug("subscribeToEvents(): COMPLETED")
 end
 
 ---Updates the ability to move of the army of the selected lord depending on its army supplies cost.
+---The update is requested to all the machines of the game, and made by `onArmyMovementUpdateRequested` when they receive the request.
 function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
     logger:logDebug(
         "updateSelectedLordMovement(): STARTED => %s | Available supplies: %s",
@@ -924,23 +997,24 @@ function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
         self.selectedLordArmySuppliesCost.availableSupplies)
 
     local army = self.selectedLord:military_force()
-    local effectBundleKey = TotoWar_Cbac_Constant.armySuppliesExceededEffectBundleKey
+    local isBlocked = self.selectedLordArmySuppliesCost.availableSupplies < 0
 
-    if self.selectedLordArmySuppliesCost.availableSupplies < 0 then
-        if army:has_effect_bundle(effectBundleKey) == false then
-            logger:logInfo(
-                "%s: army cannot move, army supplies exceeded by %s",
-                function() return TotoWar__Gameplay:getArmyCaption(army) end,
-                -self.selectedLordArmySuppliesCost.availableSupplies)
+    -- This method reacts to the interface of the local player (selection, clicks, recruitment), so changing the game
+    -- here would only change it on this machine and desynchronize a multiplayer game.
+    -- The decision is sent to all the machines, and onArmyMovementUpdateRequested applies or removes the effect bundle on each of them.
+    -- For example, when the player recruits a unit that exceeds the army supplies, the request "<army cqi>|1" is sent,
+    -- and the army is blocked on all the machines a fraction of a second later.
+    if army:has_effect_bundle(TotoWar_Cbac_Constant.armySuppliesExceededEffectBundleKey) ~= isBlocked then
+        logger:logDebug(
+            "updateSelectedLordMovement(): REQUEST SENT => %s | Available supplies: %s | Blocked: %s",
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            self.selectedLordArmySuppliesCost.availableSupplies,
+            isBlocked)
 
-            cm:apply_effect_bundle_to_force(effectBundleKey, army:command_queue_index(), 0)
-        end
-    elseif army:has_effect_bundle(effectBundleKey) then
-        logger:logInfo(
-            "%s: army can move again, army supplies no longer exceeded",
-            function() return TotoWar__Gameplay:getArmyCaption(army) end)
-
-        cm:remove_effect_bundle_from_force(effectBundleKey, army:command_queue_index())
+        TotoWar__EventsManager:triggerMultiplayer(
+            army:faction():command_queue_index(),
+            TotoWar_Cbac_Enum_MultiplayerEvents.armyMovementUpdateRequested,
+            string.format("%d|%d", army:command_queue_index(), isBlocked and 1 or 0))
     end
 
     logger:logDebug(

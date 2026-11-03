@@ -35,3 +35,13 @@ TotoWar_Cbac_Enum_ModEvents = {
     ---Event triggered when the army supplies cost changes due to units being selected for upgrade in the warband upgrade screen.
     warbandUpgradeArmySuppliesCostChanged = "TotoWar_Cbac_WarbandUpgradeArmySuppliesCostChanged"
 }
+
+---Multiplayer events of the mod, sent with `TotoWar__EventsManager:triggerMultiplayer` and received by all the players of the game.
+---@enum TotoWar_Cbac_Enum_MultiplayerEvents
+TotoWar_Cbac_Enum_MultiplayerEvents = {
+    ---Event sent when an army of a player must be blocked or allowed to move again, depending on its army supplies.
+    ---The decision is made on the machine of the player, from the army supplies displayed in the interface, and
+    ---the event makes all the machines apply it, so that the game stays synchronized.
+    ---Data: `<army command queue index>|<1 to block the army, 0 to allow it to move>`.
+    armyMovementUpdateRequested = "TotoWar_Cbac_ArmyMovementUpdateRequested"
+}

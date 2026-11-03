@@ -112,6 +112,20 @@ local function getMultiplayerEventDataString(event, fullDataString)
     return dataString
 end
 
+---Gets the caption of the faction from which a multiplayer event originates, for the logs.
+---The game and other mods also send multiplayer events, sometimes with a command queue index that matches no faction (0 for example).
+---@param factionCqi integer Command queue index passed in the multiplayer event.
+---@return string
+local function getMultiplayerEventOriginCaption(factionCqi)
+    local faction = TotoWar__Gameplay:getFaction(factionCqi)
+
+    if faction == nil then
+        return "No faction"
+    end
+
+    return TotoWar__Gameplay:getFactionFullCaption(faction)
+end
+
 ---Manager for events.
 ---@class TotoWar__EventsManager
 TotoWar__EventsManager = {
@@ -225,8 +239,8 @@ end
 
 ---Subscribes to a multiplayer event.
 ---@param event string Subscribed event.
----@param callbackFunction fun(dataString: string) Function executed when the subscribed event being triggered. `dataString` can be empty when no data is passed in the event.
----@param conditionFunction (fun(dataString: string): boolean)? Function for deciding whether the callback function should be triggered, when the event subscribed event is fired based on the event context. `dataString` can be empty when no data is passed in the event.
+---@param callbackFunction fun(factionCqi: integer, dataString: string) Function executed when the subscribed event being triggered. `factionCqi` is the faction command queue index passed by `triggerMultiplayer`. `dataString` can be empty when no data is passed in the event.
+---@param conditionFunction (fun(factionCqi: integer, dataString: string): boolean)? Function for deciding whether the callback function should be triggered, when the event subscribed event is fired based on the event context. `factionCqi` is the faction command queue index passed by `triggerMultiplayer`. `dataString` can be empty when no data is passed in the event.
 ---@param maximumExecutions integer? Maximum number of times the callback function will be executed when the subscribed event is triggered.
 ---@param priority integer? Priority that determines in which order event subscriptions to the same event are executed.
 ---@return TotoWar__EventSubscription
@@ -257,10 +271,10 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
+            function() return getMultiplayerEventOriginCaption(factionCqi) end,
             dataString)
 
-        callbackFunction(dataString)
+        callbackFunction(factionCqi, dataString)
 
         logger:logDebug(
             "subscribeMultiplayer(%s, callbackFunction, %s, %s, %s): CALLBACK COMPLETED => Origin: %s | Data: %s",
@@ -268,7 +282,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
+            function() return getMultiplayerEventOriginCaption(factionCqi) end,
             dataString)
     end
 
@@ -285,13 +299,13 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
+            function() return getMultiplayerEventOriginCaption(factionCqi) end,
             dataString)
 
         local result = false
 
         if dataString ~= nil then
-            result = conditionFunction == nil or conditionFunction(dataString)
+            result = conditionFunction == nil or conditionFunction(factionCqi, dataString)
         end
 
         logger:logDebug(
@@ -300,7 +314,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
+            function() return getMultiplayerEventOriginCaption(factionCqi) end,
             dataString,
             result)
 
@@ -363,7 +377,7 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
         factionCqi,
         event,
         dataString,
-        function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
+        function() return getMultiplayerEventOriginCaption(factionCqi) end)
 
     local fullDataString = event
 
@@ -381,7 +395,7 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
             factionCqi,
             event,
             dataString,
-            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
+            function() return getMultiplayerEventOriginCaption(factionCqi) end)
 
         return
     end
@@ -393,7 +407,7 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
         factionCqi,
         event,
         dataString,
-        function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
+        function() return getMultiplayerEventOriginCaption(factionCqi) end)
 end
 
 ---Cancels the specified event subscription.

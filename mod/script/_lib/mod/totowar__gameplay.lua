@@ -138,10 +138,17 @@ end
 
 ---Gets a faction.
 ---@param factionCqi integer Faction command queue index.
+---@return FACTION_SCRIPT_INTERFACE | nil # Faction, or nil when no faction has this command queue index.
 function TotoWar__Gameplay:getFaction(factionCqi)
     logger:logDebug("getFaction(%s): STARTED", factionCqi)
 
     local faction = cm:model():faction_for_command_queue_index(factionCqi)
+
+    if faction:is_null_interface() then
+        logger:logDebug("getFaction(%s): COMPLETED => Not found", factionCqi)
+
+        return nil
+    end
 
     logger:logDebug(
         "getFaction(%s): COMPLETED => %s",
