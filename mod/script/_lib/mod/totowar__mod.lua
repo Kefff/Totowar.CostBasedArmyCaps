@@ -1,4 +1,4 @@
-local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.mod)
 
 ---Allows to programatically overwrite option values for local debug purpose.
 local function overwriteOptionsForDebug()

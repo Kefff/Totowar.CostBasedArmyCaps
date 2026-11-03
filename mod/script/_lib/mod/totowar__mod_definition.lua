@@ -1,4 +1,4 @@
-local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.modDefinition)
 
 ---TotoWar mod definition.
 ---@class TotoWar__ModDefinition

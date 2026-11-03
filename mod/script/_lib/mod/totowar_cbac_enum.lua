@@ -9,13 +9,15 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
     warMachines = "warMachines"
 }
 
----Log categories of the mod.
+---Log categories of the mod: one per file, named after the class of the file.
 ---@enum TotoWar_Cbac_Enum_LogCategories
 TotoWar_Cbac_Enum_LogCategories = {
     aiManager = "TotoWar_Cbac_AiManager",
     armySuppliesCost = "TotoWar_Cbac_ArmySuppliesCost",
+    mod = "TotoWar_Cbac_Mod",
     playerManager = "TotoWar_Cbac_PlayerManager",
-    uiManager = "TotoWar_Cbac_UIManager"
+    uiManager = "TotoWar_Cbac_UIManager",
+    unitArmySuppliesCost = "TotoWar_Cbac_UnitArmySuppliesCost"
 }
 
 ---Events triggered by the mod.

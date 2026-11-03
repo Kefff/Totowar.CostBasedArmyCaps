@@ -123,11 +123,14 @@ TotoWar__Enum_GameEvents = {
     unitUpgraded = "UnitUpgraded"
 }
 
----Log categories of the TotoWar base mod.
+---Log categories of the TotoWar base mod: one per file, named after the class of the file.
 ---@enum TotoWar__Enum_LogCategories
 TotoWar__Enum_LogCategories = {
     eventsManager = "TotoWar__EventsManager",
-    generic = "TotoWar__Generic",
+    eventSubscription = "TotoWar__EventSubscription",
+    gameplay = "TotoWar__Gameplay",
+    mod = "TotoWar__Mod",
+    modDefinition = "TotoWar__ModDefinition",
     modsManager = "TotoWar__ModsManager",
     ui = "TotoWar__UI",
     utils = "TotoWar__Utils"

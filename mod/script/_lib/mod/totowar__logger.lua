@@ -61,7 +61,7 @@ local function write(logger, severity, message, ...)
     local fullLog = string.format(
         "%s | %s | %s | %s",
         os.date("%Y-%m-%d %H:%M:%S"),
-        TotoWar__String:padRight(logger.category, 30),
+        TotoWar__String:padRight(logger.category, 33),
         TotoWar__String:padRight(severity, 5),
         message)
 

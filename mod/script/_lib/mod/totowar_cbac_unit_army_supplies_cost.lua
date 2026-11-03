@@ -1,4 +1,4 @@
-local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.armySuppliesCost)
+local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.unitArmySuppliesCost)
 
 ---Army composition unit categories by key of parent unit group (ui_unit_group_parents table).
 ---Lords and heroes (`commander` and `heroes_agents` groups) are categorized from their character.

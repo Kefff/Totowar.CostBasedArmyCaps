@@ -1,4 +1,4 @@
-local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.utils)
 
 ---Executes a delayed function and logs its errors, which would otherwise be lost.
 ---@param callback fun() Delayed function.

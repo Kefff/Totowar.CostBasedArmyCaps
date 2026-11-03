@@ -1,6 +1,6 @@
 require("script._lib.mod.totowar__logger")
 
-local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.eventsManager)
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.eventSubscription)
 
 ---Event subscription.
 ---@class TotoWar__EventSubscription

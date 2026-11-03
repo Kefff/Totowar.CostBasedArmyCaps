@@ -1,6 +1,6 @@
 require("script._lib.mod.totowar__logger")
 
-local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.utils)
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.gameplay)
 
 ---Utility tools for TotoWar mods.
 ---@class TotoWar__Gameplay
