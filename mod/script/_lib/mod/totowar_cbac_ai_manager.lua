@@ -6,16 +6,30 @@ local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.aiManager)
 ---@param armyCqi integer Army command queue index.
 ---@return { composition: table<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer> | nil, lastAdjustmentTurn: integer | nil } | nil
 local function getAiArmyData(armyCqi)
-    ---@diagnostic disable-next-line: return-type-mismatch
-    return TotoWar__Gameplay:getSavedValue(
+    logger:logDebug("getAiArmyData(%s): STARTED", armyCqi)
+
+    local aiArmyData = TotoWar__Gameplay:getSavedValue(
         TotoWar_Cbac_Constant.modName,
         string.format(TotoWar_Cbac_Constant.storageKeyFormatAiArmy, armyCqi))
+
+    logger:logDebug(
+        "getAiArmyData(%s): COMPLETED => Found: %s",
+        armyCqi,
+        aiArmyData ~= nil)
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return aiArmyData
 end
 
 ---Stores the data of an AI army (target composition and last adjustment turn).
 ---@param armyCqi integer Army command queue index.
 ---@param aiArmyData table | nil Data of the army, or nil to remove it.
 local function setAiArmyData(armyCqi, aiArmyData)
+    logger:logDebug(
+        "setAiArmyData(%s, aiArmyData): STARTED => Cleared: %s",
+        armyCqi,
+        aiArmyData == nil)
+
     local key = string.format(TotoWar_Cbac_Constant.storageKeyFormatAiArmy, armyCqi)
 
     if aiArmyData == nil then
@@ -23,6 +37,11 @@ local function setAiArmyData(armyCqi, aiArmyData)
     else
         TotoWar__Gameplay:saveValue(TotoWar_Cbac_Constant.modName, key, aiArmyData)
     end
+
+    logger:logDebug(
+        "setAiArmyData(%s, aiArmyData): COMPLETED => Cleared: %s",
+        armyCqi,
+        aiArmyData == nil)
 end
 
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
@@ -1077,11 +1096,19 @@ end
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return boolean
 local function isManagedAiArmy(army)
-    return
+    logger:logDebug("isManagedAiArmy(army): STARTED")
+
+    local isManaged =
         army ~= nil
         and not army:is_null_interface()
         and not army:faction():is_human()
         and TotoWar__Gameplay:canRecruitUnits(army)
+
+    logger:logDebug(
+        "isManagedAiArmy(army): COMPLETED => Managed: %s",
+        isManaged)
+
+    return isManaged
 end
 
 ---Reacts to an army being created by an AI faction.

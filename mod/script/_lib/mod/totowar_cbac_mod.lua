@@ -50,12 +50,15 @@ end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
 function TotoWar_Cbac_Mod:loadMctOptions()
+    logger:logDebug("TotoWar_Cbac_Mod:loadMctOptions(): STARTED")
+
     local mct = TotoWar__Gameplay:getMct()
 
     if mct == nil then
         logger:logInfo(
             "Mod Configuration Tool not installed: \"%s\" uses its default options",
             TotoWar_Cbac_Constant.modCaption)
+        logger:logDebug("TotoWar_Cbac_Mod:loadMctOptions(): COMPLETED => Mod Configuration Tool not installed")
 
         return
     end
@@ -109,6 +112,7 @@ function TotoWar_Cbac_Mod:loadMctOptions()
         TotoWar_Cbac_Constant.modCaption,
         self.options.playerArmySuppliesEnabled,
         self.options.aiArmySuppliesEnabled)
+    logger:logDebug("TotoWar_Cbac_Mod:loadMctOptions(): COMPLETED")
 end
 
 ---Reacts to MCT options being updated.

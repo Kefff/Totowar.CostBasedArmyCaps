@@ -60,10 +60,13 @@ end
 
 ---Loads option values stored by the Mod Configuration Tool if it is installed.
 function TotoWar__Mod:loadMctOptions()
+    logger:logDebug("TotoWar__Mod:loadMctOptions(): STARTED")
+
     local mct = TotoWar__Gameplay:getMct()
 
     if mct == nil then
         logger:logInfo("Mod Configuration Tool not installed: TotoWar uses its default options")
+        logger:logDebug("TotoWar__Mod:loadMctOptions(): COMPLETED => Mod Configuration Tool not installed")
 
         return
     end
@@ -93,11 +96,17 @@ function TotoWar__Mod:loadMctOptions()
 
     -- Signaling option changes
     TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
+
+    logger:logDebug("TotoWar__Mod:loadMctOptions(): COMPLETED")
 end
 
 ---Reacts to the start of the turn of a faction.
 function TotoWar__Mod:onFactionTurnStart()
+    logger:logDebug("TotoWar__Mod:onFactionTurnStart(): STARTED")
+
     if cm:turn_number() == self.turnNumber then
+        logger:logDebug("TotoWar__Mod:onFactionTurnStart(): COMPLETED => Turn already started")
+
         return
     end
 
@@ -111,6 +120,8 @@ function TotoWar__Mod:onFactionTurnStart()
     if self.options.mapRevealed then
         self:updateMapShroud()
     end
+
+    logger:logDebug("TotoWar__Mod:onFactionTurnStart(): COMPLETED")
 end
 
 ---Reacts to MCT options being updated.

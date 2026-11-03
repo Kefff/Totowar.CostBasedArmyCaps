@@ -48,26 +48,22 @@ function TotoWar__String:padRight(text, length, paddingCharacter)
     return text
 end
 
----Splits a text on a separator.
+---Splits a text on a separator character.
 ---@param text string Text.
----@param separator string Separator, as plain text (not a pattern).
----@return string[]
+---@param separator string Separator, a single character.
+---@return string[] # Parts of the text, empty parts excluded.
 function TotoWar__String:split(text, separator)
+    -- The game replaces string.find and string.sub with its own implementations, which support UTF-8 strings
+    -- but not all the parameters of the Lua implementations (see lib_lua_extensions.lua). For example,
+    -- string.find does not support the "plain" parameter. string.gmatch is not replaced, so it is used here.
     local parts = {}
-    local partStart = 1
+    local escapedSeparator = string.gsub(separator, "%p", "%%%0")
 
-    while true do
-        local separatorStart, separatorEnd = string.find(text, separator, partStart, true)
-
-        if separatorStart == nil then
-            table.insert(parts, string.sub(text, partStart))
-
-            return parts
-        end
-
-        table.insert(parts, string.sub(text, partStart, separatorStart - 1))
-        partStart = separatorEnd + 1
+    for part in string.gmatch(text, "[^" .. escapedSeparator .. "]+") do
+        table.insert(parts, part)
     end
+
+    return parts
 end
 
 ---Indicates whether a text starts with another text.

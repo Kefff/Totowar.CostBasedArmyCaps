@@ -24,6 +24,8 @@ local _unitCategoriesByUnitKey = {}
 ---@param unitKey string Unit key.
 ---@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
 local function getUnitArmyCompositionUnitType(unitKey)
+    logger:logDebug("getUnitArmyCompositionUnitType(%s): STARTED", unitKey)
+
     local armyCompositionUnitType = _unitCategoriesByUnitKey[unitKey]
 
     if armyCompositionUnitType == nil then
@@ -48,6 +50,11 @@ local function getUnitArmyCompositionUnitType(unitKey)
 
         _unitCategoriesByUnitKey[unitKey] = armyCompositionUnitType
     end
+
+    logger:logDebug(
+        "getUnitArmyCompositionUnitType(%s): COMPLETED => Category: %s",
+        unitKey,
+        armyCompositionUnitType)
 
     return armyCompositionUnitType
 end
@@ -90,6 +97,8 @@ TotoWar_Cbac_UnitArmySuppliesCost.__index = TotoWar_Cbac_UnitArmySuppliesCost
 ---@param characterCqi integer Command queue index of the character.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost | nil
 function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
+    logger:logDebug("newCharacter(%s): STARTED", characterCqi)
+
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
 
     local unitKey = common.get_context_value(
@@ -128,6 +137,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
                     TotoWar__Gameplay:getFactionCaption(character:faction():name()))
             end,
             function() return character ~= nil and TotoWar__Gameplay:getCharacterCaption(character) or characterCqi end)
+        logger:logDebug("newCharacter(%s): COMPLETED => Unit not found", characterCqi)
 
         return nil
     end
@@ -178,6 +188,13 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero
     end
 
+    logger:logDebug(
+        "newCharacter(%s): COMPLETED => Unit: %s | Cost: %s | Category: %s",
+        characterCqi,
+        instance.unitKey,
+        instance.armySuppliesCost,
+        instance.unitCategory)
+
     return instance
 end
 
@@ -187,6 +204,11 @@ end
 ---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
+    logger:logDebug(
+        "newUnit(%s, %s, unit): STARTED",
+        unitKey,
+        unitCqi)
+
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
     instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
     instance.baseUnitKey = common.get_context_value(
@@ -197,6 +219,13 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
 
+    logger:logDebug(
+        "newUnit(%s, %s, unit): COMPLETED => Cost: %s | Category: %s",
+        unitKey,
+        unitCqi,
+        instance.armySuppliesCost,
+        instance.unitCategory)
+
     return instance
 end
 
@@ -206,6 +235,8 @@ end
 ---@param findUnit (fun(): UNIT_SCRIPT_INTERFACE | nil) | nil Function returning the unit, called only when its recruitment cost is negative.
 ---@return integer
 function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
+    logger:logDebug("getUnitCost(%s, findUnit): STARTED", unitKey)
+
     ---@type integer | nil
     local cost = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
@@ -221,11 +252,17 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
             "%s (%s): recruitment cost not found, not counted in army supplies",
             TotoWar__Gameplay:getUnitCaption(unitKey),
             unitKey)
+        logger:logDebug("getUnitCost(%s, findUnit): COMPLETED => Cost: 0 (recruitment cost not found)", unitKey)
 
         return 0
     end
 
     if cost >= 0 then
+        logger:logDebug(
+            "getUnitCost(%s, findUnit): COMPLETED => Cost: %s",
+            unitKey,
+            cost)
+
         return cost
     end
 
@@ -241,6 +278,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
             "%s: invalid recruitment cost (%s), not counted in army supplies (custom battle cost only readable in an army)",
             TotoWar__Gameplay:getUnitCaption(unitKey),
             cost)
+        logger:logDebug("getUnitCost(%s, findUnit): COMPLETED => Cost: 0 (invalid recruitment cost)", unitKey)
 
         return 0
     end
@@ -252,6 +290,10 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
         function() return TotoWar__Gameplay:getArmyCaption(unit:military_force()) end,
         TotoWar__Gameplay:getUnitCaption(unitKey),
         cost,
+        customBattleCost)
+    logger:logDebug(
+        "getUnitCost(%s, findUnit): COMPLETED => Cost: %s (custom battle cost)",
+        unitKey,
         customBattleCost)
 
     return customBattleCost

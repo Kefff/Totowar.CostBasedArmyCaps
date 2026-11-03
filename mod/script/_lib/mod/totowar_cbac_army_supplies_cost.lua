@@ -6,6 +6,10 @@ local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.armySuppliesC
 ---@param unitArmySuppliesCost TotoWar_Cbac_UnitArmySuppliesCost Army supplies cost of the unit.
 ---@return string
 local function toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
+    logger:logDebug(
+        "toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost): STARTED => Unit: %s",
+        unitArmySuppliesCost.unitKey)
+
     ---@type string
     local tooltipText
 
@@ -16,6 +20,10 @@ local function toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
 
         if character == nil then
             -- This can happen sometimes. The may have been killed during the time elapsed the recruitment of a unit and the execution of the callback.
+            logger:logDebug(
+                "toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost): COMPLETED => Unit: %s | Character not found",
+                unitArmySuppliesCost.unitKey)
+
             return ''
         end
 
@@ -39,6 +47,10 @@ local function toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost)
             TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey),
             unitArmySuppliesCost.armySuppliesCost)
     end
+
+    logger:logDebug(
+        "toUnitArmySuppliesCostTooltipText(unitArmySuppliesCost): COMPLETED => Unit: %s",
+        unitArmySuppliesCost.unitKey)
 
     return tooltipText
 end
@@ -177,6 +189,8 @@ end
 ---Adds a unit to the army supplies cost.
 ---@param characterCqi integer Command queue index of the character.
 function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
+    logger:logDebug("addCharacter(%s): STARTED", characterCqi)
+
     local unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if unitArmySuppliesCost ~= nil then
@@ -185,6 +199,12 @@ function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
         self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
         self.availableSupplies = self.totalArmySupplies - self.totalCost
     end
+
+    logger:logDebug(
+        "addCharacter(%s): COMPLETED => Total cost: %s | Available supplies: %s",
+        characterCqi,
+        self.totalCost,
+        self.availableSupplies)
 end
 
 ---Adds a unit to the army supplies cost.
@@ -193,6 +213,12 @@ end
 ---@param isInRecruitmentMercenary boolean? Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
 ---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
 function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary, unit)
+    logger:logDebug(
+        "addUnit(%s, %s, %s, unit): STARTED",
+        unitKey,
+        unitCqi,
+        isInRecruitmentMercenary)
+
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
     end
@@ -210,6 +236,14 @@ function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitment
 
     self.totalCost = self.totalCost + unitArmySuppliesCost.armySuppliesCost
     self.availableSupplies = self.totalArmySupplies - self.totalCost
+
+    logger:logDebug(
+        "addUnit(%s, %s, %s, unit): COMPLETED => Total cost: %s | Available supplies: %s",
+        unitKey,
+        unitCqi,
+        isInRecruitmentMercenary,
+        self.totalCost,
+        self.availableSupplies)
 end
 
 ---Clears the list of in-recruitment mercenary units supply costs.
@@ -332,6 +366,10 @@ end
 ---
 ---Unit category order : Lord, Hero, Melee Infantry, Ranged Infantry, Cavalry & Monsters, War machines
 function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
+    logger:logDebug(
+        "sortUnitArmySuppliesCost(): STARTED => Units: %s",
+        #self.unitArmySuppliesCosts)
+
     local categoryPriority = {
         [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord] = 1,
         [TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero] = 2,
@@ -378,11 +416,20 @@ function TotoWar_Cbac_ArmySuppliesCost:sortUnitArmySuppliesCost()
             return tostring(item1.unitKey) < tostring(item2.unitKey)
         end
     )
+
+    logger:logDebug(
+        "sortUnitArmySuppliesCost(): COMPLETED => Units: %s",
+        #self.unitArmySuppliesCosts)
 end
 
 ---Gets the list of unit army supplies costs as a tooltip string.
 ---@return string
 function TotoWar_Cbac_ArmySuppliesCost:toArmySuppliesCostTooltipText()
+    logger:logDebug(
+        "toArmySuppliesCostTooltipText(): STARTED => Units: %s | Mercenaries being recruited: %s",
+        #self.unitArmySuppliesCosts,
+        #self.inRecruitmentMercenaryUnits)
+
     local unitsArmySuppliesCostTooltipText = ""
 
     self:sortUnitArmySuppliesCost() -- Sorting groups by category, price and and caption
@@ -419,6 +466,11 @@ function TotoWar_Cbac_ArmySuppliesCost:toArmySuppliesCostTooltipText()
         availableArmySuppliesString,
         depletedArmySuppliesWarning,
         unitsArmySuppliesCostTooltipText)
+
+    logger:logDebug(
+        "toArmySuppliesCostTooltipText(): COMPLETED => Units: %s | Mercenaries being recruited: %s",
+        #self.unitArmySuppliesCosts,
+        #self.inRecruitmentMercenaryUnits)
 
     return tooltipText
 end

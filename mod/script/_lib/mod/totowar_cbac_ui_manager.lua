@@ -53,12 +53,20 @@ local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui
 ---Creates the army supplies UI component and registers it as a child of a parent component.
 ---@param parentUIComponent UIC Parent UI component.
 local function createArmySuppliesUIComponent(parentUIComponent)
+    logger:logDebug(
+        "createArmySuppliesUIComponent(%s): STARTED",
+        function() return parentUIComponent:Id() end)
+
     local uiComponentAddress = parentUIComponent:CreateComponent(
         _armySuppliesUIComponentName,
         _unitArmySuppliesUIComponentTemplate)
     local armySuppliesUIComponent = UIComponent(uiComponentAddress)
     armySuppliesUIComponent:SetImagePath(_armySuppliesIconPath, 1, false)
     parentUIComponent:Adopt(uiComponentAddress)
+
+    logger:logDebug(
+        "createArmySuppliesUIComponent(%s): COMPLETED",
+        function() return parentUIComponent:Id() end)
 
     return armySuppliesUIComponent
 end
@@ -123,6 +131,10 @@ end
 ---Gets the text representing an army supplies cost.
 ---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost.
 local function getArmySuppliesCostText(armySuppliesCost)
+    logger:logDebug(
+        "getArmySuppliesCostText(armySuppliesCost): STARTED => Available supplies: %s",
+        armySuppliesCost.availableSupplies)
+
     ---@type string
     local armySuppliesCostText
 
@@ -135,6 +147,11 @@ local function getArmySuppliesCostText(armySuppliesCost)
     else
         armySuppliesCostText = tostring(armySuppliesCost.availableSupplies)
     end
+
+    logger:logDebug(
+        "getArmySuppliesCostText(armySuppliesCost): COMPLETED => Available supplies: %s | Text: %s",
+        armySuppliesCost.availableSupplies,
+        armySuppliesCostText)
 
     return armySuppliesCostText
 end
@@ -295,6 +312,10 @@ end
 ---Updates the army supplies cost of a recruitable unit card.
 ---@param unitCardUIComponent UIC Unit card UI component.
 local function updateRecruitableUnitCard(unitCardUIComponent)
+    logger:logDebug(
+        "updateRecruitableUnitCard(%s): STARTED",
+        function() return unitCardUIComponent:Id() end)
+
     local unitContext = TotoWar__UI:getUIComponentCCO(
         unitCardUIComponent,
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
@@ -357,6 +378,11 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
     if armySuppliesCostUIComponent ~= nil then
         armySuppliesCostUIComponent:SetText(unitCostText, "")
     end
+
+    logger:logDebug(
+        "updateRecruitableUnitCard(%s): COMPLETED => Cost: %s",
+        function() return unitCardUIComponent:Id() end,
+        unitCost)
 end
 
 ---Updates the army supplies cost of a list of recruitable unit cards.

@@ -3,6 +3,8 @@ local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.generic)
 ---Executes a delayed function and logs its errors, which would otherwise be lost.
 ---@param callback fun() Delayed function.
 local function executeDelayedCallback(callback)
+    logger:logDebug("executeDelayedCallback(callback): STARTED")
+
     xpcall(
         function() callback() end,
         function(error)
@@ -11,6 +13,8 @@ local function executeDelayedCallback(callback)
                 "An error occurred while executing a delayed action of the mod:\n%s",
                 stacktrace)
         end)
+
+    logger:logDebug("executeDelayedCallback(callback): COMPLETED")
 end
 
 ---Utility functions for TotoWar mods.
@@ -26,7 +30,11 @@ TotoWar__Utils.__index = TotoWar__Utils
 ---@param callback fun() Function to execute with a delay.
 ---@param delay number Delay in seconds. A delay of 0 or less executes the function immediately.
 function TotoWar__Utils:delay(callback, delay)
+    logger:logDebug("delay(callback, %s): STARTED", delay)
+
     cm:callback(function() executeDelayedCallback(callback) end, delay)
+
+    logger:logDebug("delay(callback, %s): COMPLETED", delay)
 end
 
 ---Executes a function after a delay in real time.
@@ -37,5 +45,9 @@ end
 ---@param callback fun() Function to execute with a delay.
 ---@param delay integer Delay in milliseconds. A delay of 1 executes the function at the next UI update, a delay of 0 or less immediately.
 function TotoWar__Utils:delayInRealTime(callback, delay)
+    logger:logDebug("delayInRealTime(callback, %s): STARTED", delay)
+
     core:get_tm():real_callback(function() executeDelayedCallback(callback) end, delay)
+
+    logger:logDebug("delayInRealTime(callback, %s): COMPLETED", delay)
 end

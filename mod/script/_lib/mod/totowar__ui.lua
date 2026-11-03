@@ -26,7 +26,14 @@ TotoWar__UI.__index = TotoWar__UI
 ---@param query string Query to the UI component from the root: names of the UI components separated by "/".
 ---@return UIC | nil
 function TotoWar__UI:findUIComponent(query)
+    logger:logDebug("findUIComponent(%s): STARTED", query)
+
     local childUIComponent = self:findUIComponentChild(core:get_ui_root(), query)
+
+    logger:logDebug(
+        "findUIComponent(%s): COMPLETED => Found: %s",
+        query,
+        childUIComponent ~= nil)
 
     return childUIComponent
 end
@@ -66,6 +73,8 @@ end
 ---@param query string Query to the UI component from the root: names of the UI components separated by "/".
 ---@return UIC
 function TotoWar__UI:getUIComponent(query)
+    logger:logDebug("getUIComponent(%s): STARTED", query)
+
     local uiComponent = self:findUIComponent(query)
 
     if uiComponent == nil then
@@ -73,6 +82,11 @@ function TotoWar__UI:getUIComponent(query)
             "Game interface: %s not found, army supplies may not be displayed correctly",
             query)
     end
+
+    logger:logDebug(
+        "getUIComponent(%s): COMPLETED => Found: %s",
+        query,
+        uiComponent ~= nil)
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return uiComponent
@@ -113,6 +127,11 @@ end
 ---@param query string Query to the UI component from the parent UI component: names of the UI components separated by "/".
 ---@return UIC
 function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
+    logger:logDebug(
+        "getUIComponentChild(%s, %s): STARTED",
+        function() return parentUIComponent:Id() end,
+        query)
+
     local uiComponent = self:findUIComponentChild(parentUIComponent, query)
 
     if uiComponent == nil then
@@ -121,6 +140,12 @@ function TotoWar__UI:getUIComponentChild(parentUIComponent, query)
             parentUIComponent:Id(),
             query)
     end
+
+    logger:logDebug(
+        "getUIComponentChild(%s, %s): COMPLETED => Found: %s",
+        function() return parentUIComponent:Id() end,
+        query,
+        uiComponent ~= nil)
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return uiComponent
@@ -299,6 +324,13 @@ end
 ---@param sizePropertyName string Name of the property that stores the size reached (one per mod to avoid conflicts).
 ---@return boolean # `true` when the UI component has been resized.
 function TotoWar__UI:resizeUIComponentOnce(uiComponent, widthToAdd, heightToAdd, sizePropertyName)
+    logger:logDebug(
+        "resizeUIComponentOnce(%s, %s, %s, %s): STARTED",
+        function() return uiComponent:Id() end,
+        widthToAdd,
+        heightToAdd,
+        sizePropertyName)
+
     local width, height = uiComponent:Dimensions()
 
     if tostring(uiComponent:GetProperty(sizePropertyName)) == string.format("%sx%s", width, height) then
