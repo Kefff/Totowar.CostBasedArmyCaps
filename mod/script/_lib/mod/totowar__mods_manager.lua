@@ -19,7 +19,7 @@ function TotoWar__ModsManager:findMod(modName)
     for i, mod in ipairs(self.mods) do
         if mod.name == modName then
             logger:logDebug(
-                "findMod(%s): COMPLETED",
+                "findMod(%s): COMPLETED => Found",
                 modName)
 
             return mod
@@ -27,7 +27,7 @@ function TotoWar__ModsManager:findMod(modName)
     end
 
     logger:logDebug(
-        "findMod(%s): NOT FOUND",
+        "findMod(%s): COMPLETED => Not found",
         modName)
 
     return nil
@@ -50,6 +50,9 @@ function TotoWar__ModsManager:getMod(modName)
             modName)
     else
         logger:logError("%s: TotoWar mod not found", modName)
+        logger:logDebug(
+            "getMod(%s): COMPLETED => Not found",
+            modName)
     end
 
     ---@diagnostic disable-next-line: return-type-mismatch

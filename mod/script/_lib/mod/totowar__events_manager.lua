@@ -348,6 +348,12 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
         logger:logError(
             "A message to synchronize the players of the multiplayer game could not be sent because it is too long: \"%s\"",
             fullDataString)
+        logger:logDebug(
+            "triggerMultiplayer(%s, %s, %s): COMPLETED => %s | Not sent, message too long",
+            factionCqi,
+            event,
+            dataString,
+            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
 
         return
     end

@@ -296,6 +296,10 @@ function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
         logger:logError(
             "%s: character not counted in army supplies, not removed",
             characterCaption)
+        logger:logDebug(
+            "removeCharacter(%s): COMPLETED => %s | Not counted, not removed",
+            characterCqi,
+            characterCaption)
 
         return
     end
@@ -343,6 +347,9 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
                 "Mercenary recruitment: unit at position %s not counted, not removed (%s mercenaries counted)",
                 index,
                 #self.inRecruitmentMercenaryUnits)
+            logger:logDebug(
+                "removeUnit(%s): COMPLETED => Mercenary not counted, not removed",
+                unitKey)
 
             return nil
         end

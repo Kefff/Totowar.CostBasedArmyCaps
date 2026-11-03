@@ -51,6 +51,9 @@ local function getLordInUnitExchangePoolCards(unitCards)
     end
 
     logger:logError("Unit exchange: lord of one of the armies not found, its army supplies not displayed")
+    logger:logDebug(
+        "getLordInUnitExchangePoolCards(unitCards): COMPLETED => Unit cards: %s | Lord not found",
+        #unitCards)
 
     return nil
 end
@@ -461,13 +464,15 @@ end
 
 ---Reacts to the army supplies cost of the selected lord changing.
 function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
-    if self.selectedLord == nil then
-        return
-    end
-
     logger:logDebug(
         "onSelectedLordArmySuppliesCostChanged(): STARTED => %s",
         function() return self.selectedLord ~= nil and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) or "No selected lord" end)
+
+    if self.selectedLord == nil then
+        logger:logDebug("onSelectedLordArmySuppliesCostChanged(): COMPLETED => No selected lord")
+
+        return
+    end
 
     local needsSelectedLordMovementUpdate = true
 
@@ -1006,6 +1011,9 @@ function TotoWar_Cbac_PlayerManager:updateWarbandUpgradeArmySupplies()
     if objectContextId == nil then
         logger:logWarning(
             "Warband upgrade: unit to upgrade not found, army supplies after the upgrade not displayed")
+        logger:logDebug(
+            "updateWarbandUpgradeArmySupplies(): COMPLETED => %s | Not calculated, unit to upgrade not found",
+            function() return self.selectedLord ~= nil and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) or "No selected lord" end)
 
         return
     end

@@ -44,7 +44,7 @@ end
 ---@return UIC | nil
 function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     logger:logDebug(
-        "findUIComponentChild(%s/%s): STARTED",
+        "findUIComponentChild(%s, %s): STARTED",
         function() return parentUIComponent:Id() end,
         query)
 
@@ -52,7 +52,7 @@ function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
 
     if uiComponent == false then
         logger:logDebug(
-            "findUIComponentChild(%s/%s): NOT FOUND",
+            "findUIComponentChild(%s, %s): COMPLETED => Not found",
             function() return parentUIComponent:Id() end,
             query)
 
@@ -60,7 +60,7 @@ function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     end
 
     logger:logDebug(
-        "findUIComponentChild(%s/%s): COMPLETED => %s",
+        "findUIComponentChild(%s, %s): COMPLETED => Found: %s",
         function() return parentUIComponent:Id() end,
         query,
         function() return uiComponent:Id() end)

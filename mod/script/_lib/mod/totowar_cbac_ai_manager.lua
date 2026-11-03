@@ -81,10 +81,6 @@ local function adjustAiArmyCompositionAndUnits(
     unitCategoryExcessCounts,
     unitsToDiscard
 )
-    if armySuppliesCost.availableSupplies >= 0 then
-        return
-    end
-
     logger:logDebug(
         "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): STARTED => %s | Total cost: %s | Available supplies: %s",
         function() return army:command_queue_index() end,
@@ -92,6 +88,18 @@ local function adjustAiArmyCompositionAndUnits(
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         armySuppliesCost.totalCost,
         armySuppliesCost.availableSupplies)
+
+    if armySuppliesCost.availableSupplies >= 0 then
+        logger:logDebug(
+            "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): COMPLETED => %s | Total cost: %s | Available supplies: %s | Army supplies not exceeded",
+            function() return army:command_queue_index() end,
+            targetArmySize,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            armySuppliesCost.totalCost,
+            armySuppliesCost.availableSupplies)
+
+        return
+    end
 
     local removableUnits = TotoWar__Linq:where(
         armySuppliesCost.unitArmySuppliesCosts,
@@ -102,6 +110,14 @@ local function adjustAiArmyCompositionAndUnits(
         end)
 
     if #removableUnits == 0 then
+        logger:logDebug(
+            "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): COMPLETED => %s | Total cost: %s | Available supplies: %s | No removable unit",
+            function() return army:command_queue_index() end,
+            targetArmySize,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            armySuppliesCost.totalCost,
+            armySuppliesCost.availableSupplies)
+
         return
     end
 
@@ -539,16 +555,6 @@ end
 ---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army. Updated if heroes are removed.
 ---@param herosInExcess integer Amount of heroes that exceed the limit.
 local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
-    local heroes = TotoWar__Linq:where(
-        armySuppliesCost.unitArmySuppliesCosts,
-        function(uasc) return uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero end)
-
-    if herosInExcess == 0 then
-        return
-    end
-
-    local lord = army:general_character()
-
     logger:logDebug(
         "adjustAiArmyHeroes(%s, armySuppliesCost, %s): STARTED => %s | Total cost: %s | Available supplies: %s | Army size: %s",
         function() return army:command_queue_index() end,
@@ -557,6 +563,25 @@ local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
         armySuppliesCost.totalCost,
         armySuppliesCost.availableSupplies,
         #armySuppliesCost.unitArmySuppliesCosts)
+
+    local heroes = TotoWar__Linq:where(
+        armySuppliesCost.unitArmySuppliesCosts,
+        function(uasc) return uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero end)
+
+    if herosInExcess == 0 then
+        logger:logDebug(
+            "adjustAiArmyHeroes(%s, armySuppliesCost, %s): COMPLETED => %s | Total cost: %s | Available supplies: %s | Army size: %s | No hero in excess",
+            function() return army:command_queue_index() end,
+            herosInExcess,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            armySuppliesCost.totalCost,
+            armySuppliesCost.availableSupplies,
+            #armySuppliesCost.unitArmySuppliesCosts)
+
+        return
+    end
+
+    local lord = army:general_character()
 
     while herosInExcess > 0 do
         -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
@@ -1038,19 +1063,36 @@ end
 local function adjustAiArmy(armyCqi)
     local army = TotoWar__Gameplay:getArmy(armyCqi)
 
+    logger:logDebug(
+        "adjustAiArmy(%s): STARTED => %s",
+        armyCqi,
+        function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
+
     if army == nil or not army:has_general() then
         -- The army may have been destroyed between the recruitment of a unit and the execution of the callback
+        logger:logDebug(
+            "adjustAiArmy(%s): COMPLETED => %s | Army destroyed or without lord",
+            armyCqi,
+            function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
+
         return
     end
 
     local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, army)
 
     if armySuppliesCost.availableSupplies >= 0 then
+        logger:logDebug(
+            "adjustAiArmy(%s): COMPLETED => %s | Total cost: %s | Available supplies: %s | Army supplies not exceeded",
+            armyCqi,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            armySuppliesCost.totalCost,
+            armySuppliesCost.availableSupplies)
+
         return
     end
 
     logger:logDebug(
-        "adjustAiArmy(%s): STARTED => %s | Total cost: %s | Available supplies: %s",
+        "adjustAiArmy(%s): ARMY SUPPLIES EXCEEDED => %s | Total cost: %s | Available supplies: %s",
         armyCqi,
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         armySuppliesCost.totalCost,
@@ -1260,7 +1302,7 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
 
     if lastAdjustmentTurn ~= cm:turn_number() then
         logger:logDebug(
-            "addUnitToDisbandQueue(%s): DISBAND CONFIRMED => %s | Unit: %s | Army: %s | Army not adjusted this turn (Current turn: %s | Last adjustment turn: %s)",
+            "addUnitToDisbandQueue(%s): COMPLETED => %s | Unit: %s | Army: %s | Disband confirmed, army not adjusted this turn (Current turn: %s | Last adjustment turn: %s)",
             function() return disbandedUnit:command_queue_index() end,
             function() return TotoWar__Gameplay:getArmyCaption(disbandedUnit:military_force()) end,
             function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit:unit_key()) end,
@@ -1307,17 +1349,22 @@ end
 function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi)
     local army = TotoWar__Gameplay:getArmy(armyCqi)
 
+    logger:logDebug(
+        "cancelDisbandIfAlreadyAdjusted(%s): STARTED => %s",
+        armyCqi,
+        function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
+
     if army == nil or not army:has_general() then
         -- The army may have been destroyed between the disband of a unit and the execution of the callback
+        logger:logDebug(
+            "cancelDisbandIfAlreadyAdjusted(%s): COMPLETED => %s | Army destroyed or without lord",
+            armyCqi,
+            function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
+
         return
     end
 
     local lord = army:general_character()
-
-    logger:logDebug(
-        "cancelDisbandIfAlreadyAdjusted(%s): STARTED => %s",
-        armyCqi,
-        function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
     local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, army)
     local disbandedUnits = self.disbandQueue:get(armyCqi)
