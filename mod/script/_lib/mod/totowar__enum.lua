@@ -145,9 +145,19 @@ TotoWar__Enum_LogSeverities = {
 ---Events triggered by the mod.
 ---@enum TotoWar__Enum_ModEvents
 TotoWar__Enum_ModEvents = {
+    ---Event triggered when the Mod Configuration Tool has applied the settings of the host at the start of a new multiplayer campaign.
+    ---The Mod Configuration Tool does not trigger `mctOptionsUpdated` in this case, so TotoWar mods must reload their options
+    ---when this event is triggered to use the same values on all the machines.
+    mctOptionsSynchronized = "TotoWar__MctOptionsSynchronized",
 
     ---Event triggered when options are updated in the Mod Configuration Tool if it is installed.
     mctOptionsUpdated = "MctFinalized",
+
+    ---Multiplayer event, sent with `CampaignUI.TriggerCampaignScriptEvent` and received by all the players of the game,
+    ---by the Mod Configuration Tool at the start of a new multiplayer campaign to give the settings of the host to all the players.
+    ---It is an internal detail of the Mod Configuration Tool (`script/groovy/modules/mct/systems/sync/main.lua`):
+    ---if it is renamed, the options are no longer reloaded when the settings of the host are received.
+    mpMctInitialLoad = "MctMpInitialLoad",
 
     ---Event triggered when options are updated.
     ---This differs from `mctOptionsUpdated` as it is used to signal that TotoWar option values

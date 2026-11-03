@@ -129,6 +129,10 @@ function TotoWar_Cbac_Mod:subscribeToEvents()
     logger:logDebug("TotoWar_Cbac_Mod:subscribeToEvents(): STARTED")
 
     TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsSynchronized,
+        function() self:onMctOptionsUpdated() end)
+
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
         function() self:onMctOptionsUpdated() end)
 

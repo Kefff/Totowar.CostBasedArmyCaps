@@ -1,5 +1,49 @@
 local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.mod)
 
+---Indicates whether a message of the multiplayer event that gives the settings of the host is the last one.
+---The Mod Configuration Tool splits the settings into several messages when they are too long for a single one,
+---and only applies them when the last message is received.
+---For example, the data `002/003|...` is the second message out of three, and data without a part number is a single message.
+---@param dataString string Data of the message.
+---@return boolean
+local function isMctMultiplayerInitialLoadLastMessage(dataString)
+    logger:logDebug("isMctMultiplayerInitialLoadLastMessage(%s): STARTED", dataString)
+
+    local partNumber, partCount = string.match(dataString, "^(%d+)/(%d+)|")
+    local isLastMessage = partNumber == nil or tonumber(partNumber) == tonumber(partCount)
+
+    logger:logDebug(
+        "isMctMultiplayerInitialLoadLastMessage(%s): COMPLETED => Part: %s/%s | Last message: %s",
+        dataString,
+        partNumber,
+        partCount,
+        isLastMessage)
+
+    return isLastMessage
+end
+
+---Reacts to the Mod Configuration Tool receiving the settings of the host at the start of a new multiplayer campaign.
+---
+---The Mod Configuration Tool applies these settings without triggering `MctFinalized`, so TotoWar mods would keep
+---the settings of their own machine, read at the first tick. On a machine whose settings differ from those of the host,
+---the AI would then be adjusted differently, which desynchronizes the game.
+---
+---The listener of the Mod Configuration Tool is registered after the one of TotoWar, so it reacts to the message afterwards:
+---the options are reloaded with a short delay to read the settings it has applied.
+---The delay uses a timer of the game synchronized between the machines, because the message is received by all of them.
+local function onMctMultiplayerInitialLoadReceived()
+    logger:logDebug("onMctMultiplayerInitialLoadReceived(): STARTED")
+
+    TotoWar__Utils:delay(
+        function()
+            logger:logInfo("Settings of the host received from the Mod Configuration Tool: reloading the options")
+            TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.mctOptionsSynchronized)
+        end,
+        0.1)
+
+    logger:logDebug("onMctMultiplayerInitialLoadReceived(): COMPLETED")
+end
+
 ---Allows to programatically overwrite option values for local debug purpose.
 local function overwriteOptionsForDebug()
     -- Set override values here, for example to show or hide the messages of a log category:
@@ -142,6 +186,10 @@ function TotoWar__Mod:subscribeToEvents()
         function() self:onFactionTurnStart() end)
 
     TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsSynchronized,
+        function() self:onMctOptionsUpdated() end)
+
+    TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
         function() self:onMctOptionsUpdated() end)
 
@@ -151,6 +199,12 @@ function TotoWar__Mod:subscribeToEvents()
         nil,
         nil,
         9999) -- To force overwriteOptionsForDebug to be executed after other methods reacting to the optionsUpdated event
+
+    -- Only sent in multiplayer: no effect in a singleplayer campaign
+    TotoWar__EventsManager:subscribeMultiplayer(
+        TotoWar__Enum_ModEvents.mpMctInitialLoad,
+        function() onMctMultiplayerInitialLoadReceived() end,
+        function(factionCqi, dataString) return isMctMultiplayerInitialLoadLastMessage(dataString) end)
 
     logger:logDebug("TotoWar__Mod:subscribeToEvents(): COMPLETED")
 end

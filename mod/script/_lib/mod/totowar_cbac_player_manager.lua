@@ -981,7 +981,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
 
     -- Received on all the machines, including the one of the player who sent the request
     TotoWar__EventsManager:subscribeMultiplayer(
-        TotoWar_Cbac_Enum_MultiplayerEvents.armyMovementUpdateRequested,
+        TotoWar_Cbac_Enum_ModEvents.mpArmyMovementUpdateRequested,
         function(factionCqi, dataString) onArmyMovementUpdateRequested(factionCqi, dataString) end,
         function() return TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled end)
 
@@ -1013,7 +1013,7 @@ function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
 
         TotoWar__EventsManager:triggerMultiplayer(
             army:faction():command_queue_index(),
-            TotoWar_Cbac_Enum_MultiplayerEvents.armyMovementUpdateRequested,
+            TotoWar_Cbac_Enum_ModEvents.mpArmyMovementUpdateRequested,
             string.format("%d|%d", army:command_queue_index(), isBlocked and 1 or 0))
     end
 
