@@ -7,9 +7,6 @@ TotoWar__Enum_CcoContextTypeIds = {
     ---Unit. ID: unit CQI.
     campaignUnit = "CcoCampaignUnit",
 
-    -- Faction. ID: faction CQI.
-    factionRecord = "CcoFactionRecord",
-
     ---Main unit record. ID: unit key.
     mainUnitRecord = "CcoMainUnitRecord"
 }

@@ -5,8 +5,9 @@ local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.eventsManager)
 ---Separator used to separated the event
 local _multiplayerEventDataSeparator = "|"
 
----Maximum amount of characters that can be passed in a multiplayer event.
-local _multiplayerEventMaximumDataLength = 100
+---Maximum amount of characters of the full string sent in a multiplayer event: the event, the separator and the data.
+---The game truncates the string received by the other players (`context:trigger()`) to 255 characters.
+local _multiplayerEventMaximumDataLength = 255
 
 ---Reacts to an error when executing the callback of an event subscription.
 ---@param eventSubscription TotoWar__EventSubscription Event subscription for which the callback
@@ -77,6 +78,38 @@ local function executeEventSubscriptionIfConditionMet(eventSubscription, event, 
         eventSubscription.id,
         event,
         context ~= nil and "context" or "nil")
+end
+
+---Extracts the data passed in a multiplayer event from the full string received in the `UITrigger` event.
+---The full string is the event alone when no data is passed, otherwise the event, the separator and the data.
+---For example, for the event `MyEvent`, `MyEvent|12|1` gives `12|1`, `MyEvent` gives an empty string,
+---and `MyOtherEvent|12` gives nil because it belongs to another event.
+---@param event string Multiplayer event.
+---@param fullDataString string Full string received in the `UITrigger` event.
+---@return string | nil dataString Data passed in the event, empty when no data is passed, or nil when the full string does not belong to the event.
+local function getMultiplayerEventDataString(event, fullDataString)
+    logger:logDebug(
+        "getMultiplayerEventDataString(%s, %s): STARTED",
+        event,
+        fullDataString)
+
+    ---@type string | nil
+    local dataString = nil
+    local prefix = event .. _multiplayerEventDataSeparator
+
+    if fullDataString == event then
+        dataString = ""
+    elseif TotoWar__String:startsWith(fullDataString, prefix) then
+        dataString = string.sub(fullDataString, #prefix + 1)
+    end
+
+    logger:logDebug(
+        "getMultiplayerEventDataString(%s, %s): COMPLETED => %s",
+        event,
+        fullDataString,
+        dataString)
+
+    return dataString
 end
 
 ---Manager for events.
@@ -213,11 +246,10 @@ function TotoWar__EventsManager:subscribeMultiplayer(
     local multiplayerCallbackFunction = function(context)
         local factionCqi = context:faction_cqi()
 
-        -- Extracting the data string from the context and passing it to the callback function
-        ---@type string
-        local fullDataString = context:trigger()
-        local dataString = fullDataString:gsub("^" .. event, "", 1)
-        dataString = dataString:gsub("^" .. _multiplayerEventDataSeparator, "", 1)
+        -- Extracting the data string from the context and passing it to the callback function.
+        -- It is never nil: the events manager only executes this callback when multiplayerConditionFunction (built below)
+        -- returned true, and multiplayerConditionFunction returns false for the events that do not belong to this subscription.
+        local dataString = getMultiplayerEventDataString(event, context:trigger())
 
         logger:logDebug(
             "subscribeMultiplayer(%s, callbackFunction, %s, %s, %s): CALLBACK STARTED => Origin: %s | Data: %s",
@@ -243,11 +275,9 @@ function TotoWar__EventsManager:subscribeMultiplayer(
     local multiplayerConditionFunction = function(context)
         local factionCqi = context:faction_cqi()
 
-        -- Extracting the data string from the context and passing it to the condition function
-        ---@type string
-        local fullDataString = context:trigger()
-        local dataString = fullDataString:gsub("^" .. event, "", 1)
-        dataString = dataString:gsub("^" .. _multiplayerEventDataSeparator, "", 1)
+        -- Extracting the data string from the context and passing it to the condition function.
+        -- It is nil when the event stored in the context does not correspond to the subscribed event.
+        local dataString = getMultiplayerEventDataString(event, context:trigger())
 
         logger:logDebug(
             "subscribeMultiplayer(%s, callbackFunction, %s, %s, %s): CONDITION STARTED => Origin: %s | Data: %s",
@@ -258,13 +288,10 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
             dataString)
 
-        -- Checking whether the event stored in the context corresponds to the subcribed event
-        if fullDataString == event -- Case where no data is passed in the event
-            or TotoWar__String:startsWith(fullDataString, event .. _multiplayerEventDataSeparator)
-        then
-            if result and conditionFunction ~= nil then
-                result = conditionFunction(dataString)
-            end
+        local result = false
+
+        if dataString ~= nil then
+            result = conditionFunction == nil or conditionFunction(dataString)
         end
 
         logger:logDebug(
@@ -325,7 +352,8 @@ end
 ---Triggers a multiplayer event that is received by all players in the game.
 ---Used to synchronize state between all players to avoid desyncs.
 ---
----WARNING : `event` and `dataString` are concatenated using a `|` character. THEIR COMBINED SIZE MUST BE LESSER OR EQUAL TO 100 CHARACTERS.
+---WARNING : `event` and `dataString` are concatenated using a `|` character. THEIR COMBINED SIZE MUST BE LESSER OR EQUAL TO 255 CHARACTERS.
+---This maximum size comes from the TW Modding wiki (https://tw-modding.com/wiki/Multiplayer_Desyncs): the CA documentation does not mention any limit.
 ---@param factionCqi integer Faction CQI.
 ---@param event string Event.
 ---@param dataString string? Data to pass in the event.
@@ -344,7 +372,7 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
     end
 
     if #fullDataString > _multiplayerEventMaximumDataLength then
-        -- Due to technical limitation in the game, we cannot send more that 100 characters as data in the event
+        -- Due to technical limitation in the game, we cannot send more that 255 characters as data in the event
         logger:logError(
             "A message to synchronize the players of the multiplayer game could not be sent because it is too long: \"%s\"",
             fullDataString)

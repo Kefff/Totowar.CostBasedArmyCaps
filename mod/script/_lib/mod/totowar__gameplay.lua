@@ -141,8 +141,7 @@ end
 function TotoWar__Gameplay:getFaction(factionCqi)
     logger:logDebug("getFaction(%s): STARTED", factionCqi)
 
-    local factionKey = cco(TotoWar__Enum_CcoContextTypeIds.factionRecord, factionCqi):Call("Key")
-    local faction = cm:get_faction(factionKey)
+    local faction = cm:model():faction_for_command_queue_index(factionCqi)
 
     logger:logDebug(
         "getFaction(%s): COMPLETED => %s",
