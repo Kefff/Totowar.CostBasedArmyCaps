@@ -155,6 +155,10 @@ end
 ---@param unitCardUIComponent UIC Unit card UI component.
 ---@return integer | nil # `nil` when the unit card does not represent a character.
 function TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
+    logger:logDebug(
+        "getUnitCardCharacterCqi(%s): STARTED",
+        function() return unitCardUIComponent:Id() end)
+
     local objectContextId = unitCardUIComponent:GetContextObjectId(TotoWar__Enum_CcoContextTypeIds.campaignUnit)
 
     ---@type integer | nil
@@ -163,6 +167,11 @@ function TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
         objectContextId,
         "CharacterContext.CQI")
 
+    logger:logDebug(
+        "getUnitCardCharacterCqi(%s): COMPLETED => %s",
+        function() return unitCardUIComponent:Id() end,
+        characterCqi)
+
     return characterCqi
 end
 
@@ -170,11 +179,20 @@ end
 ---@param unitCardUIComponent UIC Unit card UI component.
 ---@return string
 function TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+    logger:logDebug(
+        "getUnitCardUnitKey(%s): STARTED",
+        function() return unitCardUIComponent:Id() end)
+
     local cardImageHolderUIComponent = self:getUIComponentChild(unitCardUIComponent, "card_image_holder")
     local unitContext = self:getUIComponentCCO(cardImageHolderUIComponent, TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
     ---@type string
     local unitKey = unitContext:Call("Key")
+
+    logger:logDebug(
+        "getUnitCardUnitKey(%s): COMPLETED => %s",
+        function() return unitCardUIComponent:Id() end,
+        unitKey)
 
     return unitKey
 end
@@ -210,7 +228,18 @@ end
 ---@param uiComponent UIC UI component.
 ---@return boolean
 function TotoWar__UI:isUIComponentSelected(uiComponent)
-    return TotoWar__String:startsWith(uiComponent:CurrentState(), TotoWar__Enum_UIComponentStates.selected)
+    logger:logDebug(
+        "isUIComponentSelected(%s): STARTED",
+        function() return uiComponent:Id() end)
+
+    local isSelected = TotoWar__String:startsWith(uiComponent:CurrentState(), TotoWar__Enum_UIComponentStates.selected)
+
+    logger:logDebug(
+        "isUIComponentSelected(%s): COMPLETED => %s",
+        function() return uiComponent:Id() end,
+        isSelected)
+
+    return isSelected
 end
 
 ---Offsets the children of a UI component.

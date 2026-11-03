@@ -97,7 +97,14 @@ TotoWar_Cbac_UnitArmySuppliesCost.__index = TotoWar_Cbac_UnitArmySuppliesCost
 ---@param characterCqi integer Command queue index of the character.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost | nil
 function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
-    logger:logDebug("newCharacter(%s): STARTED", characterCqi)
+    logger:logDebug(
+        "newCharacter(%s): STARTED => %s",
+        characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end)
 
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
 
@@ -131,13 +138,17 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
                     return TotoWar__Gameplay:getArmyCaption(character:embedded_in_military_force())
                 end
 
-                return string.format(
-                    "%s | %s",
-                    TotoWar__Gameplay:getCultureCaption(character:faction():culture()),
-                    TotoWar__Gameplay:getFactionCaption(character:faction():name()))
+                return TotoWar__Gameplay:getFactionFullCaption(character:faction())
             end,
             function() return character ~= nil and TotoWar__Gameplay:getCharacterCaption(character) or characterCqi end)
-        logger:logDebug("newCharacter(%s): COMPLETED => Unit not found", characterCqi)
+        logger:logDebug(
+            "newCharacter(%s): COMPLETED => %s | Unit not found",
+            characterCqi,
+            function()
+                local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+                return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+            end)
 
         return nil
     end
@@ -189,8 +200,13 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     end
 
     logger:logDebug(
-        "newCharacter(%s): COMPLETED => Unit: %s | Cost: %s | Category: %s",
+        "newCharacter(%s): COMPLETED => %s | Unit: %s | Cost: %s | Category: %s",
         characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end,
         instance.unitKey,
         instance.armySuppliesCost,
         instance.unitCategory)
@@ -205,9 +221,10 @@ end
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     logger:logDebug(
-        "newUnit(%s, %s, unit): STARTED",
+        "newUnit(%s, %s, unit): STARTED => %s",
         unitKey,
-        unitCqi)
+        unitCqi,
+        function() return unit ~= nil and TotoWar__Gameplay:getArmyCaption(unit:military_force()) or "No army" end)
 
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
     instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
@@ -220,9 +237,10 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     instance.unitKey = unitKey
 
     logger:logDebug(
-        "newUnit(%s, %s, unit): COMPLETED => Cost: %s | Category: %s",
+        "newUnit(%s, %s, unit): COMPLETED => %s | Cost: %s | Category: %s",
         unitKey,
         unitCqi,
+        function() return unit ~= nil and TotoWar__Gameplay:getArmyCaption(unit:military_force()) or "No army" end,
         instance.armySuppliesCost,
         instance.unitCategory)
 

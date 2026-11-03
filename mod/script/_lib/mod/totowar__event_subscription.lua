@@ -1,3 +1,7 @@
+require("script._lib.mod.totowar__logger")
+
+local logger = TotoWar__Logger.get(TotoWar__Enum_LogCategories.eventsManager)
+
 ---Event subscription.
 ---@class TotoWar__EventSubscription
 TotoWar__EventSubscription = {
@@ -46,6 +50,14 @@ function TotoWar__EventSubscription.new(
     conditionFunction,
     maximumExecutions,
     priority)
+    logger:logDebug(
+        "TotoWar__EventSubscription.new(%s, %s, callbackFunction, %s, %s, %s): STARTED",
+        id,
+        event,
+        conditionFunction ~= nil and "conditionFunction" or "nil",
+        maximumExecutions,
+        priority)
+
     local instance = setmetatable({}, TotoWar__EventSubscription)
 
     instance.callbackFunction = callbackFunction
@@ -55,6 +67,14 @@ function TotoWar__EventSubscription.new(
     instance.id = id
     instance.maximumExecutions = maximumExecutions
     instance.priority = priority or 1000
+
+    logger:logDebug(
+        "TotoWar__EventSubscription.new(%s, %s, callbackFunction, %s, %s, %s): COMPLETED",
+        id,
+        event,
+        conditionFunction ~= nil and "conditionFunction" or "nil",
+        maximumExecutions,
+        priority)
 
     return instance
 end

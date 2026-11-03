@@ -11,11 +11,20 @@ TotoWar__Gameplay.__index = TotoWar__Gameplay
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE  Army.
 ---@return boolean
 function TotoWar__Gameplay:canRecruitUnits(army)
+    logger:logDebug(
+        "canRecruitUnits(army): STARTED => %s",
+        function() return self:getArmyCaption(army) end)
+
     local canRecruitUnits =
         army:has_general()
         and not army:is_armed_citizenry()
         and not army:is_set_piece_battle_army()
         and not army:force_type():has_feature("unable_to_recruit_units")
+
+    logger:logDebug(
+        "canRecruitUnits(army): COMPLETED => %s | Can recruit units: %s",
+        function() return self:getArmyCaption(army) end,
+        canRecruitUnits)
 
     return canRecruitUnits
 end
@@ -36,13 +45,20 @@ end
 ---@param armyCqi integer Army command queue index.
 ---@return MILITARY_FORCE_SCRIPT_INTERFACE|nil
 function TotoWar__Gameplay:getArmy(armyCqi)
+    logger:logDebug("getArmy(%s): STARTED", armyCqi)
+
     local army = cm:get_military_force_by_cqi(armyCqi)
 
     if army == false then
-        logger:logDebug("getArmy(%s): NOT FOUND", armyCqi)
+        logger:logDebug("getArmy(%s): COMPLETED => Not found", armyCqi)
 
         return nil
     end
+
+    logger:logDebug(
+        "getArmy(%s): COMPLETED => %s",
+        armyCqi,
+        function() return self:getArmyCaption(army) end)
 
     return army
 end
@@ -52,9 +68,8 @@ end
 ---@return string
 function TotoWar__Gameplay:getArmyCaption(army)
     return string.format(
-        "%s | %s | %s",
-        self:getCultureCaption(army:faction():culture()),
-        self:getFactionCaption(army:faction():name()),
+        "%s | %s",
+        self:getFactionFullCaption(army:faction()),
         self:getArmyLordCaption(army))
 end
 
@@ -73,13 +88,21 @@ end
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return CHARACTER_SCRIPT_INTERFACE|nil
 function TotoWar__Gameplay:getCharacter(characterCqi)
+    logger:logDebug("getCharacter(%s): STARTED", characterCqi)
+
     local character = cm:get_character_by_cqi(characterCqi)
 
     if character == false then
         logger:logWarning("Character %s: not found in the campaign", characterCqi)
+        logger:logDebug("getCharacter(%s): COMPLETED => Not found", characterCqi)
 
         return nil
     end
+
+    logger:logDebug(
+        "getCharacter(%s): COMPLETED => %s",
+        characterCqi,
+        function() return self:getCharacterFullCaption(character) end)
 
     return character
 end
@@ -97,6 +120,16 @@ function TotoWar__Gameplay:getCharacterCaption(character)
     return caption
 end
 
+---Gets the full caption of a character: caption of its culture, of its faction and of the character (`Culture | Faction | Character`).
+---@param character CHARACTER_SCRIPT_INTERFACE Character.
+---@return string
+function TotoWar__Gameplay:getCharacterFullCaption(character)
+    return string.format(
+        "%s | %s",
+        self:getFactionFullCaption(character:faction()),
+        self:getCharacterCaption(character))
+end
+
 ---Gets the caption of a culture.
 ---@param cultureName string Culture name.
 function TotoWar__Gameplay:getCultureCaption(cultureName)
@@ -106,9 +139,17 @@ end
 ---Gets a faction.
 ---@param factionCqi integer Faction command queue index.
 function TotoWar__Gameplay:getFaction(factionCqi)
-    local factionKey = cco(TotoWar__Enum_CcoContextTypeIds.factionRecord, factionCqi):Call("Key")
+    logger:logDebug("getFaction(%s): STARTED", factionCqi)
 
-    return cm:get_faction(factionKey)
+    local factionKey = cco(TotoWar__Enum_CcoContextTypeIds.factionRecord, factionCqi):Call("Key")
+    local faction = cm:get_faction(factionKey)
+
+    logger:logDebug(
+        "getFaction(%s): COMPLETED => %s",
+        factionCqi,
+        function() return self:getFactionFullCaption(faction) end)
+
+    return faction
 end
 
 ---Gets the caption of a faction.
@@ -117,10 +158,26 @@ function TotoWar__Gameplay:getFactionCaption(factionName)
     return common.get_localised_string("factions_screen_name_" .. factionName)
 end
 
+---Gets the full caption of a faction: caption of its culture and of the faction (`Culture | Faction`).
+---@param faction FACTION_SCRIPT_INTERFACE Faction.
+---@return string
+function TotoWar__Gameplay:getFactionFullCaption(faction)
+    return string.format(
+        "%s | %s",
+        self:getCultureCaption(faction:culture()),
+        self:getFactionCaption(faction:name()))
+end
+
 ---Get the Mod Configuration Tool if it is installed.
 ---@return any
 function TotoWar__Gameplay:getMct()
-    return core:get_static_object("mod_configuration_tool")
+    logger:logDebug("getMct(): STARTED")
+
+    local mct = core:get_static_object("mod_configuration_tool")
+
+    logger:logDebug("getMct(): COMPLETED => Installed: %s", mct ~= nil)
+
+    return mct
 end
 
 ---Gets a value in the game state.
@@ -158,24 +215,50 @@ end
 ---@param factionName string Faction name.
 ---@return boolean
 function TotoWar__Gameplay:isLocalPlayerFaction(factionName)
-    return factionName == cm:get_local_faction_name()
+    logger:logDebug(
+        "isLocalPlayerFaction(%s): STARTED => %s",
+        factionName,
+        function() return self:getFactionFullCaption(cm:get_faction(factionName)) end)
+
+    local isLocalPlayerFaction = factionName == cm:get_local_faction_name()
+
+    logger:logDebug(
+        "isLocalPlayerFaction(%s): COMPLETED => %s | Local player faction: %s",
+        factionName,
+        function() return self:getFactionFullCaption(cm:get_faction(factionName)) end,
+        isLocalPlayerFaction)
+
+    return isLocalPlayerFaction
 end
 
 ---Indicates whether a character is a lord.
 ---@param character CHARACTER_SCRIPT_INTERFACE character.
 ---@return boolean
 function TotoWar__Gameplay:isLordCharacter(character)
+    logger:logDebug(
+        "isLordCharacter(character): STARTED => %s",
+        function() return self:getCharacterFullCaption(character) end)
+
     local isGarrisonCommander = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(character:cqi()),
         "IsGarrisonCommander")
-    return character:has_military_force() and not isGarrisonCommander
+    local isLord = character:has_military_force() and not isGarrisonCommander
+
+    logger:logDebug(
+        "isLordCharacter(character): COMPLETED => %s | Lord: %s",
+        function() return self:getCharacterFullCaption(character) end,
+        isLord)
+
+    return isLord
 end
 
 ---Indicates whether a character is a lord.
 ---@param characterCqi integer Character command queue index. Do not use a unit CQI as it can match the CQI of a totaly unrelated character.
 ---@return boolean
 function TotoWar__Gameplay:isLordUnit(characterCqi)
+    logger:logDebug("isLordUnit(%s): STARTED", characterCqi)
+
     -- Directly searching for the character corresponding to the CQI
     ---@type boolean
     local isLord = common.get_context_value(
@@ -207,7 +290,11 @@ function TotoWar__Gameplay:isLordUnit(characterCqi)
         end
     end
 
-    return isLord and not isGarrisonCommander
+    local isLordUnit = isLord and not isGarrisonCommander
+
+    logger:logDebug("isLordUnit(%s): COMPLETED => %s", characterCqi, isLordUnit)
+
+    return isLordUnit
 end
 
 ---Saves a value in the game state.

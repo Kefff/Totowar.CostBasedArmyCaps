@@ -140,11 +140,10 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
     local instance = TotoWar_Cbac_ArmySuppliesCost.new(isAi, rank)
 
     logger:logDebug(
-        "newFromArmy(%s, %s): STARTED => %s | %s",
+        "newFromArmy(%s, %s): STARTED => %s",
         isAi,
         function() return army:command_queue_index() end,
-        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar__Gameplay:getArmyLordCaption(army) end)
+        function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
     local characters = army:character_list()
 
@@ -174,11 +173,10 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
     end
 
     logger:logDebug(
-        "newFromArmy(%s, %s): COMPLETED => %s | %s | Units: %s | Total cost: %s | Available supplies: %s",
+        "newFromArmy(%s, %s): COMPLETED => %s | Units: %s | Total cost: %s | Available supplies: %s",
         isAi,
         function() return army:command_queue_index() end,
-        function() return TotoWar__Gameplay:getFactionCaption(army:faction():name()) end,
-        function() return TotoWar__Gameplay:getArmyLordCaption(army) end,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
         #instance.unitArmySuppliesCosts,
         instance.totalCost,
         instance.availableSupplies)
@@ -189,7 +187,14 @@ end
 ---Adds a unit to the army supplies cost.
 ---@param characterCqi integer Command queue index of the character.
 function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
-    logger:logDebug("addCharacter(%s): STARTED", characterCqi)
+    logger:logDebug(
+        "addCharacter(%s): STARTED => %s",
+        characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end)
 
     local unitArmySuppliesCost = TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
@@ -201,8 +206,13 @@ function TotoWar_Cbac_ArmySuppliesCost:addCharacter(characterCqi)
     end
 
     logger:logDebug(
-        "addCharacter(%s): COMPLETED => Total cost: %s | Available supplies: %s",
+        "addCharacter(%s): COMPLETED => %s | Total cost: %s | Available supplies: %s",
         characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end,
         self.totalCost,
         self.availableSupplies)
 end
@@ -214,10 +224,11 @@ end
 ---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
 function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary, unit)
     logger:logDebug(
-        "addUnit(%s, %s, %s, unit): STARTED",
+        "addUnit(%s, %s, %s, unit): STARTED => %s",
         unitKey,
         unitCqi,
-        isInRecruitmentMercenary)
+        isInRecruitmentMercenary,
+        function() return unit ~= nil and TotoWar__Gameplay:getArmyCaption(unit:military_force()) or "No army" end)
 
     if isInRecruitmentMercenary == nil then
         isInRecruitmentMercenary = false
@@ -238,10 +249,11 @@ function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitment
     self.availableSupplies = self.totalArmySupplies - self.totalCost
 
     logger:logDebug(
-        "addUnit(%s, %s, %s, unit): COMPLETED => Total cost: %s | Available supplies: %s",
+        "addUnit(%s, %s, %s, unit): COMPLETED => %s | Total cost: %s | Available supplies: %s",
         unitKey,
         unitCqi,
         isInRecruitmentMercenary,
+        function() return unit ~= nil and TotoWar__Gameplay:getArmyCaption(unit:military_force()) or "No army" end,
         self.totalCost,
         self.availableSupplies)
 end
@@ -260,7 +272,14 @@ end
 ---Removes the character corresponding to a command queue index.
 ---@param characterCqi integer Character command queue index.
 function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
-    logger:logDebug("removeCharacter(%s): STARTED", characterCqi)
+    logger:logDebug(
+        "removeCharacter(%s): STARTED => %s",
+        characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end)
 
     local characterIndex = TotoWar__Linq:findIndex(
         self.unitArmySuppliesCosts,
@@ -271,7 +290,7 @@ function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
         local character = TotoWar__Gameplay:getCharacter(characterCqi)
 
         if character ~= nil then
-            characterCaption = TotoWar__Gameplay:getCharacterCaption(character)
+            characterCaption = TotoWar__Gameplay:getCharacterFullCaption(character)
         end
 
         logger:logError(
@@ -287,8 +306,13 @@ function TotoWar_Cbac_ArmySuppliesCost:removeCharacter(characterCqi)
     table.remove(self.unitArmySuppliesCosts, characterIndex)
 
     logger:logDebug(
-        "removeCharacter(%s): COMPLETED => Removed character: %s | Total cost: %s | Available supplies: %s",
+        "removeCharacter(%s): COMPLETED => %s | Removed character: %s | Total cost: %s | Available supplies: %s",
         characterCqi,
+        function()
+            local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
+            return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
+        end,
         function() return TotoWar__Gameplay:getUnitCaption(character.unitKey) end,
         self.totalCost,
         self.availableSupplies)

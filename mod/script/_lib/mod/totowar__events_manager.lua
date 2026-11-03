@@ -225,7 +225,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
             dataString)
 
         callbackFunction(dataString)
@@ -236,7 +236,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
             dataString)
     end
 
@@ -255,7 +255,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
             dataString)
 
         -- Checking whether the event stored in the context corresponds to the subcribed event
@@ -273,7 +273,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
             conditionFunction ~= nil and "conditionFunction" or "nil",
             maximumExecutions,
             priority,
-            function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end,
+            function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end,
             dataString,
             result)
 
@@ -331,11 +331,11 @@ end
 ---@param dataString string? Data to pass in the event.
 function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString)
     logger:logDebug(
-        "triggerMultiplayer(%s, %s, %s): STARTED => Faction: %s",
+        "triggerMultiplayer(%s, %s, %s): STARTED => %s",
         factionCqi,
         event,
         dataString,
-        function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end)
+        function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
 
     local fullDataString = event
 
@@ -355,11 +355,11 @@ function TotoWar__EventsManager:triggerMultiplayer(factionCqi, event, dataString
     CampaignUI.TriggerCampaignScriptEvent(factionCqi, fullDataString);
 
     logger:logDebug(
-        "triggerMultiplayer(%s, %s, %s): COMPLETED => Faction: %s",
+        "triggerMultiplayer(%s, %s, %s): COMPLETED => %s",
         factionCqi,
         event,
         dataString,
-        function() return TotoWar__Gameplay:getFactionCaption(TotoWar__Gameplay:getFaction(factionCqi):name()) end)
+        function() return TotoWar__Gameplay:getFactionFullCaption(TotoWar__Gameplay:getFaction(factionCqi)) end)
 end
 
 ---Cancels the specified event subscription.
