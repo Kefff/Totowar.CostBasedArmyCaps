@@ -638,7 +638,9 @@ local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
 
     local lord = army:general_character()
 
-    while herosInExcess > 0 do
+    -- The amount of heroes in excess cannot exceed the amount of heroes as long as the target hero count is not negative,
+    -- but heroes are checked too so that heroToRemove is never nil
+    while herosInExcess > 0 and #heroes > 0 do
         -- Grouping heroes by their base type to ignore their mount
         local heroUnitGroups = TotoWar__Linq:groupBy(heroes, function(a) return a.baseUnitKey end)
 
@@ -913,10 +915,15 @@ local function getTargetArmyComposition(army)
             end
         end
 
-        -- Filling the remaining percentage with melee infantry
+        -- Filling the remaining percentage with melee infantry.
+        -- Rounding the percentages to multiples of 5 after applying the ratio can make their total exceed 100
+        -- (with high maximum percentages in the MCT options): the melee infantry percentage is then kept at 0 instead
+        -- of becoming negative, and the extra unit is removed from melee infantry when fixing rounding errors below.
         percentages:set(
             TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry,
-            percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry) + 100 - percentagesTotal)
+            math.max(
+                percentages:get(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.meleeInfantry) + 100 - percentagesTotal,
+                0))
 
         -- Making sure the melee percentage is the highest
         table.sort(
