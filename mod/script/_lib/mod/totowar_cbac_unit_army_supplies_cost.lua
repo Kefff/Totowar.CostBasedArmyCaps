@@ -77,6 +77,11 @@ TotoWar_Cbac_UnitArmySuppliesCost = {
     ---@type integer | nil
     characterCqi = nil,
 
+    ---Experience level of the unit (its rank, from 0 to 9), or 0 when the unit is not yet in the army (being recruited).
+    ---For a character, rank of the character.
+    ---Used to remove the least experienced units first when adjusting AI armies.
+    experienceLevel = 0,
+
     ---Category of the unit.
     ---@type TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
     unitCategory = nil,
@@ -193,6 +198,9 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     instance.characterCqi = characterCqi
     instance.unitKey = unitKey
 
+    local character = TotoWar__Gameplay:getCharacter(characterCqi)
+    instance.experienceLevel = character ~= nil and character:rank() or 0
+
     if TotoWar__Gameplay:isLordUnit(characterCqi) then
         instance.unitCategory = TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
     else
@@ -235,6 +243,8 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     instance.unitCategory = getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
+    -- The unit is not given for a unit being recruited, which has no experience yet
+    instance.experienceLevel = unit ~= nil and unit:experience_level() or 0
 
     logger:logDebug(
         "newUnit(%s, %s, unit): COMPLETED => %s | Cost: %s | Category: %s",

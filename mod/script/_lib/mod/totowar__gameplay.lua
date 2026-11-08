@@ -265,38 +265,20 @@ end
 function TotoWar__Gameplay:isLordUnit(characterCqi)
     logger:logDebug("isLordUnit(%s): STARTED", characterCqi)
 
-    -- Directly searching for the character corresponding to the CQI
-    ---@type boolean
+    ---@type boolean | nil
     local isLord = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "IsArmy")
 
-    ---@type boolean
+    ---@type boolean | nil
     local isGarrisonCommander = common.get_context_value(
         TotoWar__Enum_CcoContextTypeIds.campaignCharacter,
         tostring(characterCqi),
         "IsGarrisonCommander")
 
-    if not isLord then
-        -- If the character is not found, it means we have the CQI of a unit
-        -- so we need to search for the character context through the unit context
-        isLord = common.get_context_value(
-            TotoWar__Enum_CcoContextTypeIds.campaignUnit,
-            tostring(characterCqi),
-            "CharacterContext.IsArmy")
-        isGarrisonCommander = common.get_context_value(
-            TotoWar__Enum_CcoContextTypeIds.campaignUnit,
-            tostring(characterCqi),
-            "CharacterContext.IsGarrisonCommander")
-
-        if not isLord then
-            -- isLord can be nil when we arrive here
-            isLord = false
-        end
-    end
-
-    local isLordUnit = isLord and not isGarrisonCommander
+    -- The values are nil when the character is not found
+    local isLordUnit = isLord == true and isGarrisonCommander ~= true
 
     logger:logDebug("isLordUnit(%s): COMPLETED => %s", characterCqi, isLordUnit)
 

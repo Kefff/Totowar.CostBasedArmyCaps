@@ -66,6 +66,39 @@ local function setAiArmyData(armyCqi, aiArmyData)
         aiArmyData == nil)
 end
 
+---Sort function ordering unit army supplies costs from the cheapest to the priciest.
+---Units with the same cost are ordered by unit key, then by unit CQI, so that the units chosen by the adjustment
+---do not depend on the order in which the game lists the units of the army.
+---@param a TotoWar_Cbac_UnitArmySuppliesCost
+---@param b TotoWar_Cbac_UnitArmySuppliesCost
+---@return boolean
+local function compareUnitArmySuppliesCosts(a, b)
+    if a.armySuppliesCost ~= b.armySuppliesCost then
+        return a.armySuppliesCost < b.armySuppliesCost
+    end
+
+    if a.unitKey ~= b.unitKey then
+        return a.unitKey < b.unitKey
+    end
+
+    -- The unit CQI is nil for a unit being recruited, which does not occur in an AI army
+    return (a.unitCqi or 0) < (b.unitCqi or 0)
+end
+
+---Gets the total experience level of units.
+---Used to remove the least experienced units first when several combinations of units are equivalent.
+---@param units TotoWar_Cbac_UnitArmySuppliesCost[]
+---@return integer
+local function getTotalExperienceLevel(units)
+    local totalExperienceLevel = 0
+
+    for _, unit in ipairs(units) do
+        totalExperienceLevel = totalExperienceLevel + unit.experienceLevel
+    end
+
+    return totalExperienceLevel
+end
+
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
 ---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
@@ -231,9 +264,7 @@ local function adjustAiArmyCompositionAndUnits(
     DP[0][startKey] = {}
     DP[0][startKey][0] = {}
 
-    table.sort(excessUnits, function(a, b)
-        return a.armySuppliesCost < b.armySuppliesCost
-    end)
+    table.sort(excessUnits, compareUnitArmySuppliesCosts)
 
     for _, unit in ipairs(excessUnits) do
         for removedCount = maxRemovals - 1, 0, -1 do
@@ -256,7 +287,14 @@ local function adjustAiArmyCompositionAndUnits(
 
                                 DP[removedCount + 1][newKey] = DP[removedCount + 1][newKey] or {}
 
-                                if DP[removedCount + 1][newKey][newCost] == nil then
+                                local existingPicked = DP[removedCount + 1][newKey][newCost]
+
+                                -- For the same removal count, category state and cost, the combination with
+                                -- the least experienced units is kept, so that they are removed first
+                                if existingPicked == nil
+                                    or getTotalExperienceLevel(picked) + unit.experienceLevel
+                                    < getTotalExperienceLevel(existingPicked)
+                                then
                                     local newPicked = { unpack(picked) }
                                     table.insert(newPicked, unit)
                                     DP[removedCount + 1][newKey][newCost] = newPicked
@@ -277,12 +315,14 @@ local function adjustAiArmyCompositionAndUnits(
     -- 2) fewer removals (tie breaker)
     -- 3) minimal cost above deficit
     -- 4) maximal satisfiedScore
+    -- 5) minimal total experience level
     --
     -- PARTIAL solutions (cost < deficit):
     -- 1) maximal cost (closest below deficit)
     -- 2) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
     -- 3) fewer removals
     -- 4) maximal satisfiedScore
+    -- 5) minimal total experience level
     -------------------------------------------------------------------------
     local idealRemovalCount = nil
     if requiredRemovalsForSize > 0 then
@@ -294,12 +334,14 @@ local function adjustAiArmyCompositionAndUnits(
     ---@type integer
     local bestRemovalCount = nil
     local bestSatisfiedScore = nil
+    local bestExperienceLevel = nil
 
     local partialPicked = nil
     local partialCost = nil
     ---@type integer
     local partialRemovalCount = nil
     local partialSatisfiedScore = nil
+    local partialExperienceLevel = nil
 
     ---@param k integer
     ---@return integer
@@ -322,12 +364,15 @@ local function adjustAiArmyCompositionAndUnits(
             local satisfiedScore = state:getSatisfiedScore()
 
             for cost, picked in pairs(costTable) do
+                local experienceLevel = getTotalExperienceLevel(picked)
+
                 if cost >= deficit then
                     if bestPicked == nil then
                         bestPicked = picked
                         bestCost = cost
                         bestRemovalCount = k
                         bestSatisfiedScore = satisfiedScore
+                        bestExperienceLevel = experienceLevel
                     else
                         local bestDist = getDistanceToIdeal(bestRemovalCount)
                         local newDist = getDistanceToIdeal(k)
@@ -339,11 +384,13 @@ local function adjustAiArmyCompositionAndUnits(
                             or (newDist == bestDist and k < bestRemovalCount)
                             or (newDist == bestDist and k == bestRemovalCount and newExcess < bestExcess)
                             or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and satisfiedScore > bestSatisfiedScore)
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and satisfiedScore == bestSatisfiedScore and experienceLevel < bestExperienceLevel)
                         then
                             bestPicked = picked
                             bestCost = cost
                             bestRemovalCount = k
                             bestSatisfiedScore = satisfiedScore
+                            bestExperienceLevel = experienceLevel
                         end
                     end
                 else
@@ -352,6 +399,7 @@ local function adjustAiArmyCompositionAndUnits(
                         partialCost = cost
                         partialRemovalCount = k
                         partialSatisfiedScore = satisfiedScore
+                        partialExperienceLevel = experienceLevel
                     else
                         local partialDist = getDistanceToIdeal(partialRemovalCount)
                         local newDist = getDistanceToIdeal(k)
@@ -360,11 +408,13 @@ local function adjustAiArmyCompositionAndUnits(
                             or (cost == partialCost and newDist < partialDist)
                             or (cost == partialCost and newDist == partialDist and k < partialRemovalCount)
                             or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and satisfiedScore > partialSatisfiedScore)
+                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and satisfiedScore == partialSatisfiedScore and experienceLevel < partialExperienceLevel)
                         then
                             partialPicked = picked
                             partialCost = cost
                             partialRemovalCount = k
                             partialSatisfiedScore = satisfiedScore
+                            partialExperienceLevel = experienceLevel
                         end
                     end
                 end
@@ -390,14 +440,15 @@ local function adjustAiArmyCompositionAndUnits(
 
     for _, unitArmySuppliesCost in ipairs(bestPicked) do
         logger:logDebug(
-            "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (CATEGORY EXCESS) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s",
+            "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (CATEGORY EXCESS) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s | Experience: %s",
             function() return army:command_queue_index() end,
             targetArmySize,
             function() return TotoWar__Gameplay:getArmyCaption(army) end,
             function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
             unitArmySuppliesCost.unitCqi,
             unitArmySuppliesCost.unitCategory,
-            unitArmySuppliesCost.armySuppliesCost)
+            unitArmySuppliesCost.armySuppliesCost,
+            unitArmySuppliesCost.experienceLevel)
     end
 
     -------------------------------------------------------------------------
@@ -425,9 +476,9 @@ local function adjustAiArmyCompositionAndUnits(
             sumAll = sumAll + u.armySuppliesCost
         end
 
-        ---@type table<integer, { count: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
+        ---@type table<integer, { count: integer, experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
         local DP2 = {}
-        DP2[0] = { count = 0, picked = {} }
+        DP2[0] = { count = 0, experienceLevel = 0, picked = {} }
 
         for _, unit in ipairs(remaining) do
             for cost = sumAll - unit.armySuppliesCost, 0, -1 do
@@ -435,15 +486,22 @@ local function adjustAiArmyCompositionAndUnits(
                 if entry then
                     local newCost = cost + unit.armySuppliesCost
                     local newCount = entry.count + 1
+                    local newExperienceLevel = entry.experienceLevel + unit.experienceLevel
 
                     local existing = DP2[newCost]
 
-                    if existing == nil or newCount < existing.count then
+                    -- For the same cost and removal count, the combination with the least experienced units is kept,
+                    -- so that they are removed first
+                    if existing == nil
+                        or newCount < existing.count
+                        or (newCount == existing.count and newExperienceLevel < existing.experienceLevel)
+                    then
                         local newPicked = { unpack(entry.picked) }
                         table.insert(newPicked, unit)
 
                         DP2[newCost] = {
                             count = newCount,
+                            experienceLevel = newExperienceLevel,
                             picked = newPicked
                         }
                     end
@@ -501,14 +559,15 @@ local function adjustAiArmyCompositionAndUnits(
 
             for _, unitArmySuppliesCost in ipairs(bestExtraPicked) do
                 logger:logDebug(
-                    "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (EXTRA PICK) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s",
+                    "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (EXTRA PICK) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s | Experience: %s",
                     function() return army:command_queue_index() end,
                     targetArmySize,
                     function() return TotoWar__Gameplay:getArmyCaption(army) end,
                     function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
                     unitArmySuppliesCost.unitCqi,
                     unitArmySuppliesCost.unitCategory,
-                    unitArmySuppliesCost.armySuppliesCost)
+                    unitArmySuppliesCost.armySuppliesCost,
+                    unitArmySuppliesCost.experienceLevel)
             end
         end
     end
@@ -584,21 +643,30 @@ local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
     local lord = army:general_character()
 
     while herosInExcess > 0 do
-        -- Finding the group of heroes with the most heroes (or the last hero group when they all have the same amount of heroes)
-        ---@type TotoWar__KeyValue<string, TotoWar_Cbac_UnitArmySuppliesCost[]>
-        local heroUnitGroupWithMostHeroes = nil
-
         -- Grouping heroes by their base type to ignore their mount
         local heroUnitGroups = TotoWar__Linq:groupBy(heroes, function(a) return a.baseUnitKey end)
 
+        -- Finding the size of the groups of heroes with the most heroes
+        local largestHeroUnitGroupSize = 0
+
         for index, entry in ipairs(heroUnitGroups.entries) do
-            if heroUnitGroupWithMostHeroes == nil or #entry.value >= #heroUnitGroupWithMostHeroes.value then
-                heroUnitGroupWithMostHeroes = entry
-            end
+            largestHeroUnitGroupSize = math.max(largestHeroUnitGroupSize, #entry.value)
         end
 
-        local heroToRemoveIndex = #heroUnitGroupWithMostHeroes.value
-        local heroToRemove = heroUnitGroupWithMostHeroes.value[heroToRemoveIndex]
+        -- Removing the least experienced hero among these groups, so that AI armies keep their veteran heroes
+        -- (or the last hero of the last group when several heroes have the same rank)
+        ---@type TotoWar_Cbac_UnitArmySuppliesCost
+        local heroToRemove = nil
+
+        for index, entry in ipairs(heroUnitGroups.entries) do
+            if #entry.value == largestHeroUnitGroupSize then
+                for _, hero in ipairs(entry.value) do
+                    if heroToRemove == nil or hero.experienceLevel <= heroToRemove.experienceLevel then
+                        heroToRemove = hero
+                    end
+                end
+            end
+        end
 
         -- Getting the location where the hero will be teleported
         local heroTargetPositionX, heroTargetPositionY = cm:find_valid_spawn_location_for_character_from_position(
@@ -617,7 +685,7 @@ local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
             break
         end
 
-        -- Teleporting the last hero of the group out of the lord army.
+        -- Teleporting the hero out of the lord army.
         -- Forced to use the teleport method instead of just moving the hero because teleporting is
         -- done instantly while moving is done after the next `UnitTrained` events are received.
         -- If we do not teleport the hero, it is still in the army when we calculate army
@@ -636,14 +704,15 @@ local function adjustAiArmyHeroes(army, armySuppliesCost, herosInExcess)
         herosInExcess = herosInExcess - 1
 
         logger:logInfo(
-            "%s: army adjusted, hero %s (%s) left the army",
+            "%s: army adjusted, hero %s (%s, rank %s) left the army",
             function() return TotoWar__Gameplay:getArmyCaption(army) end,
             function()
                 local hero = TotoWar__Gameplay:getCharacter(heroToRemove.characterCqi)
 
                 return hero ~= nil and TotoWar__Gameplay:getCharacterCaption(hero) or heroToRemove.characterCqi
             end,
-            function() return TotoWar__Gameplay:getUnitCaption(heroToRemove.unitKey) end)
+            function() return TotoWar__Gameplay:getUnitCaption(heroToRemove.unitKey) end,
+            heroToRemove.experienceLevel)
     end
 
     logger:logDebug(
@@ -1099,11 +1168,7 @@ local function adjustAiArmy(armyCqi)
         armySuppliesCost.availableSupplies)
 
     -- Sorting units from the cheapest to the priciest
-    table.sort(
-        armySuppliesCost.unitArmySuppliesCosts,
-        function(a, b)
-            return a.armySuppliesCost < b.armySuppliesCost
-        end)
+    table.sort(armySuppliesCost.unitArmySuppliesCosts, compareUnitArmySuppliesCosts)
 
     -- Getting the target army composition and the unit categories that have excess units
     local targetArmyComposition = getTargetArmyComposition(army)

@@ -46,7 +46,8 @@ Armies with a lower target size will tend to include elite troops, while armies 
 Some armies will tend to include more war machines than others, some will tend to include more ranged units than other.
 
 However, keep in mind that **the mod does not influence which units the AI decides to recruit**.  
-It only removes heroes and units in an attempt to match the `Army Supplies` budget, target army size, and to ensure units of different types stay under their maximum amount.
+It only removes heroes and units in an attempt to match the `Army Supplies` budget, target army size, and to ensure units of different types stay under their maximum amount.  
+When several units or heroes could be removed with the same result, **the units with the least experience and the heroes with the lowest rank are removed first**, so that AI armies keep their veterans.
 
 The mod only lowers the priority the AI gives to recruiting units in its main army once it has `13` units (instead of `17` in the base game), so that the AI does not spend too much on armies whose units would then be disbanded.
 

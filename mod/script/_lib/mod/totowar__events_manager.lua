@@ -158,7 +158,16 @@ function TotoWar__EventsManager:onEvent(event, context)
     local eventSubscriptions = TotoWar__Linq:where(
         self.eventSubscriptions,
         function(es) return es.event == event and (es.maximumExecutions == nil or es.executions < es.maximumExecutions) end)
-    table.sort(eventSubscriptions, function(a, b) return a.priority < b.priority end)
+
+    table.sort(
+        eventSubscriptions,
+        function(a, b)
+            if a.priority ~= b.priority then
+                return a.priority < b.priority
+            end
+
+            return a.id < b.id
+        end)
 
     for index, eventSubscription in ipairs(eventSubscriptions) do
         executeEventSubscriptionIfConditionMet(eventSubscription, event, context)

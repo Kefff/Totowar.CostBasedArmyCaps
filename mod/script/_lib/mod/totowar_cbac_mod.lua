@@ -40,6 +40,9 @@ function TotoWar_Cbac_Mod:initialize()
     self:subscribeToEvents()
     self:loadMctOptions()
 
+    -- Signaling option changes
+    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
+
     TotoWar_Cbac_AiManager:initialize()
     TotoWar_Cbac_PlayerManager:initialize()
     TotoWar_Cbac_UIManager:initialize()
@@ -103,9 +106,6 @@ function TotoWar_Cbac_Mod:loadMctOptions()
     self.options.playerArmySuppliesEnabled = options
         :get_option_by_key(TotoWar_Cbac_Constant.optionName_playerArmySuppliesEnabled)
         :get_finalized_setting()
-
-    -- Signaling option changes
-    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
 
     logger:logInfo(
         "\"%s\" options loaded from the Mod Configuration Tool (Player armies restricted: %s | AI armies restricted: %s)",

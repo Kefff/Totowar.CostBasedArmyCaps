@@ -86,6 +86,9 @@ function TotoWar__Mod:initialize()
     self:subscribeToEvents()
     self:loadMctOptions()
 
+    -- Signaling option changes
+    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
+
     TotoWar__ModsManager:initialize()
 
     logger:logInfo("TotoWar base mod initialized")
@@ -138,9 +141,6 @@ function TotoWar__Mod:loadMctOptions()
         self.options.debugEnabled,
         self.options.mapRevealed)
 
-    -- Signaling option changes
-    TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated)
-
     logger:logDebug("TotoWar__Mod:loadMctOptions(): COMPLETED")
 end
 
@@ -192,6 +192,22 @@ function TotoWar__Mod:subscribeToEvents()
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.mctOptionsUpdated,
         function() self:onMctOptionsUpdated() end)
+
+    -- Signaling option changes once, after every TotoWar mod has reloaded its options from the Mod Configuration Tool,
+    -- so that the methods reacting to the optionsUpdated event do not read stale values of a mod not reloaded yet
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsSynchronized,
+        function() TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated) end,
+        nil,
+        nil,
+        9999) -- To force the event to be triggered after the TotoWar mods have reloaded their options
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_ModEvents.mctOptionsUpdated,
+        function() TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.optionsUpdated) end,
+        nil,
+        nil,
+        9999) -- To force the event to be triggered after the TotoWar mods have reloaded their options
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.optionsUpdated,
