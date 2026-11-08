@@ -156,18 +156,11 @@ function TotoWar_Cbac_ArmySuppliesCost.newFromArmy(isAi, army)
 
     for i = 0, units:num_items() - 1, 1 do
         local unit = units:item_at(i)
-        local unitCqi = unit:command_queue_index()
 
-        local isAlreadyAddedCharacter = TotoWar__Linq:any(
-            instance.unitArmySuppliesCosts,
-            function(uasc)
-                -- We avoid adding the lord and heroes twice
-                return uasc.unitCqi == unitCqi
-                    and (uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
-                        or uasc.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero)
-            end)
-
-        if not isAlreadyAddedCharacter then
+        -- Lords and heroes are only counted from their character, and never as regular units:
+        -- a character whose cost cannot be found (no character context) would otherwise be counted as cavalry & monsters
+        -- and could be removed from an AI army
+        if not TotoWar__Gameplay:isCharacterUnit(unit) then
             instance:addUnit(unit:unit_key(), unit:command_queue_index(), false, unit)
         end
     end

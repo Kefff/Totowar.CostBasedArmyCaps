@@ -217,6 +217,28 @@ function TotoWar__Gameplay:getUnitCaption(unitKey)
     return caption
 end
 
+---Indicates whether a unit is the unit of a character (lord or hero).
+---@param unit UNIT_SCRIPT_INTERFACE Unit.
+---@return boolean
+function TotoWar__Gameplay:isCharacterUnit(unit)
+    logger:logDebug(
+        "isCharacterUnit(unit): STARTED => Unit: %s (%s)",
+        function() return unit:unit_key() end,
+        function() return unit:command_queue_index() end)
+
+    -- unit:associated_character is defined by the game (documented in scripting_doc.html) but missing from the type definitions.
+    -- The unit of a lord has a unit commander, the unit of a hero (an agent) has an associated character.
+    local isCharacterUnit = unit:has_unit_commander() or not unit:associated_character():is_null_interface()
+
+    logger:logDebug(
+        "isCharacterUnit(unit): COMPLETED => Unit: %s (%s) | Character unit: %s",
+        function() return unit:unit_key() end,
+        function() return unit:command_queue_index() end,
+        isCharacterUnit)
+
+    return isCharacterUnit
+end
+
 ---Indicates whether a faction is the faction of the local player.
 ---@param factionName string Faction name.
 ---@return boolean
