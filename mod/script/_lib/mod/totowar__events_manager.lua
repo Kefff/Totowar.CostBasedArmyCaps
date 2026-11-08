@@ -273,6 +273,7 @@ function TotoWar__EventsManager:subscribeMultiplayer(
         -- It is never nil: the events manager only executes this callback when multiplayerConditionFunction (built below)
         -- returned true, and multiplayerConditionFunction returns false for the events that do not belong to this subscription.
         local dataString = getMultiplayerEventDataString(event, context:trigger())
+        ---@cast dataString string
 
         logger:logDebug(
             "subscribeMultiplayer(%s, callbackFunction, %s, %s, %s): CALLBACK STARTED => Origin: %s | Data: %s",
