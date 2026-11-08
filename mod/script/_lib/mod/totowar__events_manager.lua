@@ -359,7 +359,13 @@ function TotoWar__EventsManager:trigger(event, context)
         context ~= nil and "context" or "nil")
 
     if TotoWar__Linq:any(self.eventSubscriptions, function(es) return es.event == event end) then
-        core:trigger_event(event, context)
+        -- core:trigger_event adds each argument passed after the event to the context, including an explicit nil
+        -- which raises a script error (custom_context:add_data in lib_custom_context.lua): the context is only passed when there is one
+        if context ~= nil then
+            core:trigger_event(event, context)
+        else
+            core:trigger_event(event)
+        end
     else
         logger:logDebug(
             "trigger(%s, %s): NO SUBSCRIPTION",
