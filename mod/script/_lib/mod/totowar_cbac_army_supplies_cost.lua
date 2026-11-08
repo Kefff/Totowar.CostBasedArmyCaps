@@ -342,8 +342,21 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey, unitCqi)
 
     if isInRecruitmentMercenaryUnit then
         local positionInRecruitmentQueuePattern = TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard .. "(%d+)$"
+        local position = tonumber(unitKey:match(positionInRecruitmentQueuePattern))
+
+        if position == nil then
+            logger:logWarning(
+                "Mercenary recruitment: position not found in the unit card name %s, unit not removed",
+                unitKey)
+            logger:logDebug(
+                "removeUnit(%s): COMPLETED => Mercenary position not found, not removed",
+                unitKey)
+
+            return nil
+        end
+
         -- Position starts at 0 in the recruitment queue, but LUA table indexes start at 1
-        local index = tonumber(unitKey:match(positionInRecruitmentQueuePattern)) + 1
+        local index = position + 1
         local unit = self.inRecruitmentMercenaryUnits[index]
 
         if unit == nil then
