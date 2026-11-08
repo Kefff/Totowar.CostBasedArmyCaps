@@ -99,6 +99,26 @@ local function getTotalExperienceLevel(units)
     return totalExperienceLevel
 end
 
+---Indicates whether a combination of units comes before another one, to choose between two equivalent combinations
+---without depending on the iteration order of `pairs`, which depends on how the game lists the units of the army.
+---The units of each combination must be sorted with `compareUnitArmySuppliesCosts`.
+---@param units1 TotoWar_Cbac_UnitArmySuppliesCost[]
+---@param units2 TotoWar_Cbac_UnitArmySuppliesCost[]
+---@return boolean
+local function isCombinationBefore(units1, units2)
+    for i = 1, math.min(#units1, #units2) do
+        if compareUnitArmySuppliesCosts(units1[i], units2[i]) then
+            return true
+        end
+
+        if compareUnitArmySuppliesCosts(units2[i], units1[i]) then
+            return false
+        end
+    end
+
+    return #units1 < #units2
+end
+
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
 ---Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
@@ -288,15 +308,30 @@ local function adjustAiArmyCompositionAndUnits(
                                 DP[removedCount + 1][newKey] = DP[removedCount + 1][newKey] or {}
 
                                 local existingPicked = DP[removedCount + 1][newKey][newCost]
+                                local newPicked = nil
 
-                                -- For the same removal count, category state and cost, the combination with
-                                -- the least experienced units is kept, so that they are removed first
-                                if existingPicked == nil
-                                    or getTotalExperienceLevel(picked) + unit.experienceLevel
-                                    < getTotalExperienceLevel(existingPicked)
-                                then
-                                    local newPicked = { unpack(picked) }
+                                if existingPicked == nil then
+                                    newPicked = { unpack(picked) }
                                     table.insert(newPicked, unit)
+                                else
+                                    -- For the same removal count, category state and cost, the combination with
+                                    -- the least experienced units is kept, so that they are removed first
+                                    local newExperienceLevel = getTotalExperienceLevel(picked) + unit.experienceLevel
+                                    local existingExperienceLevel = getTotalExperienceLevel(existingPicked)
+
+                                    if newExperienceLevel <= existingExperienceLevel then
+                                        newPicked = { unpack(picked) }
+                                        table.insert(newPicked, unit)
+
+                                        if newExperienceLevel == existingExperienceLevel
+                                            and not isCombinationBefore(newPicked, existingPicked)
+                                        then
+                                            newPicked = nil
+                                        end
+                                    end
+                                end
+
+                                if newPicked ~= nil then
                                     DP[removedCount + 1][newKey][newCost] = newPicked
                                 end
                             end
@@ -314,15 +349,17 @@ local function adjustAiArmyCompositionAndUnits(
     -- 1) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
     -- 2) fewer removals (tie breaker)
     -- 3) minimal cost above deficit
-    -- 4) maximal satisfiedScore
-    -- 5) minimal total experience level
+    -- 4) minimal total experience level
+    -- 5) first combination when sorting units with compareUnitArmySuppliesCosts (isCombinationBefore)
     --
     -- PARTIAL solutions (cost < deficit):
     -- 1) maximal cost (closest below deficit)
     -- 2) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
     -- 3) fewer removals
-    -- 4) maximal satisfiedScore
-    -- 5) minimal total experience level
+    -- 4) minimal total experience level
+    -- 5) first combination when sorting units with compareUnitArmySuppliesCosts (isCombinationBefore)
+    --
+    -- The last criterion makes the choice independent of the iteration order of `pairs`.
     -------------------------------------------------------------------------
     local idealRemovalCount = nil
     if requiredRemovalsForSize > 0 then
@@ -333,14 +370,12 @@ local function adjustAiArmyCompositionAndUnits(
     local bestCost = nil
     ---@type integer
     local bestRemovalCount = nil
-    local bestSatisfiedScore = nil
     local bestExperienceLevel = nil
 
     local partialPicked = nil
     local partialCost = nil
     ---@type integer
     local partialRemovalCount = nil
-    local partialSatisfiedScore = nil
     local partialExperienceLevel = nil
 
     ---@param k integer
@@ -359,10 +394,7 @@ local function adjustAiArmyCompositionAndUnits(
             return
         end
 
-        for stateKey, costTable in pairs(DP[k]) do
-            local state = TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(stateKey, categories, maxPerCategory)
-            local satisfiedScore = state:getSatisfiedScore()
-
+        for _, costTable in pairs(DP[k]) do
             for cost, picked in pairs(costTable) do
                 local experienceLevel = getTotalExperienceLevel(picked)
 
@@ -371,7 +403,6 @@ local function adjustAiArmyCompositionAndUnits(
                         bestPicked = picked
                         bestCost = cost
                         bestRemovalCount = k
-                        bestSatisfiedScore = satisfiedScore
                         bestExperienceLevel = experienceLevel
                     else
                         local bestDist = getDistanceToIdeal(bestRemovalCount)
@@ -383,13 +414,12 @@ local function adjustAiArmyCompositionAndUnits(
                         if newDist < bestDist
                             or (newDist == bestDist and k < bestRemovalCount)
                             or (newDist == bestDist and k == bestRemovalCount and newExcess < bestExcess)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and satisfiedScore > bestSatisfiedScore)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and satisfiedScore == bestSatisfiedScore and experienceLevel < bestExperienceLevel)
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and experienceLevel < bestExperienceLevel)
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and experienceLevel == bestExperienceLevel and isCombinationBefore(picked, bestPicked))
                         then
                             bestPicked = picked
                             bestCost = cost
                             bestRemovalCount = k
-                            bestSatisfiedScore = satisfiedScore
                             bestExperienceLevel = experienceLevel
                         end
                     end
@@ -398,7 +428,6 @@ local function adjustAiArmyCompositionAndUnits(
                         partialPicked = picked
                         partialCost = cost
                         partialRemovalCount = k
-                        partialSatisfiedScore = satisfiedScore
                         partialExperienceLevel = experienceLevel
                     else
                         local partialDist = getDistanceToIdeal(partialRemovalCount)
@@ -407,13 +436,12 @@ local function adjustAiArmyCompositionAndUnits(
                         if cost > partialCost
                             or (cost == partialCost and newDist < partialDist)
                             or (cost == partialCost and newDist == partialDist and k < partialRemovalCount)
-                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and satisfiedScore > partialSatisfiedScore)
-                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and satisfiedScore == partialSatisfiedScore and experienceLevel < partialExperienceLevel)
+                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and experienceLevel < partialExperienceLevel)
+                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and experienceLevel == partialExperienceLevel and isCombinationBefore(picked, partialPicked))
                         then
                             partialPicked = picked
                             partialCost = cost
                             partialRemovalCount = k
-                            partialSatisfiedScore = satisfiedScore
                             partialExperienceLevel = experienceLevel
                         end
                     end
@@ -454,19 +482,10 @@ local function adjustAiArmyCompositionAndUnits(
     -------------------------------------------------------------------------
     -- COMPLETE WITH otherUnits if deficit not covered
     -------------------------------------------------------------------------
-    local pickedSet = {}
-    for _, u in ipairs(bestPicked) do
-        pickedSet[u.unitCqi] = true
-    end
-
-    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
-    local remaining = {}
-
-    for _, u in ipairs(otherUnits) do
-        if not pickedSet[u.unitCqi] then
-            table.insert(remaining, u)
-        end
-    end
+    -- No unit of otherUnits has been picked: the units picked above all come from excessUnits.
+    -- otherUnits keeps the order of the army units sorted with compareUnitArmySuppliesCosts, which DP2 relies on
+    -- to keep the same combination whatever the order in which the game lists the units of the army.
+    local remaining = otherUnits
 
     local remainingDeficit = deficit - bestCost
 

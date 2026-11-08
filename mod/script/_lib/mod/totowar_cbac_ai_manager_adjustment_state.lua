@@ -90,12 +90,3 @@ function TotoWar_Cbac_AiManagerAdjustmentState:getKey()
 
     return table.concat(parts, ",")
 end
-
----@return integer
-function TotoWar_Cbac_AiManagerAdjustmentState:getSatisfiedScore()
-    local score = 0
-    for _, cat in ipairs(self.categories) do
-        score = score + (self.counts[cat] or 0)
-    end
-    return score
-end
