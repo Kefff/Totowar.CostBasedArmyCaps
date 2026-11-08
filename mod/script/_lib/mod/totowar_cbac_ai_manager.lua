@@ -85,20 +85,6 @@ local function compareUnitArmySuppliesCosts(a, b)
     return (a.unitCqi or 0) < (b.unitCqi or 0)
 end
 
----Gets the total experience level of units.
----Used to remove the least experienced units first when several combinations of units are equivalent.
----@param units TotoWar_Cbac_UnitArmySuppliesCost[]
----@return integer
-local function getTotalExperienceLevel(units)
-    local totalExperienceLevel = 0
-
-    for _, unit in ipairs(units) do
-        totalExperienceLevel = totalExperienceLevel + unit.experienceLevel
-    end
-
-    return totalExperienceLevel
-end
-
 ---Indicates whether a combination of units comes before another one, to choose between two equivalent combinations
 ---without depending on the iteration order of `pairs`, which depends on how the game lists the units of the army.
 ---The units of each combination must be sorted with `compareUnitArmySuppliesCosts`.
@@ -273,8 +259,11 @@ local function adjustAiArmyCompositionAndUnits(
     -------------------------------------------------------------------------
     -- MAIN DP over excessUnits only
     -- DP[count][stateKey][removedCost] = pickedUnits
+    --
+    -- Each list of picked units also stores the total experience level of its units in its `experienceLevel` field,
+    -- so that it is not summed again when comparing combinations (ignored by ipairs, unpack and #).
     -------------------------------------------------------------------------
-    ---@type table<integer, table<string, table<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>>>
+    ---@type table<integer, table<string, table<integer, TotoWar_Cbac_UnitArmySuppliesCost[] | { experienceLevel: integer }>>>
     local DP = {}
     DP[0] = {}
 
@@ -282,7 +271,7 @@ local function adjustAiArmyCompositionAndUnits(
     local startKey = startState:getKey()
 
     DP[0][startKey] = {}
-    DP[0][startKey][0] = {}
+    DP[0][startKey][0] = { experienceLevel = 0 }
 
     table.sort(excessUnits, compareUnitArmySuppliesCosts)
 
@@ -308,31 +297,21 @@ local function adjustAiArmyCompositionAndUnits(
                                 DP[removedCount + 1][newKey] = DP[removedCount + 1][newKey] or {}
 
                                 local existingPicked = DP[removedCount + 1][newKey][newCost]
-                                local newPicked = nil
+                                local newExperienceLevel = picked.experienceLevel + unit.experienceLevel
 
-                                if existingPicked == nil then
-                                    newPicked = { unpack(picked) }
+                                -- For the same removal count, category state and cost, the combination with
+                                -- the least experienced units is kept, so that they are removed first
+                                if existingPicked == nil or newExperienceLevel <= existingPicked.experienceLevel then
+                                    local newPicked = { unpack(picked) }
                                     table.insert(newPicked, unit)
-                                else
-                                    -- For the same removal count, category state and cost, the combination with
-                                    -- the least experienced units is kept, so that they are removed first
-                                    local newExperienceLevel = getTotalExperienceLevel(picked) + unit.experienceLevel
-                                    local existingExperienceLevel = getTotalExperienceLevel(existingPicked)
+                                    newPicked.experienceLevel = newExperienceLevel
 
-                                    if newExperienceLevel <= existingExperienceLevel then
-                                        newPicked = { unpack(picked) }
-                                        table.insert(newPicked, unit)
-
-                                        if newExperienceLevel == existingExperienceLevel
-                                            and not isCombinationBefore(newPicked, existingPicked)
-                                        then
-                                            newPicked = nil
-                                        end
+                                    if existingPicked == nil
+                                        or newExperienceLevel < existingPicked.experienceLevel
+                                        or isCombinationBefore(newPicked, existingPicked)
+                                    then
+                                        DP[removedCount + 1][newKey][newCost] = newPicked
                                     end
-                                end
-
-                                if newPicked ~= nil then
-                                    DP[removedCount + 1][newKey][newCost] = newPicked
                                 end
                             end
                         end
@@ -370,13 +349,11 @@ local function adjustAiArmyCompositionAndUnits(
     local bestCost = nil
     ---@type integer
     local bestRemovalCount = nil
-    local bestExperienceLevel = nil
 
     local partialPicked = nil
     local partialCost = nil
     ---@type integer
     local partialRemovalCount = nil
-    local partialExperienceLevel = nil
 
     ---@param k integer
     ---@return integer
@@ -396,14 +373,11 @@ local function adjustAiArmyCompositionAndUnits(
 
         for _, costTable in pairs(DP[k]) do
             for cost, picked in pairs(costTable) do
-                local experienceLevel = getTotalExperienceLevel(picked)
-
                 if cost >= deficit then
                     if bestPicked == nil then
                         bestPicked = picked
                         bestCost = cost
                         bestRemovalCount = k
-                        bestExperienceLevel = experienceLevel
                     else
                         local bestDist = getDistanceToIdeal(bestRemovalCount)
                         local newDist = getDistanceToIdeal(k)
@@ -414,13 +388,13 @@ local function adjustAiArmyCompositionAndUnits(
                         if newDist < bestDist
                             or (newDist == bestDist and k < bestRemovalCount)
                             or (newDist == bestDist and k == bestRemovalCount and newExcess < bestExcess)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and experienceLevel < bestExperienceLevel)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess and experienceLevel == bestExperienceLevel and isCombinationBefore(picked, bestPicked))
+                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess
+                                and (picked.experienceLevel < bestPicked.experienceLevel
+                                    or (picked.experienceLevel == bestPicked.experienceLevel and isCombinationBefore(picked, bestPicked))))
                         then
                             bestPicked = picked
                             bestCost = cost
                             bestRemovalCount = k
-                            bestExperienceLevel = experienceLevel
                         end
                     end
                 else
@@ -428,7 +402,6 @@ local function adjustAiArmyCompositionAndUnits(
                         partialPicked = picked
                         partialCost = cost
                         partialRemovalCount = k
-                        partialExperienceLevel = experienceLevel
                     else
                         local partialDist = getDistanceToIdeal(partialRemovalCount)
                         local newDist = getDistanceToIdeal(k)
@@ -436,13 +409,13 @@ local function adjustAiArmyCompositionAndUnits(
                         if cost > partialCost
                             or (cost == partialCost and newDist < partialDist)
                             or (cost == partialCost and newDist == partialDist and k < partialRemovalCount)
-                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and experienceLevel < partialExperienceLevel)
-                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount and experienceLevel == partialExperienceLevel and isCombinationBefore(picked, partialPicked))
+                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount
+                                and (picked.experienceLevel < partialPicked.experienceLevel
+                                    or (picked.experienceLevel == partialPicked.experienceLevel and isCombinationBefore(picked, partialPicked))))
                         then
                             partialPicked = picked
                             partialCost = cost
                             partialRemovalCount = k
-                            partialExperienceLevel = experienceLevel
                         end
                     end
                 end
@@ -485,16 +458,14 @@ local function adjustAiArmyCompositionAndUnits(
     -- No unit of otherUnits has been picked: the units picked above all come from excessUnits.
     -- otherUnits keeps the order of the army units sorted with compareUnitArmySuppliesCosts, which DP2 relies on
     -- to keep the same combination whatever the order in which the game lists the units of the army.
-    local remaining = otherUnits
-
     local remainingDeficit = deficit - bestCost
 
-    if remainingDeficit > 0 and #remaining > 0 then
+    if remainingDeficit > 0 and #otherUnits > 0 then
         ---@type table<integer, { count: integer, experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
         local DP2 = {}
         DP2[0] = { count = 0, experienceLevel = 0, picked = {} }
 
-        for _, unit in ipairs(remaining) do
+        for _, unit in ipairs(otherUnits) do
             -- Only iterating over the costs already reached instead of every cost up to the total cost of the units.
             -- They are processed from the highest to the lowest so that each unit is added at most once to a combination:
             -- the costs updated for this unit are higher than the cost being processed, so they have already been processed.
@@ -504,32 +475,32 @@ local function adjustAiArmyCompositionAndUnits(
                 table.insert(reachedCosts, cost)
             end
 
-            table.sort(reachedCosts, function(a, b) return a > b end)
+            -- Default ascending sort (faster than a comparison function), iterated from the end
+            table.sort(reachedCosts)
 
-            for _, cost in ipairs(reachedCosts) do
+            for i = #reachedCosts, 1, -1 do
+                local cost = reachedCosts[i]
                 local entry = DP2[cost]
-                if entry then
-                    local newCost = cost + unit.armySuppliesCost
-                    local newCount = entry.count + 1
-                    local newExperienceLevel = entry.experienceLevel + unit.experienceLevel
+                local newCost = cost + unit.armySuppliesCost
+                local newCount = entry.count + 1
+                local newExperienceLevel = entry.experienceLevel + unit.experienceLevel
 
-                    local existing = DP2[newCost]
+                local existing = DP2[newCost]
 
-                    -- For the same cost and removal count, the combination with the least experienced units is kept,
-                    -- so that they are removed first
-                    if existing == nil
-                        or newCount < existing.count
-                        or (newCount == existing.count and newExperienceLevel < existing.experienceLevel)
-                    then
-                        local newPicked = { unpack(entry.picked) }
-                        table.insert(newPicked, unit)
+                -- For the same cost and removal count, the combination with the least experienced units is kept,
+                -- so that they are removed first
+                if existing == nil
+                    or newCount < existing.count
+                    or (newCount == existing.count and newExperienceLevel < existing.experienceLevel)
+                then
+                    local newPicked = { unpack(entry.picked) }
+                    table.insert(newPicked, unit)
 
-                        DP2[newCost] = {
-                            count = newCount,
-                            experienceLevel = newExperienceLevel,
-                            picked = newPicked
-                        }
-                    end
+                    DP2[newCost] = {
+                        count = newCount,
+                        experienceLevel = newExperienceLevel,
+                        picked = newPicked
+                    }
                 end
             end
         end
