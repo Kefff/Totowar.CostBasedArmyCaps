@@ -1328,10 +1328,12 @@ function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(army)
         -- Forced to delay the adjustment until all units are recruited.
         -- Disbanding units each time the unit recruitment unit was received could lead to crashes so
         -- we switched to a deferred global adjustment to fix that.
+        -- The army is removed from the queue before being adjusted, so that an error during the adjustment
+        -- does not leave it in the queue, which would prevent any later adjustment when units are recruited.
         TotoWar__Utils:delay(
             function()
-                adjustAiArmy(armyCqi)
                 TotoWar__Linq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == armyCqi end)
+                adjustAiArmy(armyCqi)
             end,
             0.001)
     end
@@ -1387,10 +1389,13 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
 
         -- Callback to wait for other disband events to be executed before checking whether we should reinstate the unit.
         -- Not sure it is required like for the adjustment queue but added it to be consistent.
+        -- The units are removed from the queue before being processed, so that an error does not leave them in the queue,
+        -- which would prevent any later unit disbanded from this army from being reinstated.
         TotoWar__Utils:delay(
             function()
-                self:cancelDisbandIfAlreadyAdjusted(armyCqi)
+                local disbandedUnits = self.disbandQueue:get(armyCqi)
                 self.disbandQueue:remove(armyCqi)
+                self:cancelDisbandIfAlreadyAdjusted(armyCqi, disbandedUnits)
             end,
             0.001)
     end
@@ -1409,18 +1414,19 @@ end
 ---which would undo the composition and size chosen by the mod. Units disbanded after the adjustment are therefore
 ---reinstated, as long as the army supplies allow it.
 ---@param armyCqi integer Command queue index of the army that may have been adjusted.
-function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi)
+---@param disbandedUnits TotoWar_Cbac_UnitArmySuppliesCost[] Units disbanded from the army.
+function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi, disbandedUnits)
     local army = TotoWar__Gameplay:getArmy(armyCqi)
 
     logger:logDebug(
-        "cancelDisbandIfAlreadyAdjusted(%s): STARTED => %s",
+        "cancelDisbandIfAlreadyAdjusted(%s, disbandedUnits): STARTED => %s",
         armyCqi,
         function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
 
     if army == nil or not army:has_general() then
         -- The army may have been destroyed between the disband of a unit and the execution of the callback
         logger:logDebug(
-            "cancelDisbandIfAlreadyAdjusted(%s): COMPLETED => %s | Army destroyed or without lord",
+            "cancelDisbandIfAlreadyAdjusted(%s, disbandedUnits): COMPLETED => %s | Army destroyed or without lord",
             armyCqi,
             function() return army ~= nil and TotoWar__Gameplay:getArmyCaption(army) or "Army not found" end)
 
@@ -1430,7 +1436,6 @@ function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi)
     local lord = army:general_character()
 
     local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, army)
-    local disbandedUnits = self.disbandQueue:get(armyCqi)
 
     for index, disbandedUnit in ipairs(disbandedUnits) do
         if armySuppliesCost.availableSupplies >= disbandedUnit.armySuppliesCost then
@@ -1455,7 +1460,7 @@ function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi)
     end
 
     logger:logDebug(
-        "cancelDisbandIfAlreadyAdjusted(%s): COMPLETED => %s",
+        "cancelDisbandIfAlreadyAdjusted(%s, disbandedUnits): COMPLETED => %s",
         armyCqi,
         function() return TotoWar__Gameplay:getArmyCaption(army) end)
 end
