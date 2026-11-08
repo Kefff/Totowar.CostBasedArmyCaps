@@ -226,7 +226,7 @@ function TotoWar__Gameplay:isLocalPlayerFaction(factionName)
         factionName,
         function() return self:getFactionFullCaption(cm:get_faction(factionName)) end)
 
-    local isLocalPlayerFaction = factionName == cm:get_local_faction_name()
+    local isLocalPlayerFaction = factionName == cm:get_local_faction_name(true)
 
     logger:logDebug(
         "isLocalPlayerFaction(%s): COMPLETED => %s | Local player faction: %s",

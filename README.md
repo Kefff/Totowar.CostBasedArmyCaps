@@ -82,9 +82,24 @@ Overhaul mods like Venris' [SFO: Grimhammer](https://steamcommunity.com/sharedfi
 I have not made any test with them.
 
 ## Use of generative AI
-Every part of this mod is locally produced, organic code, except for two elements made using generative AI:
-- the `Army Supplies` icon, because I'm a programmer with zero artistic ability
-- the algorithm for choosing which units should be disbanded when the `Army Supplies` of an AI army are depleted (lots of parameters to take into account to make the optimal choice), because I'm too dumb to code something this complex
+I coded the entire mod without AI assistance up to a first complete playable version that worked well in single player, but did not yet match the vision I had.
+
+The main difficulties I had were:
+
+- It's my first Total War mod, so I'm not very familiar with the tools. Having TypeScript experience, the Lua language was easy to learn. But despite the hard work of the community, it is very hard to find solid information and best practices. Some people manage like to spend hours in the game's accessible code and data tables to reverse-engineer every little thing, but I don't.
+- I'm too dumb to implement the algorithm I wanted for adjusting the composition of AI armies; the one I implemented by myself worked but was far too simple and lacked diversity.
+
+As much as it pains me to say, we are in 2026 and AI can now code far better than me. So I then used AI to:
+
+- greatly improve the algorithm that adjusts AI army compositions
+- compile documentation from different websites and the game code, which allowed me to understand far better how the game works and what the best coding practices should be
+- review my code and fix more than 40 issues (none prevented the mod from working in solo, but some prevented it from working in multiplayer)
+
+In conclusion, without AI assistance, the mod would:
+
+- have a very bare-bones composition adjustment for AI armies
+- have less polished code and some bugs that I would not have been able to find or fix
+- not have worked in multiplayer
 
 ## Links
 [Github repository](https://github.com/Kefff/Totowar.CostBasedArmyCaps)
