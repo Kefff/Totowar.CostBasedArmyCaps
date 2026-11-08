@@ -609,21 +609,24 @@ end
 
 ---Reacts to a unit being disbanded.
 ---@param unitKey string Unit key
-function TotoWar_Cbac_PlayerManager:onUnitDisbanded(unitKey)
+---@param unitCqi integer Unit command queue index.
+function TotoWar_Cbac_PlayerManager:onUnitDisbanded(unitKey, unitCqi)
     logger:logDebug(
-        "onUnitDisbanded(%s): STARTED => %s | Unit: %s",
+        "onUnitDisbanded(%s, %s): STARTED => %s | Unit: %s",
         unitKey,
+        unitCqi,
         function() return TotoWar__Gameplay:getCharacterFullCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
-    self.selectedLordArmySuppliesCost:removeUnit(unitKey)
+    self.selectedLordArmySuppliesCost:removeUnit(unitKey, unitCqi)
 
     -- Signaling army supplies cost change
     TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
     logger:logDebug(
-        "onUnitDisbanded(%s): COMPLETED => %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        "onUnitDisbanded(%s, %s): COMPLETED => %s | Unit: %s | Total cost: %s | Available supplies: %s",
         unitKey,
+        unitCqi,
         function() return TotoWar__Gameplay:getCharacterFullCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         self.selectedLordArmySuppliesCost.totalCost,
@@ -664,21 +667,24 @@ end
 
 ---Reacts to a unit being destroyed after having been merged with another unit.
 ---@param unitKey string Unit key.
-function TotoWar_Cbac_PlayerManager:onUnitMergedAndDestroyed(unitKey)
+---@param unitCqi integer Unit command queue index.
+function TotoWar_Cbac_PlayerManager:onUnitMergedAndDestroyed(unitKey, unitCqi)
     logger:logDebug(
-        "onUnitMergedAndDestroyed(%s): STARTED => %s | Unit: %s",
+        "onUnitMergedAndDestroyed(%s, %s): STARTED => %s | Unit: %s",
         unitKey,
+        unitCqi,
         function() return TotoWar__Gameplay:getCharacterFullCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
-    self.selectedLordArmySuppliesCost:removeUnit(unitKey)
+    self.selectedLordArmySuppliesCost:removeUnit(unitKey, unitCqi)
 
     -- Signaling army supplies cost change
     TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
 
     logger:logDebug(
-        "onUnitMergedAndDestroyed(%s): COMPLETED => %s | Unit: %s | Total cost: %s | Available supplies: %s",
+        "onUnitMergedAndDestroyed(%s, %s): COMPLETED => %s | Unit: %s | Total cost: %s | Available supplies: %s",
         unitKey,
+        unitCqi,
         function() return TotoWar__Gameplay:getCharacterFullCaption(self.selectedLord) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
         self.selectedLordArmySuppliesCost.totalCost,
@@ -955,7 +961,10 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitDisbanded,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
-        function(context) self:onUnitDisbanded(context:unit():unit_key()) end,
+        function(context)
+            local unit = context:unit()
+            self:onUnitDisbanded(unit:unit_key(), unit:command_queue_index())
+        end,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             return
@@ -968,7 +977,10 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitMergedAndDestroyed,
         ---@param context TotoWar__GameEventContext_UnitMergedAndDestroyed
-        function(context) self:onUnitMergedAndDestroyed(context:unit():unit_key()) end,
+        function(context)
+            local unit = context:unit()
+            self:onUnitMergedAndDestroyed(unit:unit_key(), unit:command_queue_index())
+        end,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             return

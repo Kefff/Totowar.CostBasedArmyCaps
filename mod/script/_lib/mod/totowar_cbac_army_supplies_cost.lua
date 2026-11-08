@@ -328,9 +328,13 @@ end
 ---This is useful to know which unit was removed because we only know the position
 ---position of the unit in the recruitment queue before calling `removeUnit`.
 ---@param unitKey string Unit key.
+---
+---When a CQI is given, the unit with this CQI is removed. Otherwise, or when no counted unit has this CQI, a unit with
+---the same key and no CQI is removed (a unit counted from the recruitment queue).
+---@param unitCqi integer? Unit command queue index, to remove this exact unit when the army has several units with the same key.
 ---@return string | nil
-function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
-    logger:logDebug("removeUnit(%s): STARTED", unitKey)
+function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey, unitCqi)
+    logger:logDebug("removeUnit(%s, %s): STARTED", unitKey, unitCqi)
 
     local isInRecruitmentMercenaryUnit = string.match(
         unitKey,
@@ -367,24 +371,48 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey)
 
         return unit.unitKey;
     else
-        -- Prioritizing removing the last unit added which in theory should be the least experienced
-        for i = #self.unitArmySuppliesCosts, 1, -1 do
-            local unit = self.unitArmySuppliesCosts[i]
+        ---@type integer | nil
+        local unitIndex = nil
 
-            if unit.unitKey == unitKey then
-                self.totalCost = self.totalCost - unit.armySuppliesCost
-                self.availableSupplies = self.totalArmySupplies - self.totalCost
-                table.remove(self.unitArmySuppliesCosts, i)
+        if unitCqi ~= nil then
+            unitIndex = TotoWar__Linq:findIndex(
+                self.unitArmySuppliesCosts,
+                function(u) return u.unitKey == unitKey and u.unitCqi == unitCqi end)
 
-                logger:logDebug(
-                    "removeUnit(%s): COMPLETED => Removed unit: %s | Total cost: %s | Available supplies: %s",
-                    unitKey,
-                    function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
-                    self.totalCost,
-                    self.availableSupplies)
-
-                return unitKey;
+            if unitIndex == -1 then
+                -- A unit counted from the recruitment queue has no CQI: it may since have been trained
+                unitIndex = nil
+                unitCqi = nil
             end
+        end
+
+        if unitCqi == nil then
+            -- Without a CQI, prioritizing removing the last unit added which in theory should be the least experienced
+            for i = #self.unitArmySuppliesCosts, 1, -1 do
+                local unit = self.unitArmySuppliesCosts[i]
+
+                if unit.unitKey == unitKey and unit.unitCqi == nil then
+                    unitIndex = i
+
+                    break
+                end
+            end
+        end
+
+        if unitIndex ~= nil then
+            local unit = self.unitArmySuppliesCosts[unitIndex]
+            self.totalCost = self.totalCost - unit.armySuppliesCost
+            self.availableSupplies = self.totalArmySupplies - self.totalCost
+            table.remove(self.unitArmySuppliesCosts, unitIndex)
+
+            logger:logDebug(
+                "removeUnit(%s): COMPLETED => Removed unit: %s | Total cost: %s | Available supplies: %s",
+                unitKey,
+                function() return TotoWar__Gameplay:getUnitCaption(unitKey) end,
+                self.totalCost,
+                self.availableSupplies)
+
+            return unitKey;
         end
     end
 

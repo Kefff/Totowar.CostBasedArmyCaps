@@ -607,7 +607,7 @@ local function adjustAiArmyCompositionAndUnits(
     -------------------------------------------------------------------------
     for _, unitArmySuppliesCost in ipairs(bestPicked) do
         table.insert(unitsToDiscard, unitArmySuppliesCost)
-        armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey)
+        armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi)
     end
 
     -- Storing the current turn as the last adjustment turn for that army to be able to cancel the disbands that may happen just after the adjustment
