@@ -13,6 +13,25 @@ local _severityRanks = {
     [TotoWar__Enum_LogSeverities.error] = 4
 }
 
+---Counts the parameters expected by a message.
+---Parameters are always converted to strings, so `%s` is the only format specifier supported, and `%%` writes a `%`.
+---@param message string Message to log.
+---@return integer | nil # `nil` when the message contains another format specifier.
+local function countMessageParameters(message)
+    local count = 0
+
+    -- `%%` is matched as a whole, so the `s` of `%%s` is not counted as a parameter
+    for specifier in string.gmatch(message, "%%(.?)") do
+        if specifier == "s" then
+            count = count + 1
+        elseif specifier ~= "%" then
+            return nil
+        end
+    end
+
+    return count
+end
+
 ---Writes a message in the game script log and in the TotoWar log file.
 ---@param logger TotoWar__Logger Logger.
 ---@param severity TotoWar__Enum_LogSeverities Severity of the message.
@@ -41,13 +60,14 @@ local function write(logger, severity, message, ...)
         end
     end
 
-    local messageParameterCount = 0
+    local messageParameterCount = countMessageParameters(message)
 
-    for _ in string.gmatch(message, "%%s") do
-        messageParameterCount = messageParameterCount + 1
-    end
-
-    if messageParameterCount ~= parameterCount then
+    if messageParameterCount == nil then
+        severity = TotoWar__Enum_LogSeverities.error
+        message = string.format(
+            'Invalid format specifier in message "%s" (only %%s and %%%% are supported)',
+            message)
+    elseif messageParameterCount ~= parameterCount then
         severity = TotoWar__Enum_LogSeverities.error
         message = string.format(
             'Invalid amount of parameters for message "%s" (Expected: %d | Received: %d)',
