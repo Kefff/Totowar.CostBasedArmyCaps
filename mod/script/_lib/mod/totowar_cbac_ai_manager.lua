@@ -1134,7 +1134,9 @@ local function removeUnitFromAiArmy(army, unitKey, unitCqi)
         reimbursedCost = unitRealCost
     end
 
-    -- cm:remove_unit_by_cqi is defined by the game (used in wh3_campaign_slaanesh_seductive_influence.lua) but missing from its documentation and from the type definitions
+    -- cm:remove_unit_by_cqi is defined by the game (used in wh3_campaign_slaanesh_seductive_influence.lua) but missing from its documentation and from the type definitions.
+    -- It does not trigger the UnitDisbanded event (verified in game). Otherwise, as the last adjustment turn of the army
+    -- is already stored, the units removed here would be added to the disband queue and could then be reinstated.
     cm:remove_unit_by_cqi(unitCqi)
 
     logger:logInfo(

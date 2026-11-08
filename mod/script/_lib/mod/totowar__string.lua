@@ -5,19 +5,25 @@ TotoWar__String.__index = TotoWar__String
 
 ---Indicates whether a text contains another text.
 ---@param text string Text.
----@param searchedText integer Searched text.
+---@param searchedText string Searched text.
 ---@return boolean
 function TotoWar__String:contains(text, searchedText)
+    -- The string.find of the game ignores the "plain" parameter, but never uses patterns (see lib_lua_extensions.lua):
+    -- the parameter is kept in case the original Lua implementation is used
     local contains = text:find(searchedText, 1, true) ~= nil
 
     return contains
 end
 
 ---Indicates whether a text ends with another text.
+---
+---Only reliable with ASCII texts: the string.find of the game returns positions in UTF-8 characters,
+---while `#` counts bytes (see lib_lua_extensions.lua).
 ---@param text string Text.
----@param searchedText integer Searched text.
+---@param searchedText string Searched text.
 ---@return boolean
 function TotoWar__String:endsWith(text, searchedText)
+    -- The "plain" parameter is ignored by the string.find of the game, which never uses patterns
     local start = #text - #searchedText + 1
     local endsWith = start > 0 and text:find(searchedText, start, true) == start
 
@@ -67,6 +73,9 @@ function TotoWar__String:split(text, separator)
 end
 
 ---Indicates whether a text starts with another text.
+---
+---Only reliable with ASCII texts: the string.sub of the game uses positions in UTF-8 characters,
+---while `#` counts bytes (see lib_lua_extensions.lua).
 ---@param text string Text.
 ---@param searchedText string Searched text.
 ---@return boolean

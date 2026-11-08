@@ -31,6 +31,8 @@ end
 ---The listener of the Mod Configuration Tool is registered after the one of TotoWar, so it reacts to the message afterwards:
 ---the options are reloaded with a short delay to read the settings it has applied.
 ---The delay uses a timer of the game synchronized between the machines, because the message is received by all of them.
+---
+---The message is only sent at the start of a new campaign. When a saved game is loaded, the settings come from the save and are the same on all the machines.
 local function onMctMultiplayerInitialLoadReceived()
     logger:logDebug("onMctMultiplayerInitialLoadReceived(): STARTED")
 
