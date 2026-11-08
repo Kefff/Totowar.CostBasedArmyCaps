@@ -307,6 +307,17 @@ function TotoWar_Cbac_PlayerManager:initializeArmySuppliesCost(lord)
         self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
+---Indicates whether the army supplies cost of the selected lord army can be used by the methods reacting to events:
+---the player army supplies are enabled, it is the turn of the local player and the cost is initialized
+---(it is nil while it is being initialized, and when no lord is selected).
+---@return boolean
+function TotoWar_Cbac_PlayerManager:isSelectedLordArmySuppliesCostAvailable()
+    return
+        TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
+        and cm:is_local_players_turn(true)
+        and self.selectedLordArmySuppliesCost ~= nil
+end
+
 ---Reacts to a character being deselected.
 function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
     logger:logDebug("onCharacterDeselected(): STARTED")
@@ -555,14 +566,6 @@ function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
         return
     end
 
-    if self.selectedLordArmySuppliesCost == nil then
-        logger:logDebug(
-            "onSelectedLordArmySuppliesCostChanged(): COMPLETED => %s | Army supplies cost being initialized",
-            function() return TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force()) end)
-
-        return
-    end
-
     local needsSelectedLordMovementUpdate = true
 
     if TotoWar__Mod.options.debugEnabled then
@@ -782,10 +785,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                 context.string:match(TotoWar__Enum_Patterns.inRecruitmentMercenaryUnitCard) ~= nil
 
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and isInRecruitmentMercenaryUnitCard
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -801,10 +802,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                 context.string:match(TotoWar__Enum_Patterns.recruitableMercenaryUnitCard) ~= nil
 
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and isRecruitableMercenaryUnitCard
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -812,7 +811,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         function() self:onWarbandUpgradeUnitClicked() end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
-            if self.selectedLord == nil then
+            if self.selectedLord == nil or not self:isSelectedLordArmySuppliesCostAvailable() then
                 return false
             end
 
@@ -826,9 +825,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                     { "warband_upgrades", "body", "upgrade_tree", "slot_parent" })
 
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
-                and warbandUpgradesUIComponent ~= nil
+                warbandUpgradesUIComponent ~= nil
                 and warbandUpgradesUIComponent:Visible(true)
                 and (isStandardUnitCard or isWarbandUpgrade)
         end)
@@ -838,7 +835,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         function() self:onWarbandUpgradeButtonClicked() end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
-            if self.selectedLord == nil then
+            if self.selectedLord == nil or not self:isSelectedLordArmySuppliesCostAvailable() then
                 return false
             end
 
@@ -846,9 +843,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
                 TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgrades)
 
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
-                and warbandUpgradesUIComponent ~= nil
+                warbandUpgradesUIComponent ~= nil
                 and warbandUpgradesUIComponent:Visible(true)
                 and context.string == "button_invoke"
                 and TotoWar__UI:isUIComponentChildOf(
@@ -892,10 +887,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_PanelOpenedOrClosed
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and context.string == TotoWar__Enum_Panels.mercenaryRecruitment
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -915,10 +908,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_PanelOpenedOrClosed
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and context.string == TotoWar__Enum_Panels.mercenaryRecruitment
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -935,11 +926,7 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     TotoWar__EventsManager:subscribe(
         TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged,
         function() self:onSelectedLordArmySuppliesCostChanged() end,
-        function()
-            return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
-        end)
+        function() return self:isSelectedLordArmySuppliesCostAvailable() end)
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitAddedToRecruitment,
@@ -952,10 +939,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_UnitAddedToRecruitment
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and TotoWar__Gameplay:isLocalPlayerFaction(context:faction():name())
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -968,10 +953,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and TotoWar__Gameplay:isLocalPlayerFaction(context:unit():military_force():faction():name())
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -984,10 +967,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and TotoWar__Gameplay:isLocalPlayerFaction(context:unit():military_force():faction():name())
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -997,10 +978,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         ---@param context TotoWar__GameEventContext_UnitRemovedFromRecruitment
         function(context)
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and TotoWar__Gameplay:isLocalPlayerFaction(context:faction():name())
-                and self.selectedLordArmySuppliesCost ~= nil
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1017,10 +996,8 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
             local army = context:unit():military_force()
 
             return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
+                self:isSelectedLordArmySuppliesCostAvailable()
                 and self.selectedLord ~= nil
-                and self.selectedLordArmySuppliesCost ~= nil
                 and army:has_general()
                 and army:general_character():cqi() == self.selectedLord:cqi()
         end)

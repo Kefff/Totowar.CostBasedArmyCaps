@@ -384,23 +384,17 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey, unitCqi)
 
         return unit.unitKey;
     else
-        ---@type integer | nil
-        local unitIndex = nil
+        local unitIndex = -1
 
         if unitCqi ~= nil then
             unitIndex = TotoWar__Linq:findIndex(
                 self.unitArmySuppliesCosts,
                 function(u) return u.unitKey == unitKey and u.unitCqi == unitCqi end)
-
-            if unitIndex == -1 then
-                -- A unit counted from the recruitment queue has no CQI: it may since have been trained
-                unitIndex = nil
-                unitCqi = nil
-            end
         end
 
-        if unitCqi == nil then
-            -- Without a CQI, prioritizing removing the last unit added which in theory should be the least experienced
+        if unitIndex == -1 then
+            -- Without a CQI, or when no counted unit has this CQI (a unit counted from the recruitment queue has no CQI,
+            -- it may since have been trained), prioritizing removing the last unit added which in theory should be the least experienced
             for i = #self.unitArmySuppliesCosts, 1, -1 do
                 local unit = self.unitArmySuppliesCosts[i]
 
@@ -412,7 +406,7 @@ function TotoWar_Cbac_ArmySuppliesCost:removeUnit(unitKey, unitCqi)
             end
         end
 
-        if unitIndex ~= nil then
+        if unitIndex ~= -1 then
             local unit = self.unitArmySuppliesCosts[unitIndex]
             self.totalCost = self.totalCost - unit.armySuppliesCost
             self.availableSupplies = self.totalArmySupplies - self.totalCost

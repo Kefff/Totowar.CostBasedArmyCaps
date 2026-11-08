@@ -150,12 +150,12 @@ TotoWar_Cbac_UnitArmySuppliesCost.__index = TotoWar_Cbac_UnitArmySuppliesCost
 ---@param characterCqi integer Command queue index of the character.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost | nil
 function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
+    local character = TotoWar__Gameplay:getCharacter(characterCqi)
+
     logger:logDebug(
         "newCharacter(%s): STARTED => %s",
         characterCqi,
         function()
-            local character = TotoWar__Gameplay:getCharacter(characterCqi)
-
             return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
         end)
 
@@ -174,8 +174,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
     if unitKey == nil then
         -- Some characters have no unit context, probably because of a bug of the game (a Sorceress (Shadow) hero for example)
-        local character = TotoWar__Gameplay:getCharacter(characterCqi)
-
         logger:logWarning(
             "%s: %s, unit not found, character not counted in army supplies",
             function()
@@ -198,8 +196,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
             "newCharacter(%s): COMPLETED => %s | Unit not found",
             characterCqi,
             function()
-                local character = TotoWar__Gameplay:getCharacter(characterCqi)
-
                 return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
             end)
 
@@ -210,8 +206,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     instance.armySuppliesCost = instance:getUnitCost(
         unitKey,
         function()
-            local character = TotoWar__Gameplay:getCharacter(characterCqi)
-
             if character == nil then
                 return nil
             end
@@ -243,7 +237,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     instance.characterCqi = characterCqi
     instance.unitKey = unitKey
 
-    local character = TotoWar__Gameplay:getCharacter(characterCqi)
     instance.experienceLevel = character ~= nil and character:rank() or 0
 
     if TotoWar__Gameplay:isLordUnit(characterCqi) then
@@ -256,8 +249,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
         "newCharacter(%s): COMPLETED => %s | Unit: %s | Cost: %s | Category: %s",
         characterCqi,
         function()
-            local character = TotoWar__Gameplay:getCharacter(characterCqi)
-
             return character ~= nil and TotoWar__Gameplay:getCharacterFullCaption(character) or "Character not found"
         end,
         instance.unitKey,
