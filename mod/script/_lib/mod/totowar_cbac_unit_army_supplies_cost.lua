@@ -20,6 +20,54 @@ local _unitCategoriesByParentGroup = {
 ---@type table<string, TotoWar_Cbac_Enum_ArmyCompositionUnitCategories>
 local _unitCategoriesByUnitKey = {}
 
+---Keys of the base units already found, by unit key.
+---@type table<string, string>
+local _baseUnitKeysByUnitKey = {}
+
+---Recruitment costs of the unit records already read, by unit key (`false` when the cost is not found).
+---They can be negative: the custom battle cost of the unit is then used, which is specific to each unit and not cached.
+---@type table<string, integer | false>
+local _recordCostsByUnitKey = {}
+
+---Gets the key of the base unit a unit derives from (like mounted characters).
+---@param unitKey string Unit key.
+---@return string
+local function getBaseUnitKey(unitKey)
+    local baseUnitKey = _baseUnitKeysByUnitKey[unitKey]
+
+    if baseUnitKey == nil then
+        baseUnitKey = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+            unitKey,
+            "UnmountedUnitRecordContext.Key")
+        _baseUnitKeysByUnitKey[unitKey] = baseUnitKey
+    end
+
+    return baseUnitKey
+end
+
+---Gets the recruitment cost of a unit record, which is the cost of its base unit if it derives from one.
+---@param unitKey string Unit key.
+---@return integer | nil # `nil` when the cost is not found.
+local function getUnitRecordCost(unitKey)
+    local cost = _recordCostsByUnitKey[unitKey]
+
+    if cost == nil then
+        cost = common.get_context_value(
+            TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
+            unitKey,
+            "UnmountedUnitRecordContext.BaseCost")
+
+        if cost == nil or cost == 0 then
+            cost = common.get_context_value(TotoWar__Enum_CcoContextTypeIds.mainUnitRecord, unitKey, "BaseCost")
+        end
+
+        _recordCostsByUnitKey[unitKey] = cost or false
+    end
+
+    return cost or nil
+end
+
 ---Gets the unit army composition type based on the category of a unit.
 ---@param unitKey string Unit key.
 ---@return TotoWar_Cbac_Enum_ArmyCompositionUnitCategories
@@ -191,10 +239,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
 
             return nil
         end)
-    instance.baseUnitKey = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UnmountedUnitRecordContext.Key")
+    instance.baseUnitKey = getBaseUnitKey(unitKey)
     instance.characterCqi = characterCqi
     instance.unitKey = unitKey
 
@@ -236,10 +281,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
 
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
     instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
-    instance.baseUnitKey = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UnmountedUnitRecordContext.Key")
+    instance.baseUnitKey = getBaseUnitKey(unitKey)
     instance.unitCategory = getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
     instance.unitKey = unitKey
@@ -265,15 +307,7 @@ end
 function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
     logger:logDebug("getUnitCost(%s, findUnit): STARTED", unitKey)
 
-    ---@type integer | nil
-    local cost = common.get_context_value(
-        TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
-        unitKey,
-        "UnmountedUnitRecordContext.BaseCost")
-
-    if cost == nil or cost == 0 then
-        cost = common.get_context_value(TotoWar__Enum_CcoContextTypeIds.mainUnitRecord, unitKey, "BaseCost")
-    end
+    local cost = getUnitRecordCost(unitKey)
 
     if cost == nil then
         logger:logWarning(

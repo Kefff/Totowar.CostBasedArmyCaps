@@ -490,17 +490,23 @@ local function adjustAiArmyCompositionAndUnits(
     local remainingDeficit = deficit - bestCost
 
     if remainingDeficit > 0 and #remaining > 0 then
-        local sumAll = 0
-        for _, u in ipairs(remaining) do
-            sumAll = sumAll + u.armySuppliesCost
-        end
-
         ---@type table<integer, { count: integer, experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
         local DP2 = {}
         DP2[0] = { count = 0, experienceLevel = 0, picked = {} }
 
         for _, unit in ipairs(remaining) do
-            for cost = sumAll - unit.armySuppliesCost, 0, -1 do
+            -- Only iterating over the costs already reached instead of every cost up to the total cost of the units.
+            -- They are processed from the highest to the lowest so that each unit is added at most once to a combination:
+            -- the costs updated for this unit are higher than the cost being processed, so they have already been processed.
+            local reachedCosts = {}
+
+            for cost, _ in pairs(DP2) do
+                table.insert(reachedCosts, cost)
+            end
+
+            table.sort(reachedCosts, function(a, b) return a > b end)
+
+            for _, cost in ipairs(reachedCosts) do
                 local entry = DP2[cost]
                 if entry then
                     local newCost = cost + unit.armySuppliesCost
