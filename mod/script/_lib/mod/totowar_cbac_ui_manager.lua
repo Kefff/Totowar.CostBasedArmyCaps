@@ -320,6 +320,16 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
         unitCardUIComponent,
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
+    -- Ignoring the children of the list that are not unit cards (components added by other mods for example),
+    -- so that they do not interrupt the update of the other cards
+    if unitContext == nil then
+        logger:logDebug(
+            "updateRecruitableUnitCard(%s): COMPLETED => Not a unit card",
+            function() return unitCardUIComponent:Id() end)
+
+        return
+    end
+
     local unitCost = TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitContext:Call("Key"))
 
     local armySuppliesCostUIComponent = TotoWar__UI:findUIComponentChild(
@@ -328,6 +338,15 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
 
     if armySuppliesCostUIComponent == nil then
         local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, "external_holder")
+
+        if externalHolderUIComponent == nil then
+            logger:logDebug(
+                "updateRecruitableUnitCard(%s): COMPLETED => No external holder",
+                function() return unitCardUIComponent:Id() end)
+
+            return
+        end
+
         local visibleComponentsCount = 0
         local visibleComponentsHeight = 0
 
