@@ -1237,8 +1237,10 @@ local function onAiArmyCreated(army)
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
-    -- Adjusting the composition for armies spawned with units already included
-    adjustAiArmy(army:command_queue_index())
+    -- Adjusting the composition for armies spawned with units already included.
+    -- The adjustment is deferred like for recruited units: the army may not be complete yet when this event is triggered
+    -- (units and heroes added by the script that created it), and removing units during the event could lead to crashes.
+    TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(army)
 
     logger:logDebug(
         "onAiArmyCreated(%s): COMPLETED => %s",
