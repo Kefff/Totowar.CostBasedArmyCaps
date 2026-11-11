@@ -314,6 +314,7 @@ end
 
 ---Updates the army supplies cost of a recruitable unit card.
 ---@param unitCardUIComponent UIC Unit card UI component.
+---@return number # Height added to the card to display the army supplies cost (0 when the card is not updated).
 local function updateRecruitableUnitCard(unitCardUIComponent)
     logger:logDebug(
         "updateRecruitableUnitCard(%s): STARTED",
@@ -330,7 +331,7 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
             "updateRecruitableUnitCard(%s): COMPLETED => Not a unit card",
             function() return unitCardUIComponent:Id() end)
 
-        return
+        return 0
     end
 
     local unitCost = TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitContext:Call("Key"))
@@ -342,7 +343,7 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
             "updateRecruitableUnitCard(%s): COMPLETED => No external holder",
             function() return unitCardUIComponent:Id() end)
 
-        return
+        return 0
     end
 
     local armySuppliesCostUIComponent = TotoWar__UI:findUIComponentChild(
@@ -408,32 +409,42 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
     end
 
     logger:logDebug(
-        "updateRecruitableUnitCard(%s): COMPLETED => Cost: %s",
+        "updateRecruitableUnitCard(%s): COMPLETED => Cost: %s | Height added: %s",
         function() return unitCardUIComponent:Id() end,
-        unitCost)
+        unitCost,
+        heightToAdd)
+
+    return heightToAdd
 end
 
 ---Updates the army supplies cost of a list of recruitable unit cards.
 ---@param unitCardListUIComponent UIC UI component that contains the list of recruitable units cards.
+---@return number # Largest height added to the cards of the list.
 local function updateRecruitableUnitCardList(
     unitCardListUIComponent)
     logger:logDebug(
         "updateRecruitableUnitCardList(%s): STARTED",
         function() return unitCardListUIComponent:Id() end)
 
+    local heightToAdd = 0
+
     for i = 0, unitCardListUIComponent:ChildCount() - 1 do
         local unitCardUIComponent = find_child_uicomponent_by_index(unitCardListUIComponent, i)
-        updateRecruitableUnitCard(unitCardUIComponent)
+        heightToAdd = math.max(heightToAdd, updateRecruitableUnitCard(unitCardUIComponent))
     end
 
     logger:logDebug(
-        "updateRecruitableUnitCardList(%s): COMPLETED",
-        function() return unitCardListUIComponent:Id() end)
+        "updateRecruitableUnitCardList(%s): COMPLETED => Height added: %s",
+        function() return unitCardListUIComponent:Id() end,
+        heightToAdd)
+
+    return heightToAdd
 end
 
 ---Updates the army supplies costs displayed on a recruitment pool.
 ---@param recruitmentPool TotoWar_Cbac_RecruitmentPoolUI Description of the recruitment pool.
 ---@param recruitmentPoolUIComponent UIC Recruitment pool UI component.
+---@return number # Height added to the recruitment pool (0 when it has no unit card list).
 local function updateRecruitmentPool(recruitmentPool, recruitmentPoolUIComponent)
     logger:logDebug(
         "updateRecruitmentPool(%s, %s): STARTED",
@@ -452,26 +463,30 @@ local function updateRecruitmentPool(recruitmentPool, recruitmentPoolUIComponent
             recruitmentPool.name,
             function() return recruitmentPoolUIComponent:Id() end)
 
-        return
+        return 0
     end
 
-    updateRecruitableUnitCardList(unitCardListUIComponent)
+    local heightToAdd = updateRecruitableUnitCardList(unitCardListUIComponent)
 
-    -- Enlarging the UI components along the query to the unit card list, which have a fixed height
+    -- Enlarging the UI components along the query to the unit card list, which have a fixed height,
+    -- by the height added to the cards
     TotoWar__UI:resizeUIComponentChildrenOnce(
         recruitmentPoolUIComponent,
         recruitmentPool.unitCardListQuery,
         0,
-        _armySuppliesCostUIComponentHeight,
+        heightToAdd,
         _resizedUIComponentSizePropertyName)
 
     -- The recruitment pool fits its content
     recruitmentPoolUIComponent:Layout()
 
     logger:logDebug(
-        "updateRecruitmentPool(%s, %s): COMPLETED",
+        "updateRecruitmentPool(%s, %s): COMPLETED => Height added: %s",
         recruitmentPool.name,
-        function() return recruitmentPoolUIComponent:Id() end)
+        function() return recruitmentPoolUIComponent:Id() end,
+        heightToAdd)
+
+    return heightToAdd
 end
 
 ---Updates army supplies costs on recruitment pools.
@@ -489,15 +504,19 @@ local function updateRecruitmentPools(recruitmentPools)
         local recruitmentPoolListUIComponent = TotoWar__UI:findUIComponent(recruitmentPool.listQuery)
 
         if recruitmentPoolListUIComponent ~= nil then
+            local heightToAdd = 0
+
             for i = 0, recruitmentPoolListUIComponent:ChildCount() - 1, 1 do
-                updateRecruitmentPool(recruitmentPool, find_child_uicomponent_by_index(recruitmentPoolListUIComponent, i))
+                heightToAdd = math.max(
+                    heightToAdd,
+                    updateRecruitmentPool(recruitmentPool, find_child_uicomponent_by_index(recruitmentPoolListUIComponent, i)))
             end
 
             if recruitmentPool.hasFixedHeightListClip then
                 TotoWar__UI:resizeUIComponentOnce(
                     UIComponent(recruitmentPoolListUIComponent:Parent()),
                     0,
-                    _armySuppliesCostUIComponentHeight,
+                    heightToAdd,
                     _resizedUIComponentSizePropertyName)
             end
         end
