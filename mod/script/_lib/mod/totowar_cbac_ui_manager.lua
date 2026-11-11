@@ -14,6 +14,7 @@ local _armySuppliesIconPath = "ui/totowar_cbac/icons/totowar_cbac_army_supplies.
 
 ---Recruitment pools of a recruitment panel on which army supplies costs are displayed.
 ---@class TotoWar_Cbac_RecruitmentPoolUI
+---@field hasFixedHeightListClip boolean | nil Indicates whether the UI component that clips the list of recruitment pools (parent of the list) has a fixed height: it is enlarged so that army supplies costs are not cut.
 ---@field listQuery string Query to the UI component that contains one recruitment pool per child. Children without unit card list are ignored.
 ---@field name string Name, used in logs.
 ---@field unitCardListQuery string Query from a recruitment pool to the list of its unit cards. The UI components along this query have a fixed height: they are enlarged so that army supplies costs fit under the unit cards.
@@ -27,6 +28,8 @@ local _recruitmentPools = {
         unitCardListQuery = "unit_list/listview/list_clip/allied_unit_list"
     },
     {
+        -- The mercenary recruitment pools are displayed on a single row, without scroll bar
+        hasFixedHeightListClip = true,
         listQuery = TotoWar__UI.uiComponentQueries.unitsPanel_recruitmentOptions_mercenaryRecruitmentPoolList,
         name = "mercenary",
         unitCardListQuery = "listview/list_clip/list_box"
@@ -332,54 +335,60 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
 
     local unitCost = TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitContext:Call("Key"))
 
+    local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, "external_holder")
+
+    if externalHolderUIComponent == nil then
+        logger:logDebug(
+            "updateRecruitableUnitCard(%s): COMPLETED => No external holder",
+            function() return unitCardUIComponent:Id() end)
+
+        return
+    end
+
     local armySuppliesCostUIComponent = TotoWar__UI:findUIComponentChild(
-        unitCardUIComponent,
-        "external_holder/" .. _armySuppliesUIComponentName)
+        externalHolderUIComponent,
+        _armySuppliesUIComponentName)
 
     if armySuppliesCostUIComponent == nil then
-        local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, "external_holder")
-
-        if externalHolderUIComponent == nil then
-            logger:logDebug(
-                "updateRecruitableUnitCard(%s): COMPLETED => No external holder",
-                function() return unitCardUIComponent:Id() end)
-
-            return
-        end
-
-        local visibleComponentsCount = 0
-        local visibleComponentsHeight = 0
-
-        for i = 0, externalHolderUIComponent:ChildCount() - 1, 1 do
-            local childUIComponent = find_child_uicomponent_by_index(externalHolderUIComponent, i)
-
-            if childUIComponent ~= false and childUIComponent:Visible() then
-                visibleComponentsCount = visibleComponentsCount + 1
-                visibleComponentsHeight = childUIComponent:Height()
-            end
-        end
-
         armySuppliesCostUIComponent = createArmySuppliesUIComponent(externalHolderUIComponent)
         armySuppliesCostUIComponent:SetDockingPoint(TotoWar__Enum_DockingPoints.bottomMiddle)
         armySuppliesCostUIComponent:SetTooltipText(
             common.get_localised_string("totowar_cbac_tooltip_unit_armySuppliesCost"), true)
+    end
 
-        local heightToAdd = armySuppliesCostUIComponent:Height()
+    local visibleComponentsCount = 0
+    local visibleComponentsHeight = 0
 
-        if visibleComponentsCount == 1 then
-            -- When only one cost component is visible (when there is no upkeep mostly),
-            -- the space for the upkeep component is still there.
-            -- We need to resize because the height of armySuppliesCostUIComponent is greater
-            -- than the height of the cost component, but we do not need to add the full
-            -- height.
-            heightToAdd = heightToAdd - visibleComponentsHeight
+    for i = 0, externalHolderUIComponent:ChildCount() - 1, 1 do
+        local childUIComponent = find_child_uicomponent_by_index(externalHolderUIComponent, i)
+
+        if childUIComponent ~= false
+            and childUIComponent:Id() ~= _armySuppliesUIComponentName
+            and childUIComponent:Visible()
+        then
+            visibleComponentsCount = visibleComponentsCount + 1
+            visibleComponentsHeight = childUIComponent:Height()
         end
+    end
 
-        -- Resizing the container to have enough space to display the new component
-        -- as it is only sized for 2 components
-        TotoWar__UI:resizeUIComponent(unitCardUIComponent, 0, heightToAdd)
-        TotoWar__UI:resizeUIComponent(externalHolderUIComponent, 0, heightToAdd)
+    local heightToAdd = armySuppliesCostUIComponent:Height()
 
+    if visibleComponentsCount == 1 then
+        -- When only one cost component is visible (when there is no upkeep mostly),
+        -- the space for the upkeep component is still there.
+        -- We need to resize because the height of armySuppliesCostUIComponent is greater
+        -- than the height of the cost component, but we do not need to add the full
+        -- height.
+        heightToAdd = heightToAdd - visibleComponentsHeight
+    end
+
+    -- Resizing the container to have enough space to display the new component
+    -- as it is only sized for 2 components.
+    -- Resized at each update, like the recruitment pools, so that the enlargement is applied again when the game
+    -- resizes the card, and never applied twice.
+    TotoWar__UI:resizeUIComponentOnce(unitCardUIComponent, 0, heightToAdd, _resizedUIComponentSizePropertyName)
+
+    if TotoWar__UI:resizeUIComponentOnce(externalHolderUIComponent, 0, heightToAdd, _resizedUIComponentSizePropertyName) then
         -- Moving up each cost / upkeep component (they are docked at the bottom) to display the army supplies cost component last
         TotoWar__UI:offsetChildUIComponents(externalHolderUIComponent, 0, -heightToAdd)
         armySuppliesCostUIComponent:SetDockOffset(-2, 0) -- Cancelling the offset of the army supplies cost component itself (-2 du align the right border with the other cost compoments)
@@ -482,6 +491,14 @@ local function updateRecruitmentPools(recruitmentPools)
         if recruitmentPoolListUIComponent ~= nil then
             for i = 0, recruitmentPoolListUIComponent:ChildCount() - 1, 1 do
                 updateRecruitmentPool(recruitmentPool, find_child_uicomponent_by_index(recruitmentPoolListUIComponent, i))
+            end
+
+            if recruitmentPool.hasFixedHeightListClip then
+                TotoWar__UI:resizeUIComponentOnce(
+                    UIComponent(recruitmentPoolListUIComponent:Parent()),
+                    0,
+                    _armySuppliesCostUIComponentHeight,
+                    _resizedUIComponentSizePropertyName)
             end
         end
     end
