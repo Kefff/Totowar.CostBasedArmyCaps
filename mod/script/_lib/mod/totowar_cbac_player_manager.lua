@@ -708,14 +708,44 @@ function TotoWar_Cbac_PlayerManager:onUnitDisbanded(unitKey, unitCqi)
         self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
----Reacts to the unit exchange panel being closed.
-function TotoWar_Cbac_PlayerManager:onUnitExchangePanelClosed()
-    logger:logDebug("onUnitExchangePanelClosed(): STARTED")
+---Reacts to the unit exchange being confirmed.
+---The game triggers no event when units are transferred between armies, and the armies are not updated yet
+---when the button is clicked: the army supplies cost of the selected lord army is taken from the costs calculated
+---from the unit exchange pools, which already include the transferred units.
+function TotoWar_Cbac_PlayerManager:onUnitExchangeConfirmed()
+    logger:logDebug(
+        "onUnitExchangeConfirmed(): STARTED => %s",
+        function()
+            return
+                self.selectedLord ~= nil
+                and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force())
+                or "No selected lord"
+        end)
 
-    self.unitExchangeArmySuppliesCost1 = nil
-    self.unitExchangeArmySuppliesCost2 = nil
+    -- Never nil: the subscription condition of this method checks that a lord is selected and that the costs of the
+    -- unit exchange are calculated
+    local lord = self.selectedLord
+    local armySuppliesCost1 = self.unitExchangeArmySuppliesCost1
+    local armySuppliesCost2 = self.unitExchangeArmySuppliesCost2
+    ---@cast lord CHARACTER_SCRIPT_INTERFACE
+    ---@cast armySuppliesCost1 TotoWar_Cbac_ArmySuppliesCost
+    ---@cast armySuppliesCost2 TotoWar_Cbac_ArmySuppliesCost
 
-    logger:logDebug("onUnitExchangePanelClosed(): COMPLETED")
+    -- A lord cannot be transferred: the selected lord is in the army supplies cost of its own army
+    local isSelectedLordArmy1 = TotoWar__Linq:any(
+        armySuppliesCost1.unitArmySuppliesCosts,
+        function(unitArmySuppliesCost) return unitArmySuppliesCost.characterCqi == lord:cqi() end)
+
+    self.selectedLordArmySuppliesCost = isSelectedLordArmy1 and armySuppliesCost1 or armySuppliesCost2
+
+    -- Signaling army supplies cost change
+    TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
+
+    logger:logDebug(
+        "onUnitExchangeConfirmed(): COMPLETED => %s | Total cost: %s | Available supplies: %s",
+        function() return TotoWar__Gameplay:getArmyCaption(lord:military_force()) end,
+        self.selectedLordArmySuppliesCost.totalCost,
+        self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
 ---Reacts to the unit exchange panel being opened.
@@ -788,34 +818,29 @@ function TotoWar_Cbac_PlayerManager:onUnitRemovedFromRecruitment(unitKey)
         self.selectedLordArmySuppliesCost.availableSupplies)
 end
 
----Reacts to the "Upgrade" button in the Warband Upgrade pnael being clicked.
-function TotoWar_Cbac_PlayerManager:onWarbandUpgradeButtonClicked()
+---Reacts to a unit of the selected lord army being upgraded (warband upgrade).
+---@param unit UNIT_SCRIPT_INTERFACE Upgraded unit, which replaces the unit before the upgrade.
+function TotoWar_Cbac_PlayerManager:onUnitUpgraded(unit)
     logger:logDebug(
-        "onWarbandUpgradeButtonClicked(): STARTED => %s",
-        function()
-            return
-                self.selectedLord ~= nil
-                and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force())
-                or "No selected lord"
-        end)
+        "onUnitUpgraded(%s): STARTED => %s",
+        function() return unit:command_queue_index() end,
+        function() return TotoWar__Gameplay:getArmyCaption(unit:military_force()) end)
 
     -- Never nil: the subscription condition of this method checks that a lord is selected
     local lord = self.selectedLord
     ---@cast lord CHARACTER_SCRIPT_INTERFACE
 
-    -- Delay used here to allow the unit list to be updated before updating the army supplies
-    TotoWar__Utils:delay(
-        function() self:initializeArmySuppliesCost(lord) end,
-        0.1)
+    -- The game replaces the upgraded unit by a new unit (with a new command queue index), and triggers this event
+    -- once the army has been updated, on all the machines: the army supplies cost is recalculated from the army.
+    -- When several units are upgraded at once, the event is triggered for each of them and only the last calculation
+    -- includes all the upgraded units
+    self:initializeArmySuppliesCost(lord)
 
     logger:logDebug(
-        "onWarbandUpgradeButtonClicked(): COMPLETED => %s",
-        function()
-            return
-                self.selectedLord ~= nil
-                and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force())
-                or "No selected lord"
-        end)
+        "onUnitUpgraded(%s): COMPLETED => %s | Unit: %s",
+        function() return unit:command_queue_index() end,
+        function() return TotoWar__Gameplay:getArmyCaption(unit:military_force()) end,
+        function() return TotoWar__Gameplay:getUnitCaption(unit:unit_key()) end)
 end
 
 ---Reacts to a unit card or a warband upgrade being clicked when the Warband Upgrade panel is open.
@@ -922,34 +947,6 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.componentLeftClick,
-        function() self:onWarbandUpgradeButtonClicked() end,
-        ---@param context TotoWar__GameEventContext_ComponentLeftClick
-        function(context)
-            if self.selectedLord == nil or not self:isSelectedLordArmySuppliesCostAvailable() then
-                return false
-            end
-
-            local warbandUpgradesUIComponent = TotoWar__UI:findUIComponent(
-                TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgrades)
-
-            return
-                warbandUpgradesUIComponent ~= nil
-                and warbandUpgradesUIComponent:Visible(true)
-                and context.string == "button_invoke"
-                and TotoWar__UI:isUIComponentChildOf(
-                    UIComponent(context.component),
-                    {
-                        "warband_upgrades",
-                        "body",
-                        "info_holder",
-                        "upgrade_info_holder",
-                        "unit_info_costs",
-                        "holder_requirements"
-                    })
-        end)
-
-    TotoWar__EventsManager:subscribe(
-        TotoWar__Enum_GameEvents.componentLeftClick,
         function() self:onUnitExchangePoolUnitCardClick() end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
@@ -966,6 +963,24 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
             return false
         end)
 
+    -- The click on the confirmation button is received after the unit exchange panel is closed:
+    -- the costs of the unit exchange are kept after the panel is closed, and recalculated when it is opened again
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.componentLeftClick,
+        function() self:onUnitExchangeConfirmed() end,
+        ---@param context TotoWar__GameEventContext_ComponentLeftClick
+        function(context)
+            return
+                self:isSelectedLordArmySuppliesCostAvailable()
+                and self.selectedLord ~= nil
+                and self.unitExchangeArmySuppliesCost1 ~= nil
+                and self.unitExchangeArmySuppliesCost2 ~= nil
+                and context.string == "button_ok"
+                and TotoWar__UI:isUIComponentChildOf(
+                    UIComponent(context.component),
+                    { "unit_exchange", "hud_center_docker", "ok_cancel_buttongroup" })
+        end)
+
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_ModEvents.optionsUpdated,
         function() onPlayerArmySuppliesDisabled() end,
@@ -979,17 +994,6 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
                 and context.string == TotoWar__Enum_Panels.mercenaryRecruitment
-        end)
-
-    TotoWar__EventsManager:subscribe(
-        TotoWar__Enum_GameEvents.panelClosed,
-        function() self:onUnitExchangePanelClosed() end,
-        ---@param context TotoWar__GameEventContext_PanelOpenedOrClosed
-        function(context)
-            return
-                TotoWar_Cbac_Mod.options.playerArmySuppliesEnabled
-                and cm:is_local_players_turn(true)
-                and context.string == TotoWar__Enum_Panels.unitExchange
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1083,6 +1087,21 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         function(context)
             -- A unit trained in the army of the selected lord comes from the recruitment button
             -- of the mercenary panel
+            local army = context:unit():military_force()
+
+            return
+                self:isSelectedLordArmySuppliesCostAvailable()
+                and self.selectedLord ~= nil
+                and army:has_general()
+                and army:general_character():cqi() == self.selectedLord:cqi()
+        end)
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.unitUpgraded,
+        ---@param context TotoWar__GameEventContext_UnitUpgraded
+        function(context) self:onUnitUpgraded(context:unit()) end,
+        ---@param context TotoWar__GameEventContext_UnitUpgraded
+        function(context)
             local army = context:unit():military_force()
 
             return
