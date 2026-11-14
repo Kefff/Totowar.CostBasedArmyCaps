@@ -64,13 +64,13 @@ local function executeEventSubscriptionIfConditionMet(eventSubscription, event, 
             event,
             context ~= nil and "context" or "nil")
 
-        isSuccess = xpcall(
+        xpcall(
             function() eventSubscription.callbackFunction(context) end,
             function(error) onCallbackError(eventSubscription, error) end)
 
-        if isSuccess then
-            eventSubscription.executions = eventSubscription.executions + 1
-        end
+        -- Counting the execution even if the callback failed: otherwise a one-time subscription
+        -- whose callback fails stays active and is executed again on the next event
+        eventSubscription.executions = eventSubscription.executions + 1
     end
 
     logger:logDebug(
