@@ -913,8 +913,14 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         end,
         ---@param context TotoWar__GameEventContext_ComponentLeftClick
         function(context)
+            local uiComponent = UIComponent(context.component)
+
+            -- A recruitable mercenary unit card is in the unit card list (list_box) of a recruitment pool (listview)
+            -- of the mercenary panel. The name of the card is not used: it depends on the unit key, whose prefix
+            -- differs for the units added by mods
             local isRecruitableMercenaryUnitCard =
-                context.string:match(TotoWar__Enum_Patterns.recruitableMercenaryUnitCard) ~= nil
+                UIComponent(uiComponent:Parent()):Id() == "list_box"
+                and TotoWar__UI:isUIComponentChildOf(uiComponent, { "mercenary_display", "listview" })
 
             return
                 self:isSelectedLordArmySuppliesCostAvailable()

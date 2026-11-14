@@ -187,18 +187,14 @@ TotoWar__Enum_Panels = {
 ---Patterns for finding UI elements.
 ---@enum TotoWar__Enum_Patterns
 TotoWar__Enum_Patterns = {
-    ---Pattern for identifying a UI component corresponding to the unit card of a recruitable mercenary
-    ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...).
+    ---Pattern for identifying a UI component corresponding to the unit card of a mercenary
+    ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
+    ---queue.
     inRecruitmentMercenaryUnitCard = "^temp_merc_",
 
     ---Pattern for identifying a UI component corresponding to the unit card of recruitable standard
     ---unit in the selected army recruitment queue.
     inRecruitmentStandardUnitCard = "^QueuedLandUnit",
-
-    ---Pattern for identifying a UI component corresponding to the unit card of a mercenary
-    ---unit (regiment of renown, Waaagh mobs, Grudge settlers, ...) in the selected army recruitment
-    ---queue.
-    recruitableMercenaryUnitCard = "^wh%d*_.*_mercenary$",
 
     ---Pattern for identifying a UI component corresponding to the unit card of a unit in the selected army.
     standardUnitCard = "^LandUnit",
