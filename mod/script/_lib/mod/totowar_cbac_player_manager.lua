@@ -1046,9 +1046,13 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         end,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
+            local army = context:unit():military_force()
+
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and TotoWar__Gameplay:isLocalPlayerFaction(context:unit():military_force():faction():name())
+                and self.selectedLord ~= nil
+                and army:has_general()
+                and army:general_character():cqi() == self.selectedLord:cqi()
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1058,11 +1062,15 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
             local unit = context:unit()
             self:onUnitMergedAndDestroyed(unit:unit_key(), unit:command_queue_index())
         end,
-        ---@param context TotoWar__GameEventContext_UnitDisbanded
+        ---@param context TotoWar__GameEventContext_UnitMergedAndDestroyed
         function(context)
+            local army = context:unit():military_force()
+
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and TotoWar__Gameplay:isLocalPlayerFaction(context:unit():military_force():faction():name())
+                and self.selectedLord ~= nil
+                and army:has_general()
+                and army:general_character():cqi() == self.selectedLord:cqi()
         end)
 
     TotoWar__EventsManager:subscribe(
