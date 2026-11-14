@@ -1213,7 +1213,8 @@ end
 local function isManagedAiArmy(army)
     logger:logDebug(
         "isManagedAiArmy(army): STARTED => %s",
-        function() return army ~= nil and not army:is_null_interface() and TotoWar__Gameplay:getArmyCaption(army) or "No army" end)
+        function() return army ~= nil and not army:is_null_interface() and TotoWar__Gameplay:getArmyCaption(army) or
+            "No army" end)
 
     local isManaged =
         army ~= nil
@@ -1223,7 +1224,8 @@ local function isManagedAiArmy(army)
 
     logger:logDebug(
         "isManagedAiArmy(army): COMPLETED => %s | Managed: %s",
-        function() return army ~= nil and not army:is_null_interface() and TotoWar__Gameplay:getArmyCaption(army) or "No army" end,
+        function() return army ~= nil and not army:is_null_interface() and TotoWar__Gameplay:getArmyCaption(army) or
+            "No army" end,
         isManaged)
 
     return isManaged
@@ -1448,15 +1450,28 @@ function TotoWar_Cbac_AiManager:cancelDisbandIfAlreadyAdjusted(armyCqi, disbande
 
     for index, disbandedUnit in ipairs(disbandedUnits) do
         if armySuppliesCost.availableSupplies >= disbandedUnit.armySuppliesCost then
+            -- The unit is not created when the army is full (which could occur if another script that
+            -- adds a unit during the UnitDisbanded event is executed before), without any error:
+            -- the number of units of the army is compared before and after to know whether the unit has been reinstated
+            local unitCountBefore = army:unit_list():num_items()
+
             cm:grant_unit_to_character(
                 cm:char_lookup_str(lord:cqi()),
                 disbandedUnit.unitKey)
-            armySuppliesCost:addUnit(disbandedUnit.unitKey)
 
-            logger:logInfo(
-                "%s: unit reinstated, %s (disbanded by the AI after the army adjustment)",
-                function() return TotoWar__Gameplay:getArmyCaption(army) end,
-                function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end)
+            if army:unit_list():num_items() > unitCountBefore then
+                armySuppliesCost:addUnit(disbandedUnit.unitKey)
+
+                logger:logInfo(
+                    "%s: unit reinstated, %s (disbanded by the AI after the army adjustment)",
+                    function() return TotoWar__Gameplay:getArmyCaption(army) end,
+                    function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end)
+            else
+                logger:logWarning(
+                    "%s: unit not reinstated, %s (army full)",
+                    function() return TotoWar__Gameplay:getArmyCaption(army) end,
+                    function() return TotoWar__Gameplay:getUnitCaption(disbandedUnit.unitKey) end)
+            end
         else
             -- In theory, we should never be in this case because the army adjustment should have removed enough units to prevent it
             logger:logInfo(
