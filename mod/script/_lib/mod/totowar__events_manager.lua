@@ -187,7 +187,10 @@ function TotoWar__EventsManager:onEvent(event, context)
         end)
 
     for index, eventSubscription in ipairs(eventSubscriptions) do
-        executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
+        -- A subscription cancelled by a previous callback of the same event is not executed
+        if TotoWar__Linq:any(self.eventSubscriptions, function(es) return es.id == eventSubscription.id end) then
+            executeEventSubscriptionIfConditionMet(eventSubscription, event, context)
+        end
     end
 
     -- Removing event subscriptions that have been executed the maximum number of times they were allowed
