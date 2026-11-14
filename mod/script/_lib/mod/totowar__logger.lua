@@ -45,7 +45,13 @@ local function write(logger, severity, message, ...)
         local parameterValue = select(i, ...)
 
         if type(parameterValue) == "function" then
-            parameterValue = parameterValue()
+            local isSuccess, value = pcall(parameterValue)
+
+            if isSuccess then
+                parameterValue = value
+            else
+                parameterValue = "<error: " .. tostring(value) .. ">"
+            end
         end
 
         if parameterValue == nil then
