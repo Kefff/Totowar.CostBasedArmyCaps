@@ -126,6 +126,23 @@ local function getMultiplayerEventOriginCaption(factionCqi)
     return TotoWar__Gameplay:getFactionFullCaption(faction)
 end
 
+---Removes the game listener of an event when there is no subscription to this event anymore,
+---so that a new subscription to the event adds a new listener instead of adding a second one.
+---Can be called while the game is executing the listener: the game lists the callbacks to execute before executing them.
+---@param event string Event.
+local function removeListenerIfNoSubscription(event)
+    logger:logDebug("removeListenerIfNoSubscription(%s): STARTED", event)
+
+    local isListenerRemoved = false
+
+    if not TotoWar__Linq:any(TotoWar__EventsManager.eventSubscriptions, function(es) return es.event == event end) then
+        core:remove_listener("TotoWar__" .. event)
+        isListenerRemoved = true
+    end
+
+    logger:logDebug("removeListenerIfNoSubscription(%s): COMPLETED => Listener removed: %s", event, isListenerRemoved)
+end
+
 ---Manager for events.
 ---@class TotoWar__EventsManager
 TotoWar__EventsManager = {
@@ -188,6 +205,10 @@ function TotoWar__EventsManager:onEvent(event, context)
             event,
             context ~= nil and "context" or "nil",
             finishedEventSubscription.id)
+    end
+
+    if #finishedEventSubscriptions > 0 then
+        removeListenerIfNoSubscription(event)
     end
 
     logger:logDebug("onEvent(%s, %s): COMPLETED", event, context ~= nil and "context" or "nil")
@@ -431,7 +452,12 @@ end
 function TotoWar__EventsManager:unsubscribe(eventSubscriptionId)
     logger:logDebug("unsubscribe(%s): STARTED", eventSubscriptionId)
 
-    TotoWar__Linq:remove(self.eventSubscriptions, function(es) return es.id == eventSubscriptionId end)
+    local eventSubscription = TotoWar__Linq:firstOrDefault(self.eventSubscriptions, function(es) return es.id == eventSubscriptionId end)
+
+    if eventSubscription ~= nil then
+        TotoWar__Linq:remove(self.eventSubscriptions, function(es) return es.id == eventSubscriptionId end)
+        removeListenerIfNoSubscription(eventSubscription.event)
+    end
 
     logger:logDebug("unsubscribe(%s): COMPLETED", eventSubscriptionId)
 end
