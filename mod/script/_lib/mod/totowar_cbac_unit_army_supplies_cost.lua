@@ -316,8 +316,9 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey)
     local cost = getUnitRecordCost(unitKey)
 
     -- Some units have a negative recruitment cost (the Blue Scribes from Tzeentch for example) or no recruitment cost.
-    -- Their custom battle cost is not used: it can only be read from a unit in an army, so the cost of the same unit
-    -- would depend on where it is calculated (recruitment cards, unit exchange...). No other campaign data matches it.
+    -- Their custom battle cost is not used: it can only be read from a unit in an army (which is not always available, for example when recruiting a mercenary unit),
+    -- so the cost of the same unit would depend on where it is calculated (recruitment cards, unit exchange...).
+    -- No other campaign data matches it.
     if cost == nil or cost < 0 then
         logger:logWarning(
             "%s (%s): invalid recruitment cost (%s), not counted in army supplies",

@@ -46,6 +46,7 @@ local _textUIComponentTemplate = "ui/totowar/totowar_text.twui.xml"
 
 ---Template of the UI component that displays unit army supplies.
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
+
 ---Unit card of a unit exchange pool.
 ---@class TotoWar_Cbac_UnitExchangePoolCard
 ---@field characterCqi integer | nil CQI of the character represented by the card, `nil` for a unit card.
@@ -654,24 +655,47 @@ function TotoWar_Cbac_UIManager:getUnitExchangePoolCards(unitExchangePoolUICompo
     local unitCards = {}
     local unitExchangePoolUIComponent = TotoWar__UI:getUIComponent(unitExchangePoolUIComponentQuery)
     local unitListUIComponent = TotoWar__UI:getUIComponentChild(unitExchangePoolUIComponent, "units")
+    local armyUnitCardCount = unitListUIComponent:ChildCount()
+
+    -- The cards of the units being recruited (standard recruitment, mercenaries being removed when the recruitment
+    -- panel is closed) are after the cards of the units of the army, and reading their character crashes the game.
+    -- They are identified by the number of units of the army of the lord, which is the first card.
+    local lordCardUIComponent = find_child_uicomponent_by_index(unitListUIComponent, 0)
+
+    if lordCardUIComponent then
+        local lordCqi = TotoWar__UI:getUnitCardCharacterCqi(lordCardUIComponent)
+        local lord = lordCqi ~= nil and TotoWar__Gameplay:getCharacter(lordCqi) or nil
+
+        if lord ~= nil and lord:has_military_force() then
+            armyUnitCardCount = math.min(armyUnitCardCount, lord:military_force():unit_list():num_items())
+        end
+    end
 
     for i = 0, unitListUIComponent:ChildCount() - 1, 1 do
         ---@type UIC | false
         local unitCardUIComponent = find_child_uicomponent_by_index(unitListUIComponent, i)
 
         if unitCardUIComponent then
-            local characterCqi = TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
-            local unitKey = nil
+            if i >= armyUnitCardCount then
+                -- A unit being recruited cannot be transferred: it stays in the army supplies cost of its army
+                table.insert(unitCards, {
+                    isSelected = false,
+                    unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+                })
+            else
+                local characterCqi = TotoWar__UI:getUnitCardCharacterCqi(unitCardUIComponent)
+                local unitKey = nil
 
-            if characterCqi == nil then
-                unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+                if characterCqi == nil then
+                    unitKey = TotoWar__UI:getUnitCardUnitKey(unitCardUIComponent)
+                end
+
+                table.insert(unitCards, {
+                    characterCqi = characterCqi,
+                    isSelected = TotoWar__UI:isUIComponentSelected(unitCardUIComponent),
+                    unitKey = unitKey
+                })
             end
-
-            table.insert(unitCards, {
-                characterCqi = characterCqi,
-                isSelected = TotoWar__UI:isUIComponentSelected(unitCardUIComponent),
-                unitKey = unitKey
-            })
         end
     end
 
