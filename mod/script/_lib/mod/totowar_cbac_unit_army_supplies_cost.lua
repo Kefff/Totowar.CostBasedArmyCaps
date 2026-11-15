@@ -25,7 +25,7 @@ local _unitCategoriesByUnitKey = {}
 local _baseUnitKeysByUnitKey = {}
 
 ---Recruitment costs of the unit records already read, by unit key (`false` when the cost is not found).
----They can be negative: the unit is then not counted.
+---They can be negative or zero: the unit is then not counted.
 ---@type table<string, integer | false>
 local _recordCostsByUnitKey = {}
 
@@ -307,7 +307,7 @@ end
 
 ---Gets the army supplies cost of a unit: the recruitment cost of its unmounted version,
 ---or of the unit itself when its unmounted version has no cost.
----When the recruitment cost is not found or negative, the unit is not counted (0).
+---When the recruitment cost is not found, negative or zero, the unit is not counted (0).
 ---@param unitKey string Unit key.
 ---@return integer
 function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey)
@@ -319,7 +319,8 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey)
     -- Their custom battle cost is not used: it can only be read from a unit in an army (which is not always available, for example when recruiting a mercenary unit),
     -- so the cost of the same unit would depend on where it is calculated (recruitment cards, unit exchange...).
     -- No other campaign data matches it.
-    if cost == nil or cost < 0 then
+    -- A zero cost is also invalid: no unit should consume no army supplies.
+    if cost == nil or cost <= 0 then
         logger:logWarning(
             "%s (%s): invalid recruitment cost (%s), not counted in army supplies",
             TotoWar__Gameplay:getUnitCaption(unitKey),
