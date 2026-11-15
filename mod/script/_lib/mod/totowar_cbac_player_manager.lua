@@ -59,7 +59,7 @@ local function getLordInUnitExchangePoolCards(unitCards)
 end
 
 ---Reacts to the request to block an army of a player, or to allow it to move again, received by all the players of the game.
----The request is sent by `updateSelectedLordMovement` on the machine of the player who owns the army.
+---The request is sent by `updateArmyMovement` on the machine of the player who owns the army.
 ---The effect bundle that blocks the army is applied or removed here, on all the machines, so that the game stays synchronized.
 ---@param factionCqi integer Command queue index of the faction of the player who sent the request.
 ---@param dataString string Data of the event: `<army command queue index>|<1 to block the army, 0 to allow it to move>`.
@@ -650,7 +650,7 @@ function TotoWar_Cbac_PlayerManager:onSelectedLordArmySuppliesCostChanged()
     end
 
     if needsSelectedLordMovementUpdate then
-        self:updateSelectedLordMovement()
+        self:updateArmyMovement(self.selectedLord:military_force(), self.selectedLordArmySuppliesCost)
     end
 
     logger:logDebug(
@@ -744,6 +744,27 @@ function TotoWar_Cbac_PlayerManager:onUnitExchangeConfirmed()
         function(unitArmySuppliesCost) return unitArmySuppliesCost.characterCqi == lord:cqi() end)
 
     self.selectedLordArmySuppliesCost = isSelectedLordArmy1 and armySuppliesCost1 or armySuppliesCost2
+    local otherArmySuppliesCost = isSelectedLordArmy1 and armySuppliesCost2 or armySuppliesCost1
+
+    -- Updating the ability to move of the other army, whose army supplies cost is not kept: otherwise it could move
+    -- with its army supplies exceeded until it is selected
+    local otherLordArmySuppliesCost = TotoWar__Linq:firstOrDefault(
+        otherArmySuppliesCost.unitArmySuppliesCosts,
+        function(unitArmySuppliesCost)
+            return unitArmySuppliesCost.unitCategory == TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord
+        end)
+    local otherLord = nil
+
+    if otherLordArmySuppliesCost ~= nil then
+        -- Never nil: the lord is a character
+        local otherLordCqi = otherLordArmySuppliesCost.characterCqi
+        ---@cast otherLordCqi integer
+        otherLord = TotoWar__Gameplay:getCharacter(otherLordCqi)
+    end
+
+    if otherLord ~= nil and TotoWar__Gameplay:isLocalPlayerFaction(otherLord:faction():name()) then
+        self:updateArmyMovement(otherLord:military_force(), otherArmySuppliesCost)
+    end
 
     -- Signaling army supplies cost change
     TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
@@ -1125,22 +1146,19 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
     logger:logDebug("subscribeToEvents(): COMPLETED")
 end
 
----Updates the ability to move of the army of the selected lord depending on its army supplies cost.
+---Updates the ability to move of an army of the local player depending on its army supplies cost.
 ---The update is requested to all the machines of the game, and made by `onArmyMovementUpdateRequested` when they receive the request.
-function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
+---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army.
+function TotoWar_Cbac_PlayerManager:updateArmyMovement(army, armySuppliesCost)
     logger:logDebug(
-        "updateSelectedLordMovement(): STARTED => %s | Available supplies: %s",
-        function()
-            return
-                self.selectedLord ~= nil
-                and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force())
-                or "No selected lord"
-        end,
-        self.selectedLordArmySuppliesCost.availableSupplies)
+        "updateArmyMovement(%s, armySuppliesCost): STARTED => %s | Available supplies: %s",
+        function() return army:command_queue_index() end,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
+        armySuppliesCost.availableSupplies)
 
-    local army = self.selectedLord:military_force()
     local armyCqi = army:command_queue_index()
-    local isBlocked = self.selectedLordArmySuppliesCost.availableSupplies < 0
+    local isBlocked = armySuppliesCost.availableSupplies < 0
     local lastRequest = self.lastMovementRequests[armyCqi]
 
     -- This method reacts to the interface of the local player (selection, clicks, recruitment), so changing the game
@@ -1154,9 +1172,10 @@ function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
         or (lastRequest ~= nil and lastRequest ~= isBlocked)
     then
         logger:logDebug(
-            "updateSelectedLordMovement(): REQUEST SENT => %s | Available supplies: %s | Blocked: %s | Last request: %s",
+            "updateArmyMovement(%s, armySuppliesCost): REQUEST SENT => %s | Available supplies: %s | Blocked: %s | Last request: %s",
+            armyCqi,
             function() return TotoWar__Gameplay:getArmyCaption(army) end,
-            self.selectedLordArmySuppliesCost.availableSupplies,
+            armySuppliesCost.availableSupplies,
             isBlocked,
             lastRequest)
 
@@ -1169,14 +1188,10 @@ function TotoWar_Cbac_PlayerManager:updateSelectedLordMovement()
     end
 
     logger:logDebug(
-        "updateSelectedLordMovement(): COMPLETED => %s | Available supplies: %s",
-        function()
-            return
-                self.selectedLord ~= nil
-                and TotoWar__Gameplay:getArmyCaption(self.selectedLord:military_force())
-                or "No selected lord"
-        end,
-        self.selectedLordArmySuppliesCost.availableSupplies)
+        "updateArmyMovement(%s, armySuppliesCost): COMPLETED => %s | Available supplies: %s",
+        armyCqi,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
+        armySuppliesCost.availableSupplies)
 end
 
 ---Updates unit exchange army supplies costs.
