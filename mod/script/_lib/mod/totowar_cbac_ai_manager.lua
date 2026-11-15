@@ -66,48 +66,9 @@ local function setAiArmyData(armyCqi, aiArmyData)
         aiArmyData == nil)
 end
 
----Sort function ordering unit army supplies costs from the cheapest to the priciest.
----Units with the same cost are ordered by unit key, then by unit CQI, so that the units chosen by the adjustment
----do not depend on the order in which the game lists the units of the army.
----@param a TotoWar_Cbac_UnitArmySuppliesCost
----@param b TotoWar_Cbac_UnitArmySuppliesCost
----@return boolean
-local function compareUnitArmySuppliesCosts(a, b)
-    if a.armySuppliesCost ~= b.armySuppliesCost then
-        return a.armySuppliesCost < b.armySuppliesCost
-    end
-
-    if a.unitKey ~= b.unitKey then
-        return a.unitKey < b.unitKey
-    end
-
-    -- The unit CQI is nil for a unit being recruited, which does not occur in an AI army
-    return (a.unitCqi or 0) < (b.unitCqi or 0)
-end
-
----Indicates whether a combination of units comes before another one, to choose between two equivalent combinations
----without depending on the iteration order of `pairs`, which depends on how the game lists the units of the army.
----The units of each combination must be sorted with `compareUnitArmySuppliesCosts`.
----@param units1 TotoWar_Cbac_UnitArmySuppliesCost[]
----@param units2 TotoWar_Cbac_UnitArmySuppliesCost[]
----@return boolean
-local function isCombinationBefore(units1, units2)
-    for i = 1, math.min(#units1, #units2) do
-        if compareUnitArmySuppliesCosts(units1[i], units2[i]) then
-            return true
-        end
-
-        if compareUnitArmySuppliesCosts(units2[i], units1[i]) then
-            return false
-        end
-    end
-
-    return #units1 < #units2
-end
-
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
 ---
----Uses a dynamic programming knapsack algorithm to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
+---The units to remove are selected by `TotoWar_Cbac_AiManagerUnitSelection` (dynamic programming knapsack algorithm), to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army. Updated if units are flagged as to removed.
 ---@param targetArmySize integer Target army size.
@@ -176,21 +137,14 @@ local function adjustAiArmyCompositionAndUnits(
         deficit)
 
     -------------------------------------------------------------------------
-    -- Build max removable per category (how many are in excess)
+    -- Number of units in excess by unit category: the units of these categories are removed first, no more than the
+    -- excess of their category
     -------------------------------------------------------------------------
     ---@type table<string, integer>
-    local maxPerCategory = {}
-
-    ---@type string[]
-    local categories = {}
+    local categoryExcessCounts = {}
 
     for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
-        local count = unitCategoryExcessCounts:get(category)
-
-        if count > 0 then
-            maxPerCategory[category] = count
-            table.insert(categories, category)
-        end
+        categoryExcessCounts[category] = unitCategoryExcessCounts:get(category)
     end
 
     logger:logDebug(
@@ -199,7 +153,7 @@ local function adjustAiArmyCompositionAndUnits(
         targetArmySize,
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         function()
-            if #categories == 0 then
+            if #unitCategoryExcessCounts.entries == 0 then
                 return "none"
             end
 
@@ -211,227 +165,15 @@ local function adjustAiArmyCompositionAndUnits(
         end)
 
     -------------------------------------------------------------------------
-    -- Split removable units into:
-    -- - excessUnits (categories in excess)
-    -- - otherUnits (everything else)
+    -- Selecting the units to remove
     -------------------------------------------------------------------------
-    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
-    local excessUnits = {}
+    local excessUnitsToRemove, otherUnitsToRemove, removedCost = TotoWar_Cbac_AiManagerUnitSelection:selectUnitsToRemove(
+        removableUnits,
+        categoryExcessCounts,
+        deficit,
+        requiredRemovalsForSize)
 
-    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
-    local otherUnits = {}
-
-    for _, u in ipairs(removableUnits) do
-        if maxPerCategory[u.unitCategory] ~= nil then
-            table.insert(excessUnits, u)
-        else
-            table.insert(otherUnits, u)
-        end
-    end
-
-    -------------------------------------------------------------------------
-    -- Determine maxRemovals for the main DP (only using excessUnits):
-    -- no more units than the excess of their categories can be removed (see AdjustmentState:canAdd)
-    -------------------------------------------------------------------------
-    local maxRemovals = 0
-
-    for _, category in ipairs(categories) do
-        maxRemovals = maxRemovals + maxPerCategory[category]
-    end
-
-    maxRemovals = math.min(maxRemovals, #excessUnits)
-
-    -------------------------------------------------------------------------
-    -- MAIN DP over excessUnits only
-    -- DP[count][stateKey][removedCost] = { experienceLevel, picked }
-    --
-    -- Each combination of picked units stores the total experience level of its units,
-    -- so that it is not summed again when comparing combinations.
-    -------------------------------------------------------------------------
-    ---@type table<integer, table<string, table<integer, { experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>>>
-    local DP = {}
-    DP[0] = {}
-
-    local startState = TotoWar_Cbac_AiManagerAdjustmentState.new(categories, maxPerCategory)
-    local startKey = startState:getKey()
-
-    DP[0][startKey] = {}
-    DP[0][startKey][0] = { experienceLevel = 0, picked = {} }
-
-    table.sort(excessUnits, compareUnitArmySuppliesCosts)
-
-    for _, unit in ipairs(excessUnits) do
-        for removedCount = maxRemovals - 1, 0, -1 do
-            if DP[removedCount] then
-                DP[removedCount + 1] = DP[removedCount + 1] or {}
-
-                for stateKey, costTable in pairs(DP[removedCount]) do
-                    local baseState = TotoWar_Cbac_AiManagerAdjustmentState.newFromKey(stateKey, categories,
-                        maxPerCategory)
-
-                    if baseState:canAdd(unit.unitCategory) then
-                        -- The new state only depends on the base state and the unit, not on the cost
-                        local newState = baseState:clone()
-                        newState:add(unit.unitCategory)
-
-                        local newKey = newState:getKey()
-
-                        DP[removedCount + 1][newKey] = DP[removedCount + 1][newKey] or {}
-
-                        for removedCost, entry in pairs(costTable) do
-                            local newCost = removedCost + unit.armySuppliesCost
-                            local existing = DP[removedCount + 1][newKey][newCost]
-                            local newExperienceLevel = entry.experienceLevel + unit.experienceLevel
-
-                            -- For the same removal count, category state and cost, the combination with
-                            -- the least experienced units is kept, so that they are removed first
-                            if existing == nil or newExperienceLevel <= existing.experienceLevel then
-                                local newPicked = { unpack(entry.picked) }
-                                table.insert(newPicked, unit)
-
-                                if existing == nil
-                                    or newExperienceLevel < existing.experienceLevel
-                                    or isCombinationBefore(newPicked, existing.picked)
-                                then
-                                    DP[removedCount + 1][newKey][newCost] = {
-                                        experienceLevel = newExperienceLevel,
-                                        picked = newPicked
-                                    }
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    -------------------------------------------------------------------------
-    -- Best selection among excess units:
-    --
-    -- FULL solutions (cost >= deficit):
-    -- 1) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
-    -- 2) fewer removals (tie breaker)
-    -- 3) minimal cost above deficit
-    -- 4) minimal total experience level
-    -- 5) first combination when sorting units with compareUnitArmySuppliesCosts (isCombinationBefore)
-    --
-    -- PARTIAL solutions (cost < deficit):
-    -- 1) maximal cost (closest below deficit)
-    -- 2) closest to requiredRemovalsForSize (if requiredRemovalsForSize > 0)
-    -- 3) fewer removals
-    -- 4) minimal total experience level
-    -- 5) first combination when sorting units with compareUnitArmySuppliesCosts (isCombinationBefore)
-    --
-    -- The last criterion makes the choice independent of the iteration order of `pairs`.
-    -------------------------------------------------------------------------
-    local idealRemovalCount = nil
-    if requiredRemovalsForSize > 0 then
-        idealRemovalCount = requiredRemovalsForSize
-    end
-
-    ---@type { experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] } | nil
-    local bestEntry = nil
-    local bestCost = nil
-    ---@type integer
-    local bestRemovalCount = nil
-
-    ---@type { experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] } | nil
-    local partialEntry = nil
-    local partialCost = nil
-    ---@type integer
-    local partialRemovalCount = nil
-
-    ---@param k integer
-    ---@return integer
-    local function getDistanceToIdeal(k)
-        if idealRemovalCount == nil then
-            return 0
-        end
-
-        return math.abs(k - idealRemovalCount)
-    end
-
-    ---@param k integer
-    local function considerSolutions(k)
-        if not DP[k] then
-            return
-        end
-
-        for _, costTable in pairs(DP[k]) do
-            for cost, entry in pairs(costTable) do
-                if cost >= deficit then
-                    if bestEntry == nil then
-                        bestEntry = entry
-                        bestCost = cost
-                        bestRemovalCount = k
-                    else
-                        local bestDist = getDistanceToIdeal(bestRemovalCount)
-                        local newDist = getDistanceToIdeal(k)
-
-                        local bestExcess = bestCost - deficit
-                        local newExcess = cost - deficit
-
-                        if newDist < bestDist
-                            or (newDist == bestDist and k < bestRemovalCount)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess < bestExcess)
-                            or (newDist == bestDist and k == bestRemovalCount and newExcess == bestExcess
-                                and (entry.experienceLevel < bestEntry.experienceLevel
-                                    or (entry.experienceLevel == bestEntry.experienceLevel and isCombinationBefore(entry.picked, bestEntry.picked))))
-                        then
-                            bestEntry = entry
-                            bestCost = cost
-                            bestRemovalCount = k
-                        end
-                    end
-                else
-                    if partialEntry == nil then
-                        partialEntry = entry
-                        partialCost = cost
-                        partialRemovalCount = k
-                    else
-                        local partialDist = getDistanceToIdeal(partialRemovalCount)
-                        local newDist = getDistanceToIdeal(k)
-
-                        if cost > partialCost
-                            or (cost == partialCost and newDist < partialDist)
-                            or (cost == partialCost and newDist == partialDist and k < partialRemovalCount)
-                            or (cost == partialCost and newDist == partialDist and k == partialRemovalCount
-                                and (entry.experienceLevel < partialEntry.experienceLevel
-                                    or (entry.experienceLevel == partialEntry.experienceLevel and isCombinationBefore(entry.picked, partialEntry.picked))))
-                        then
-                            partialEntry = entry
-                            partialCost = cost
-                            partialRemovalCount = k
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    for k = 1, maxRemovals do
-        considerSolutions(k)
-    end
-
-    if not bestEntry then
-        bestEntry = partialEntry
-        bestCost = partialCost
-        bestRemovalCount = partialRemovalCount
-    end
-
-    -- Copying the picked units: units may be added below (extra pick), and the combination of DP must not be modified
-    ---@type TotoWar_Cbac_UnitArmySuppliesCost[]
-    local bestPicked = {}
-
-    if bestEntry then
-        bestPicked = { unpack(bestEntry.picked) }
-    else
-        bestCost = 0
-        bestRemovalCount = 0
-    end
-
-    for _, unitArmySuppliesCost in ipairs(bestPicked) do
+    for _, unitArmySuppliesCost in ipairs(excessUnitsToRemove) do
         logger:logDebug(
             "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (CATEGORY EXCESS) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s | Experience: %s",
             function() return army:command_queue_index() end,
@@ -444,139 +186,38 @@ local function adjustAiArmyCompositionAndUnits(
             unitArmySuppliesCost.experienceLevel)
     end
 
-    -------------------------------------------------------------------------
-    -- COMPLETE WITH otherUnits if deficit not covered
-    -------------------------------------------------------------------------
-    -- No unit of otherUnits has been picked: the units picked above all come from excessUnits.
-    -- otherUnits keeps the order of the army units sorted with compareUnitArmySuppliesCosts, which DP2 relies on
-    -- to keep the same combination whatever the order in which the game lists the units of the army.
-    local remainingDeficit = deficit - bestCost
-
-    if remainingDeficit > 0 and #otherUnits > 0 then
-        ---@type table<integer, { count: integer, experienceLevel: integer, picked: TotoWar_Cbac_UnitArmySuppliesCost[] }>
-        local DP2 = {}
-        DP2[0] = { count = 0, experienceLevel = 0, picked = {} }
-
-        for _, unit in ipairs(otherUnits) do
-            -- Only iterating over the costs already reached instead of every cost up to the total cost of the units.
-            -- They are processed from the highest to the lowest so that each unit is added at most once to a combination:
-            -- the costs updated for this unit are higher than the cost being processed, so they have already been processed.
-            local reachedCosts = {}
-
-            for cost, _ in pairs(DP2) do
-                table.insert(reachedCosts, cost)
-            end
-
-            -- Default ascending sort (faster than a comparison function), iterated from the end
-            table.sort(reachedCosts)
-
-            for i = #reachedCosts, 1, -1 do
-                local cost = reachedCosts[i]
-                local entry = DP2[cost]
-                local newCost = cost + unit.armySuppliesCost
-                local newCount = entry.count + 1
-                local newExperienceLevel = entry.experienceLevel + unit.experienceLevel
-
-                local existing = DP2[newCost]
-
-                -- For the same cost and removal count, the combination with the least experienced units is kept,
-                -- so that they are removed first
-                if existing == nil
-                    or newCount < existing.count
-                    or (newCount == existing.count and newExperienceLevel < existing.experienceLevel)
-                then
-                    local newPicked = { unpack(entry.picked) }
-                    table.insert(newPicked, unit)
-
-                    DP2[newCost] = {
-                        count = newCount,
-                        experienceLevel = newExperienceLevel,
-                        picked = newPicked
-                    }
-                end
-            end
-        end
-
-        local bestExtraPicked = nil
-        local bestExtraCost = nil
-        local bestExtraCount = nil
-
-        local targetExtraCount = nil
-        if idealRemovalCount ~= nil then
-            targetExtraCount = math.max(0, idealRemovalCount - bestRemovalCount)
-        end
-
-        for cost, entry in pairs(DP2) do
-            if cost >= remainingDeficit then
-                if bestExtraPicked == nil then
-                    bestExtraPicked = entry.picked
-                    bestExtraCost = cost
-                    bestExtraCount = entry.count
-                else
-                    if targetExtraCount ~= nil then
-                        local distA = math.abs(entry.count - targetExtraCount)
-                        local distB = math.abs(bestExtraCount - targetExtraCount)
-
-                        if distA < distB
-                            or (distA == distB and entry.count < bestExtraCount)
-                            or (distA == distB and entry.count == bestExtraCount and cost < bestExtraCost)
-                        then
-                            bestExtraPicked = entry.picked
-                            bestExtraCost = cost
-                            bestExtraCount = entry.count
-                        end
-                    else
-                        if entry.count < bestExtraCount
-                            or (entry.count == bestExtraCount and cost < bestExtraCost)
-                        then
-                            bestExtraPicked = entry.picked
-                            bestExtraCost = cost
-                            bestExtraCount = entry.count
-                        end
-                    end
-                end
-            end
-        end
-
-        if bestExtraPicked then
-            for _, u in ipairs(bestExtraPicked) do
-                table.insert(bestPicked, u)
-            end
-            bestCost = bestCost + bestExtraCost
-            bestRemovalCount = bestRemovalCount + bestExtraCount
-
-            for _, unitArmySuppliesCost in ipairs(bestExtraPicked) do
-                logger:logDebug(
-                    "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (EXTRA PICK) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s | Experience: %s",
-                    function() return army:command_queue_index() end,
-                    targetArmySize,
-                    function() return TotoWar__Gameplay:getArmyCaption(army) end,
-                    function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
-                    unitArmySuppliesCost.unitCqi,
-                    unitArmySuppliesCost.unitCategory,
-                    unitArmySuppliesCost.armySuppliesCost,
-                    unitArmySuppliesCost.experienceLevel)
-            end
-        end
+    for _, unitArmySuppliesCost in ipairs(otherUnitsToRemove) do
+        logger:logDebug(
+            "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): UNIT TO DISCARD (EXTRA PICK) => %s | Unit: %s | Unit CQI: %s | Category: %s | Cost: %s | Experience: %s",
+            function() return army:command_queue_index() end,
+            targetArmySize,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end,
+            function() return TotoWar__Gameplay:getUnitCaption(unitArmySuppliesCost.unitKey) end,
+            unitArmySuppliesCost.unitCqi,
+            unitArmySuppliesCost.unitCategory,
+            unitArmySuppliesCost.armySuppliesCost,
+            unitArmySuppliesCost.experienceLevel)
     end
 
     -------------------------------------------------------------------------
     -- Final safety: ensure deficit is covered
     -------------------------------------------------------------------------
-    if bestCost < deficit then
+    if removedCost < deficit then
         logger:logWarning(
             "%s: army adjusted, army supplies still exceeded by %s (disbandable units only cover %s)",
             function() return TotoWar__Gameplay:getArmyCaption(army) end,
             deficit,
-            bestCost)
+            removedCost)
     end
 
     -------------------------------------------------------------------------
     -- Apply removals
     -------------------------------------------------------------------------
-    for _, unitArmySuppliesCost in ipairs(bestPicked) do
-        table.insert(unitsToDiscard, unitArmySuppliesCost)
-        armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi)
+    for _, unitsToRemove in ipairs({ excessUnitsToRemove, otherUnitsToRemove }) do
+        for _, unitArmySuppliesCost in ipairs(unitsToRemove) do
+            table.insert(unitsToDiscard, unitArmySuppliesCost)
+            armySuppliesCost:removeUnit(unitArmySuppliesCost.unitKey, unitArmySuppliesCost.unitCqi)
+        end
     end
 
     -- Storing the current turn as the last adjustment turn for that army to be able to cancel the disbands that may happen just after the adjustment
@@ -1165,7 +806,9 @@ local function adjustAiArmy(armyCqi)
         armySuppliesCost.availableSupplies)
 
     -- Sorting units from the cheapest to the priciest
-    table.sort(armySuppliesCost.unitArmySuppliesCosts, compareUnitArmySuppliesCosts)
+    table.sort(
+        armySuppliesCost.unitArmySuppliesCosts,
+        TotoWar_Cbac_AiManagerUnitSelection.compareUnitArmySuppliesCosts)
 
     -- Getting the target army composition and the unit categories that have excess units
     local targetArmyComposition = getTargetArmyComposition(army)

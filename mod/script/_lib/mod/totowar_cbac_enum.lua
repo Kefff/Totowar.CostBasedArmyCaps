@@ -13,6 +13,7 @@ TotoWar_Cbac_Enum_ArmyCompositionUnitCategories = {
 ---@enum TotoWar_Cbac_Enum_LogCategories
 TotoWar_Cbac_Enum_LogCategories = {
     aiManager = "TotoWar_Cbac_AiManager",
+    aiManagerUnitSelection = "TotoWar_Cbac_AiManagerUnitSelection",
     armySuppliesCost = "TotoWar_Cbac_ArmySuppliesCost",
     mod = "TotoWar_Cbac_Mod",
     playerManager = "TotoWar_Cbac_PlayerManager",
