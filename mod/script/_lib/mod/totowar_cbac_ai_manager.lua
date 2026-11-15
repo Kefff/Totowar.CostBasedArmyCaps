@@ -964,6 +964,10 @@ local function onAiCharacterTurnEnd(character)
 
     -- Relaunching the army adjustment to remove heros that may have been (re)added after the army adjustement triggered when units are recruited.
     -- The adjustment is deferred like for recruited units: removing units during the event could lead to crashes.
+    -- Removed first from the armies created by script waiting for their adjustment, so that adjustAiArmy does not skip
+    -- an army created during the turn of its faction (Under-Empire war camps, Khorne Blood Hosts, ...): it would
+    -- otherwise stay unadjusted during the turns of the other factions (see onArmyCreatedByScript)
+    TotoWar_Cbac_AiManager.scriptedArmyCqisToAdjust[character:military_force():command_queue_index()] = nil
     TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(character:military_force())
 
     logger:logDebug(
@@ -1019,8 +1023,8 @@ TotoWar_Cbac_AiManager = {
     ---@type integer
     highestKnownArmyCqi = nil,
 
-    ---Command queue indexes of the AI armies created by script, to adjust when their lord gains ranks or at the start of
-    ---the turn of their faction (see onArmyCreatedByScript).
+    ---Command queue indexes of the AI armies created by script, to adjust when their lord gains ranks, at the start of
+    ---the turn of their faction or at the end of the turn of their lord (see onArmyCreatedByScript).
     ---@type table<integer, boolean>
     scriptedArmyCqisToAdjust = nil
 }
@@ -1355,7 +1359,8 @@ end
 ---They are adjusted when their lord gains ranks (onAiCharacterRankUp), or at the latest at the start of the turn of
 ---their faction (onAiFactionTurnStart), before they act, and not right away: the script that creates them can change
 ---them after their creation (the endgame crises give ranks to their lords, which increases their army supplies, but
----only later).
+---only later). Those created during the turn of their faction are adjusted at the end of the turn of their lord
+---(onAiCharacterTurnEnd).
 function TotoWar_Cbac_AiManager:onArmyCreatedByScript()
     logger:logDebug("onArmyCreatedByScript(): STARTED => Highest known army CQI: %s", self.highestKnownArmyCqi)
 
