@@ -346,6 +346,18 @@ function TotoWar_Cbac_PlayerManager:isSelectedLordArmySuppliesCostAvailable()
         and self.selectedLordArmySuppliesCost ~= nil
 end
 
+---Indicates whether a unit is in the army of the selected lord.
+---@param unit UNIT_SCRIPT_INTERFACE Unit.
+---@return boolean
+function TotoWar_Cbac_PlayerManager:isUnitInSelectedLordArmy(unit)
+    local army = unit:military_force()
+
+    return
+        self.selectedLord ~= nil
+        and army:has_general()
+        and army:general_character():cqi() == self.selectedLord:cqi()
+end
+
 ---Reacts to a character being deselected.
 function TotoWar_Cbac_PlayerManager:onCharacterDeselected()
     logger:logDebug("onCharacterDeselected(): STARTED")
@@ -478,12 +490,7 @@ function TotoWar_Cbac_PlayerManager:onMercenaryRecruitmentPanelClosed()
                 or "No selected lord"
         end)
 
-    if #self.selectedLordArmySuppliesCost.inRecruitmentMercenaryUnits > 0 then
-        self.selectedLordArmySuppliesCost:clearMercenaryRecruitment()
-
-        -- Signaling army supplies cost change
-        TotoWar__EventsManager:trigger(TotoWar_Cbac_Enum_ModEvents.selectedLordArmySuppliesCostChanged)
-    end
+    self:clearMercenaryRecruitment()
 
     logger:logDebug(
         "onMercenaryRecruitmentPanelClosed(): COMPLETED => %s",
@@ -1052,13 +1059,9 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         end,
         ---@param context TotoWar__GameEventContext_UnitDisbanded
         function(context)
-            local army = context:unit():military_force()
-
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and self.selectedLord ~= nil
-                and army:has_general()
-                and army:general_character():cqi() == self.selectedLord:cqi()
+                and self:isUnitInSelectedLordArmy(context:unit())
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1070,13 +1073,9 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         end,
         ---@param context TotoWar__GameEventContext_UnitMergedAndDestroyed
         function(context)
-            local army = context:unit():military_force()
-
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and self.selectedLord ~= nil
-                and army:has_general()
-                and army:general_character():cqi() == self.selectedLord:cqi()
+                and self:isUnitInSelectedLordArmy(context:unit())
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1101,13 +1100,9 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         function(context)
             -- A unit trained in the army of the selected lord comes from the recruitment button
             -- of the mercenary panel
-            local army = context:unit():military_force()
-
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and self.selectedLord ~= nil
-                and army:has_general()
-                and army:general_character():cqi() == self.selectedLord:cqi()
+                and self:isUnitInSelectedLordArmy(context:unit())
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1116,13 +1111,9 @@ function TotoWar_Cbac_PlayerManager:subscribeToEvents()
         function(context) self:onUnitUpgraded(context:unit()) end,
         ---@param context TotoWar__GameEventContext_UnitUpgraded
         function(context)
-            local army = context:unit():military_force()
-
             return
                 self:isSelectedLordArmySuppliesCostAvailable()
-                and self.selectedLord ~= nil
-                and army:has_general()
-                and army:general_character():cqi() == self.selectedLord:cqi()
+                and self:isUnitInSelectedLordArmy(context:unit())
         end)
 
     -- Received on all the machines, including the one of the player who sent the request
