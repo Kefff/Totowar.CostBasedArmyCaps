@@ -1267,8 +1267,9 @@ local function onAiCharacterTurnEnd(character)
         function() return TotoWar__Gameplay:getArmyCaption(character:military_force()) end,
         function() return character:military_force():command_queue_index() end)
 
-    -- Relaunching the army adjustment to remove heros that may have been (re)added after the army adjustement triggered when units are recruited
-    adjustAiArmy(character:military_force():command_queue_index())
+    -- Relaunching the army adjustment to remove heros that may have been (re)added after the army adjustement triggered when units are recruited.
+    -- The adjustment is deferred like for recruited units: removing units during the event could lead to crashes.
+    TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(character:military_force())
 
     logger:logDebug(
         "onAiCharacterTurnEnd(%s): COMPLETED => %s | Army: %s",
