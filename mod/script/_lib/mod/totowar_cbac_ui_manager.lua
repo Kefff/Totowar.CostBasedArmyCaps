@@ -46,10 +46,6 @@ local _textUIComponentTemplate = "ui/totowar/totowar_text.twui.xml"
 
 ---Template of the UI component that displays unit army supplies.
 local _unitArmySuppliesUIComponentTemplate = "ui/totowar/totowar_icon_value.twui.xml"
-
----Height of the army supplies after upgrade line of the warband upgrade panel: height of the total cost line.
-local _warbandUpgradeArmySuppliesCostLineHeight = 32
-
 ---Unit card of a unit exchange pool.
 ---@class TotoWar_Cbac_UnitExchangePoolCard
 ---@field characterCqi integer | nil CQI of the character represented by the card, `nil` for a unit card.
@@ -252,6 +248,15 @@ end
 local function onWarbandUpgradeArmySuppliesCostChanged()
     logger:logDebug("onWarbandUpgradeArmySuppliesCostChanged(): STARTED")
 
+    local warbandUpgradesRequirementsComponent = TotoWar__UI:getUIComponent(
+        TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgradesRequirements)
+    local totalCostContainerComponent = TotoWar__UI:getUIComponentChild(
+        warbandUpgradesRequirementsComponent,
+        "total_cost")
+
+    -- The army supplies after upgrade line has the height of the total cost line
+    local armySuppliesCostLineHeight = totalCostContainerComponent:Height()
+
     -- Enlarging the requirements holder, which has a fixed height, to have space to add the army supplies after
     -- upgrade line. Its parents fit their content, up to the info holder.
     local requirementsHolderComponent = TotoWar__UI:getUIComponent(
@@ -259,7 +264,7 @@ local function onWarbandUpgradeArmySuppliesCostChanged()
     TotoWar__UI:resizeUIComponentOnce(
         requirementsHolderComponent,
         0,
-        _warbandUpgradeArmySuppliesCostLineHeight,
+        armySuppliesCostLineHeight,
         _resizedUIComponentSizePropertyName)
 
     -- Enlarging the info holder and its parent, which have a fixed height, so that their content enlarged with the
@@ -269,12 +274,12 @@ local function onWarbandUpgradeArmySuppliesCostChanged()
     TotoWar__UI:resizeUIComponentOnce(
         infoHolderComponent,
         0,
-        _warbandUpgradeArmySuppliesCostLineHeight,
+        armySuppliesCostLineHeight,
         _resizedUIComponentSizePropertyName)
     TotoWar__UI:resizeUIComponentOnce(
         UIComponent(infoHolderComponent:Parent()),
         0,
-        _warbandUpgradeArmySuppliesCostLineHeight,
+        armySuppliesCostLineHeight,
         _resizedUIComponentSizePropertyName)
 
     -- Moving the upgrade button to the bottom of the enlarged requirements holder
@@ -290,8 +295,6 @@ local function onWarbandUpgradeArmySuppliesCostChanged()
             TotoWar_Cbac_PlayerManager.warbandUpgradeArmySuppliesCost:toArmySuppliesCostTooltipText()
 
         local armySuppliesCostContainerComponentName = "totowar_cbac_warband_upgrade_army_supplies"
-        local warbandUpgradesRequirementsComponent = TotoWar__UI:getUIComponent(
-            TotoWar__UI.uiComponentQueries.unitsPanel_warbandUpgradesRequirements)
         local armySuppliesCostContainerComponent = TotoWar__UI:findUIComponentChild(
             warbandUpgradesRequirementsComponent,
             armySuppliesCostContainerComponentName)
@@ -300,9 +303,6 @@ local function onWarbandUpgradeArmySuppliesCostChanged()
             -- Creating the army supplies cost container from a template of the mod, with the size and the caption layout
             -- of the total cost container. The total cost container is not copied: the copy could keep the bindings of the
             -- game (context callbacks) that update the text or the visibility of the original
-            local totalCostContainerComponent = TotoWar__UI:getUIComponentChild(
-                warbandUpgradesRequirementsComponent,
-                "total_cost")
             local totalCostCaptionComponent = TotoWar__UI:getUIComponentChild(
                 totalCostContainerComponent,
                 "tx_total_cost")
@@ -310,18 +310,22 @@ local function onWarbandUpgradeArmySuppliesCostChanged()
                 armySuppliesCostContainerComponentName,
                 _textUIComponentTemplate)
             armySuppliesCostContainerComponent = UIComponent(armySuppliesCostContainerComponentAddress)
-            armySuppliesCostContainerComponent:Resize(
+            TotoWar__UI:setUIComponentSize(
+                armySuppliesCostContainerComponent,
                 totalCostContainerComponent:Width(),
-                totalCostContainerComponent:Height())
+                armySuppliesCostLineHeight)
 
             -- The caption is the text of the container, horizontally in the same area as the caption of the total cost
-            -- container: the text offsets reduce the text area of the container to the area of the caption
+            -- container: the text offsets reduce the text area of the container to the area of the caption. The offsets
+            -- are not negative, so that the text area does not exceed the container if the caption overflows it.
             local totalCostContainerX = totalCostContainerComponent:Position()
             local totalCostCaptionX = totalCostCaptionComponent:Position()
-            local captionLeftOffset = totalCostCaptionX - totalCostContainerX
+            local captionLeftOffset = math.max(0, totalCostCaptionX - totalCostContainerX)
             armySuppliesCostContainerComponent:SetTextXOffset(
                 captionLeftOffset,
-                totalCostContainerComponent:Width() - captionLeftOffset - totalCostCaptionComponent:Width())
+                math.max(
+                    0,
+                    totalCostContainerComponent:Width() - captionLeftOffset - totalCostCaptionComponent:Width()))
             armySuppliesCostContainerComponent:SetTextHAlign(totalCostCaptionComponent:GetTextHAlign())
 
             -- Vertically aligned with the text of the army supplies cost component, centered in the container, whose
