@@ -231,12 +231,6 @@ local function adjustAiArmyCompositionAndUnits(
         end
     end
 
-    -- Storing the current turn as the last adjustment turn for that army to be able to cancel the disbands that may happen just after the adjustment
-    -- to avoid removing too many units from the army
-    aiArmyData = aiArmyData or {}
-    aiArmyData.lastAdjustmentTurn = cm:turn_number()
-    setAiArmyData(army:command_queue_index(), aiArmyData)
-
     logger:logDebug(
         "adjustAiArmyCompositionAndUnits(%s, armySuppliesCost, %s, unitCategoryExcessCounts, unitsToDiscard): COMPLETED => %s | Total cost: %s | Available supplies: %s | Army size: %s",
         function() return army:command_queue_index() end,
@@ -841,6 +835,7 @@ local function adjustAiArmy(armyCqi)
     local targetArmyComposition = getTargetArmyComposition(army)
     local targetArmySize = TotoWar__Linq:sum(targetArmyComposition:getValues(), function(v) return v end)
     local unitCategoryExcessCounts = getUnitCategoryExcessCounts(armySuppliesCost, targetArmyComposition)
+    local initialArmySize = #armySuppliesCost.unitArmySuppliesCosts
 
     if unitCategoryExcessCounts:exists(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.hero) then
         -- Removing excess of heroes
@@ -855,6 +850,14 @@ local function adjustAiArmy(armyCqi)
 
     -- Adjust composition and units simultaneously
     adjustAiArmyCompositionAndUnits(army, armySuppliesCost, targetArmySize, unitCategoryExcessCounts, unitsToDiscard)
+
+    if #armySuppliesCost.unitArmySuppliesCosts < initialArmySize then
+        -- Storing the current turn as the last adjustment turn for that army (heroes or units removed) to be able to
+        -- cancel the disbands that may happen just after the adjustment to avoid removing too many units from the army
+        local aiArmyData = getAiArmyData(armyCqi) or {}
+        aiArmyData.lastAdjustmentTurn = cm:turn_number()
+        setAiArmyData(armyCqi, aiArmyData)
+    end
 
     -- Removing units flagged as discardable to stay within the army supplies limit
     for index, unitToDiscard in ipairs(unitsToDiscard) do
