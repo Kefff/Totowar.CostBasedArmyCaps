@@ -214,7 +214,7 @@ end
 ---@param unitKey string Unit key.
 ---@param unitCqi integer? Unit command queue index if we are able to get one.
 ---@param isInRecruitmentMercenary boolean? Indicates whether the unit added is a mercenary unit (regiment of renown, Grudge settles, Waaagh mobs, ...) in the recruitment pool.
----@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
+---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used for its experience level.
 function TotoWar_Cbac_ArmySuppliesCost:addUnit(unitKey, unitCqi, isInRecruitmentMercenary, unit)
     logger:logDebug(
         "addUnit(%s, %s, %s, unit): STARTED => %s",

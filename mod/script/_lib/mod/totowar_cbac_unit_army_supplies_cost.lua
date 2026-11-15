@@ -25,7 +25,7 @@ local _unitCategoriesByUnitKey = {}
 local _baseUnitKeysByUnitKey = {}
 
 ---Recruitment costs of the unit records already read, by unit key (`false` when the cost is not found).
----They can be negative: the custom battle cost of the unit is then used, which is specific to each unit and not cached.
+---They can be negative: the unit is then not counted.
 ---@type table<string, integer | false>
 local _recordCostsByUnitKey = {}
 
@@ -246,7 +246,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newCharacter(characterCqi)
     end
 
     instance.unitCqi = unit ~= nil and unit:command_queue_index() or nil
-    instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
+    instance.armySuppliesCost = instance:getUnitCost(unitKey)
     instance.baseUnitKey = getBaseUnitKey(unitKey)
     instance.characterCqi = characterCqi
     instance.unitKey = unitKey
@@ -276,7 +276,7 @@ end
 ---Initializes a new instance from a unit.
 ---@param unitKey string Unit key.
 ---@param unitCqi integer? Command queue index of the unit (if we are able to get one).
----@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used when its recruitment cost is negative.
+---@param unit UNIT_SCRIPT_INTERFACE? Unit (if we are able to get one), used for its experience level.
 ---@return TotoWar_Cbac_UnitArmySuppliesCost
 function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
     logger:logDebug(
@@ -286,7 +286,7 @@ function TotoWar_Cbac_UnitArmySuppliesCost.newUnit(unitKey, unitCqi, unit)
         function() return unit ~= nil and TotoWar__Gameplay:getArmyCaption(unit:military_force()) or "No army" end)
 
     local instance = setmetatable({}, TotoWar_Cbac_UnitArmySuppliesCost)
-    instance.armySuppliesCost = instance:getUnitCost(unitKey, function() return unit end)
+    instance.armySuppliesCost = instance:getUnitCost(unitKey)
     instance.baseUnitKey = getBaseUnitKey(unitKey)
     instance.unitCategory = getUnitArmyCompositionUnitType(unitKey)
     instance.unitCqi = unitCqi
@@ -307,55 +307,32 @@ end
 
 ---Gets the army supplies cost of a unit: the recruitment cost of its unmounted version,
 ---or of the unit itself when its unmounted version has no cost.
----When the recruitment cost is not found or negative, the custom battle cost of the unit is used (0 when the unit is not found).
+---When the recruitment cost is not found or negative, the unit is not counted (0).
 ---@param unitKey string Unit key.
----@param findUnit (fun(): UNIT_SCRIPT_INTERFACE | nil) | nil Function returning the unit, called only when its recruitment cost is not found or negative.
 ---@return integer
-function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey, findUnit)
-    logger:logDebug("getUnitCost(%s, findUnit): STARTED", unitKey)
+function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey)
+    logger:logDebug("getUnitCost(%s): STARTED", unitKey)
 
     local cost = getUnitRecordCost(unitKey)
 
-    if cost ~= nil and cost >= 0 then
-        logger:logDebug(
-            "getUnitCost(%s, findUnit): COMPLETED => Cost: %s",
-            unitKey,
-            cost)
-
-        return cost
-    end
-
-    -- Some units have a negative recruitment cost (the Blue Scribes from Tzeentch for example) or no recruitment cost:
-    -- their custom battle cost is used instead, but it can only be read from a unit in an army
-    local unit = nil
-
-    if findUnit ~= nil then
-        unit = findUnit()
-    end
-
-    if unit == nil then
+    -- Some units have a negative recruitment cost (the Blue Scribes from Tzeentch for example) or no recruitment cost.
+    -- Their custom battle cost is not used: it can only be read from a unit in an army, so the cost of the same unit
+    -- would depend on where it is calculated (recruitment cards, unit exchange...). No other campaign data matches it.
+    if cost == nil or cost < 0 then
         logger:logWarning(
-            "%s (%s): invalid recruitment cost (%s), not counted in army supplies (custom battle cost only readable in an army)",
+            "%s (%s): invalid recruitment cost (%s), not counted in army supplies",
             TotoWar__Gameplay:getUnitCaption(unitKey),
             unitKey,
             cost ~= nil and cost or "not found")
-        logger:logDebug("getUnitCost(%s, findUnit): COMPLETED => Cost: 0 (invalid recruitment cost)", unitKey)
+        logger:logDebug("getUnitCost(%s): COMPLETED => Cost: 0 (invalid recruitment cost)", unitKey)
 
         return 0
     end
 
-    local customBattleCost = unit:get_unit_custom_battle_cost()
-
-    logger:logWarning(
-        "%s: %s, invalid recruitment cost (%s), custom battle cost used (%s)",
-        function() return TotoWar__Gameplay:getArmyCaption(unit:military_force()) end,
-        TotoWar__Gameplay:getUnitCaption(unitKey),
-        cost ~= nil and cost or "not found",
-        customBattleCost)
     logger:logDebug(
-        "getUnitCost(%s, findUnit): COMPLETED => Cost: %s (custom battle cost)",
+        "getUnitCost(%s): COMPLETED => Cost: %s",
         unitKey,
-        customBattleCost)
+        cost)
 
-    return customBattleCost
+    return cost
 end
