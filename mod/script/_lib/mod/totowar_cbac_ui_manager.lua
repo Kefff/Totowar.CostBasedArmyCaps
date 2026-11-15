@@ -372,7 +372,7 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
         "updateRecruitableUnitCard(%s): STARTED",
         function() return unitCardUIComponent:Id() end)
 
-    local unitContext = TotoWar__UI:getUIComponentCCO(
+    local unitContext = TotoWar__UI:findUIComponentCCO(
         unitCardUIComponent,
         TotoWar__Enum_CcoContextTypeIds.mainUnitRecord)
 
@@ -388,7 +388,7 @@ local function updateRecruitableUnitCard(unitCardUIComponent)
 
     local unitCost = TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitContext:Call("Key"))
 
-    local externalHolderUIComponent = TotoWar__UI:getUIComponentChild(unitCardUIComponent, "external_holder")
+    local externalHolderUIComponent = TotoWar__UI:findUIComponentChild(unitCardUIComponent, "external_holder")
 
     if externalHolderUIComponent == nil then
         logger:logDebug(

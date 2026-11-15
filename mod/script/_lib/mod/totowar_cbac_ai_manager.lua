@@ -743,7 +743,7 @@ local function removeUnitFromAiArmy(army, unitKey, unitCqi)
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         function() return TotoWar__Gameplay:getUnitCaption(unitKey) end)
 
-    local unitRealCost = cco("CcoCampaignUnit", unitCqi):Call("Cost")
+    local unitRealCost = TotoWar__UI:getCCO(TotoWar__Enum_CcoContextTypeIds.campaignUnit, unitCqi):Call("Cost")
     local reimbursedCost = 0
 
     if unitRealCost == nil then

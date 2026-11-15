@@ -23,6 +23,24 @@ TotoWar__UI = {
 }
 TotoWar__UI.__index = TotoWar__UI
 
+---Finds a context object.
+---@param ccoContextTypeId TotoWar__Enum_CcoContextTypeIds Type of the context object.
+---@param contextId any ID of the context object (see `TotoWar__Enum_CcoContextTypeIds`).
+---@return ComponentContextObject | nil
+function TotoWar__UI:findCCO(ccoContextTypeId, contextId)
+    logger:logDebug("findCCO(%s, %s): STARTED", ccoContextTypeId, contextId)
+
+    local componentContextObject = cco(ccoContextTypeId, contextId)
+
+    logger:logDebug(
+        "findCCO(%s, %s): COMPLETED => Found: %s",
+        ccoContextTypeId,
+        contextId,
+        componentContextObject ~= nil)
+
+    return componentContextObject
+end
+
 ---Finds a UI component from the root.
 ---@param query string Query to the UI component from the root: names of the UI components separated by "/".
 ---@return UIC | nil
@@ -37,6 +55,27 @@ function TotoWar__UI:findUIComponent(query)
         childUIComponent ~= nil)
 
     return childUIComponent
+end
+
+---Finds a context object of a UI component.
+---@param uiComponent UIC UI component.
+---@param ccoContextTypeId TotoWar__Enum_CcoContextTypeIds Type of the context object.
+---@return ComponentContextObject | nil
+function TotoWar__UI:findUIComponentCCO(uiComponent, ccoContextTypeId)
+    logger:logDebug(
+        "findUIComponentCCO(%s, %s): STARTED",
+        function() return uiComponent:Id() end,
+        ccoContextTypeId)
+
+    local componentContextObject = self:findCCO(ccoContextTypeId, uiComponent:GetContextObjectId(ccoContextTypeId))
+
+    logger:logDebug(
+        "findUIComponentCCO(%s, %s): COMPLETED => Found: %s",
+        function() return uiComponent:Id() end,
+        ccoContextTypeId,
+        componentContextObject ~= nil)
+
+    return componentContextObject
 end
 
 ---Finds a UI component that is a child a parent UI component.
@@ -69,6 +108,33 @@ function TotoWar__UI:findUIComponentChild(parentUIComponent, query)
     return uiComponent
 end
 
+---Gets a context object.
+---If the context object is not found, throws an error.
+---@param ccoContextTypeId TotoWar__Enum_CcoContextTypeIds Type of the context object.
+---@param contextId any ID of the context object (see `TotoWar__Enum_CcoContextTypeIds`).
+---@return ComponentContextObject
+function TotoWar__UI:getCCO(ccoContextTypeId, contextId)
+    logger:logDebug("getCCO(%s, %s): STARTED", ccoContextTypeId, contextId)
+
+    local componentContextObject = self:findCCO(ccoContextTypeId, contextId)
+
+    if componentContextObject == nil then
+        logger:logError(
+            "Game interface: %s %s not found, army supplies may not be calculated correctly",
+            ccoContextTypeId,
+            contextId)
+    end
+
+    logger:logDebug(
+        "getCCO(%s, %s): COMPLETED => Found: %s",
+        ccoContextTypeId,
+        contextId,
+        componentContextObject ~= nil)
+
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return componentContextObject
+end
+
 ---Gets a UI component from the root.
 ---If the UI component is not found, throws an error.
 ---@param query string Query to the UI component from the root: names of the UI components separated by "/".
@@ -94,8 +160,9 @@ function TotoWar__UI:getUIComponent(query)
 end
 
 ---Gets a context object of a UI component.
+---If the context object is not found, throws an error.
 ---@param uiComponent UIC UI component.
----@param ccoContextTypeId string ID of the context object.
+---@param ccoContextTypeId TotoWar__Enum_CcoContextTypeIds Type of the context object.
 ---@return ComponentContextObject
 function TotoWar__UI:getUIComponentCCO(uiComponent, ccoContextTypeId)
     logger:logDebug(
@@ -103,20 +170,20 @@ function TotoWar__UI:getUIComponentCCO(uiComponent, ccoContextTypeId)
         function() return uiComponent:Id() end,
         ccoContextTypeId)
 
-    local contextId = uiComponent:GetContextObjectId(ccoContextTypeId)
-    local componentContextObject = cco(ccoContextTypeId, contextId)
+    local componentContextObject = self:findUIComponentCCO(uiComponent, ccoContextTypeId)
 
     if componentContextObject == nil then
-        logger:logDebug(
-            "getUIComponentCCO(%s, %s): NOT FOUND",
-            function() return uiComponent:Id() end,
-            ccoContextTypeId)
+        logger:logError(
+            "Game interface: %s of %s not found, army supplies may not be displayed correctly",
+            ccoContextTypeId,
+            uiComponent:Id())
     end
 
     logger:logDebug(
-        "getUIComponentCCO(%s, %s): COMPLETED",
+        "getUIComponentCCO(%s, %s): COMPLETED => Found: %s",
         function() return uiComponent:Id() end,
-        ccoContextTypeId)
+        ccoContextTypeId,
+        componentContextObject ~= nil)
 
     ---@diagnostic disable-next-line: return-type-mismatch
     return componentContextObject
