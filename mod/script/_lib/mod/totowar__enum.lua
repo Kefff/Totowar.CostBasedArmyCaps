@@ -67,6 +67,9 @@ TotoWar__Enum_GameEvents = {
     ---Is not triggered when a character is already selected and the player selects another character.
     characterDeselected = "CharacterDeselected",
 
+    ---Event triggered when a character gains one or more ranks.
+    characterRankUp = "CharacterRankUp",
+
     ---Event triggered when a character is selected.
     characterSelected = "CharacterSelected",
 
@@ -94,6 +97,10 @@ TotoWar__Enum_GameEvents = {
 
     ---Event triggered when a panel is opened.
     panelOpened = "PanelOpenedCampaign",
+
+    ---Event triggered when an army is created by script (`cm:create_force`: invasions, endgame crises, ...), instead of
+    ---militaryForceCreated. The event does not give the created army.
+    scriptedForceCreated = "ScriptedForceCreated",
 
     ---Event triggered when a unit is added to the recruitment queue.
     unitAddedToRecruitment = "RecruitmentItemIssuedByPlayer",

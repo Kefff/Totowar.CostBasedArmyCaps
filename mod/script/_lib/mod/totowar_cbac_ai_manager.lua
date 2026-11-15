@@ -2,9 +2,9 @@ require("script._lib.mod.totowar_cbac_enum")
 
 local logger = TotoWar__Logger.get(TotoWar_Cbac_Enum_LogCategories.aiManager)
 
----Gets the data stored for an AI army (target composition and last adjustment turn).
+---Gets the data stored for an AI army (target composition, last adjustment turn and whether it was created by script).
 ---@param armyCqi integer Army command queue index.
----@return { composition: table<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer> | nil, lastAdjustmentTurn: integer | nil } | nil
+---@return { composition: table<TotoWar_Cbac_Enum_ArmyCompositionUnitCategories, integer> | nil, isCreatedByScript: boolean | nil, lastAdjustmentTurn: integer | nil } | nil
 local function getAiArmyData(armyCqi)
     logger:logDebug(
         "getAiArmyData(%s): STARTED => %s",
@@ -67,6 +67,7 @@ local function setAiArmyData(armyCqi, aiArmyData)
 end
 
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
+---The maximum number of units by unit category and the target army size are ignored for armies created by script (see `TotoWar_Cbac_AiManager:onArmyCreatedByScript`).
 ---
 ---The units to remove are selected by `TotoWar_Cbac_AiManagerUnitSelection` (dynamic programming knapsack algorithm), to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
@@ -121,8 +122,12 @@ local function adjustAiArmyCompositionAndUnits(
         return
     end
 
+    local aiArmyData = getAiArmyData(army:command_queue_index())
+    local isCreatedByScript = aiArmyData ~= nil and aiArmyData.isCreatedByScript == true
     local currentArmySize = #armySuppliesCost.unitArmySuppliesCosts
-    local requiredRemovalsForSize = math.max(0, currentArmySize - targetArmySize)
+
+    -- Target size ignored for armies created by script, see onArmyCreatedByScript
+    local requiredRemovalsForSize = isCreatedByScript and 0 or math.max(0, currentArmySize - targetArmySize)
     local deficit = -armySuppliesCost.availableSupplies
 
     logger:logDebug(
@@ -138,13 +143,15 @@ local function adjustAiArmyCompositionAndUnits(
 
     -------------------------------------------------------------------------
     -- Number of units in excess by unit category: the units of these categories are removed first, no more than the
-    -- excess of their category
+    -- excess of their category. Ignored for armies created by script, see onArmyCreatedByScript
     -------------------------------------------------------------------------
     ---@type table<string, integer>
     local categoryExcessCounts = {}
 
-    for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
-        categoryExcessCounts[category] = unitCategoryExcessCounts:get(category)
+    if not isCreatedByScript then
+        for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
+            categoryExcessCounts[category] = unitCategoryExcessCounts:get(category)
+        end
     end
 
     logger:logDebug(
@@ -153,6 +160,10 @@ local function adjustAiArmyCompositionAndUnits(
         targetArmySize,
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         function()
+            if isCreatedByScript then
+                return "ignored (army created by script)"
+            end
+
             if #unitCategoryExcessCounts.entries == 0 then
                 return "none"
             end
@@ -222,7 +233,7 @@ local function adjustAiArmyCompositionAndUnits(
 
     -- Storing the current turn as the last adjustment turn for that army to be able to cancel the disbands that may happen just after the adjustment
     -- to avoid removing too many units from the army
-    local aiArmyData = getAiArmyData(army:command_queue_index()) or {}
+    aiArmyData = aiArmyData or {}
     aiArmyData.lastAdjustmentTurn = cm:turn_number()
     setAiArmyData(army:command_queue_index(), aiArmyData)
 
@@ -513,9 +524,15 @@ local function getTargetArmyComposition(army)
         -- Generating an army target composition
         local maximumPercentages = getTargetArmyCompositionUnitCategoryMaximumPercentages(army:faction())
 
-        armySize = cm:random_number(
-            TotoWar_Cbac_Constant.maximumTargetArmySize,
-            TotoWar_Cbac_Constant.minimumTargetArmySize)
+        if aiArmyData ~= nil and aiArmyData.isCreatedByScript == true then
+            -- Armies created by script get the maximum target army size instead of a random one: it is ignored by the
+            -- adjustments (see onArmyCreatedByScript), but it is used for the maximum number of heroes
+            armySize = TotoWar_Cbac_Constant.maximumTargetArmySize
+        else
+            armySize = cm:random_number(
+                TotoWar_Cbac_Constant.maximumTargetArmySize,
+                TotoWar_Cbac_Constant.minimumTargetArmySize)
+        end
 
         local lordUnitAmount = 1
         local nonLordUnitCount = armySize - lordUnitAmount
@@ -785,6 +802,16 @@ local function adjustAiArmy(armyCqi)
         return
     end
 
+    if TotoWar_Cbac_AiManager.scriptedArmyCqisToAdjust[armyCqi] then
+        -- Adjusted when its lord gains ranks or at the start of the turn of its faction, see onArmyCreatedByScript
+        logger:logDebug(
+            "adjustAiArmy(%s): COMPLETED => %s | Army created by script, adjusted when its lord gains ranks or at the start of the turn of its faction",
+            armyCqi,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end)
+
+        return
+    end
+
     local armySuppliesCost = TotoWar_Cbac_ArmySuppliesCost.newFromArmy(true, army)
 
     if armySuppliesCost.availableSupplies >= 0 then
@@ -842,6 +869,28 @@ local function adjustAiArmy(armyCqi)
         armySuppliesCost.availableSupplies)
 end
 
+---Gets the armies of all the factions.
+---@return MILITARY_FORCE_SCRIPT_INTERFACE[]
+local function getAllArmies()
+    logger:logDebug("getAllArmies(): STARTED")
+
+    ---@type MILITARY_FORCE_SCRIPT_INTERFACE[]
+    local armies = {}
+    local factions = cm:model():world():faction_list()
+
+    for i = 0, factions:num_items() - 1, 1 do
+        local factionArmies = factions:item_at(i):military_force_list()
+
+        for j = 0, factionArmies:num_items() - 1, 1 do
+            table.insert(armies, factionArmies:item_at(j))
+        end
+    end
+
+    logger:logDebug("getAllArmies(): COMPLETED => Armies: %s", #armies)
+
+    return armies
+end
+
 ---Indicates whether an army is an AI army whose composition is managed by the mod.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
 ---@return boolean
@@ -877,6 +926,7 @@ local function onAiArmyCreated(army)
     -- Adjusting the composition for armies spawned with units already included.
     -- The adjustment is deferred like for recruited units: the army may not be complete yet when this event is triggered
     -- (units and heroes added by the script that created it), and removing units during the event could lead to crashes.
+    TotoWar_Cbac_AiManager.gameCreatedArmyCqis[army:command_queue_index()] = true
     TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(army)
 
     logger:logDebug(
@@ -955,7 +1005,22 @@ TotoWar_Cbac_AiManager = {
 
     ---Disbanded units, by command queue index of their army, for which we need to check whether they should be reinstated.
     ---@type TotoWar__Dictionary<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>
-    disbandQueue = nil
+    disbandQueue = nil,
+
+    ---Command queue indexes of the AI armies created by the game (MilitaryForceCreated event) since armies were last
+    ---checked by onArmyCreatedByScript, which must not consider them as created by script.
+    ---@type table<integer, boolean>
+    gameCreatedArmyCqis = nil,
+
+    ---Highest command queue index of the armies of all the factions when they were last checked: the armies created
+    ---since then have a higher one (see onArmyCreatedByScript).
+    ---@type integer
+    highestKnownArmyCqi = nil,
+
+    ---Command queue indexes of the AI armies created by script, to adjust when their lord gains ranks or at the start of
+    ---the turn of their faction (see onArmyCreatedByScript).
+    ---@type table<integer, boolean>
+    scriptedArmyCqisToAdjust = nil
 }
 
 ---Adds an army to the adjustment queue.
@@ -1131,10 +1196,91 @@ function TotoWar_Cbac_AiManager:initialize()
 
     self.armyAdjustmentQueue = {}
     self.disbandQueue = TotoWar__Dictionary.new()
+    self.gameCreatedArmyCqis = {}
+    self.scriptedArmyCqisToAdjust = {}
+
+    -- Only the armies created by script from now on are checked by onArmyCreatedByScript
+    self.highestKnownArmyCqi = 0
+
+    for _, army in ipairs(getAllArmies()) do
+        self.highestKnownArmyCqi = math.max(self.highestKnownArmyCqi, army:command_queue_index())
+    end
 
     self:subscribeToEvents()
 
     logger:logDebug("initialize(): COMPLETED")
+end
+
+---Reacts to the lord of an AI army created by script gaining ranks: the army is adjusted with the army supplies of
+---its new rank, without waiting for the start of the turn of its faction (see onArmyCreatedByScript).
+---@param lord CHARACTER_SCRIPT_INTERFACE Lord.
+---@param ranksGained integer Number of ranks gained.
+function TotoWar_Cbac_AiManager:onAiCharacterRankUp(lord, ranksGained)
+    local army = lord:military_force()
+    local armyCqi = army:command_queue_index()
+
+    logger:logDebug(
+        "onAiCharacterRankUp(%s, %s): STARTED => %s | Rank: %s",
+        function() return lord:cqi() end,
+        ranksGained,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
+        function() return lord:rank() end)
+
+    -- Removed first, so that adjustAiArmy does not skip the army anymore
+    self.scriptedArmyCqisToAdjust[armyCqi] = nil
+    self:addArmyToAdjustmentQueue(army)
+
+    logger:logDebug(
+        "onAiCharacterRankUp(%s, %s): COMPLETED => %s | Rank: %s",
+        function() return lord:cqi() end,
+        ranksGained,
+        function() return TotoWar__Gameplay:getArmyCaption(army) end,
+        function() return lord:rank() end)
+end
+
+---Reacts to the turn of an AI faction starting: its armies created by script since its last turn are adjusted, before
+---they act (see onArmyCreatedByScript).
+---@param faction FACTION_SCRIPT_INTERFACE Faction.
+function TotoWar_Cbac_AiManager:onAiFactionTurnStart(faction)
+    logger:logDebug(
+        "onAiFactionTurnStart(%s): STARTED => %s",
+        function() return faction:name() end,
+        function() return TotoWar__Gameplay:getFactionFullCaption(faction) end)
+
+    -- Sorted, so that the armies are adjusted in the same order on all the machines of a multiplayer game
+    ---@type integer[]
+    local armyCqis = {}
+
+    for armyCqi, _ in pairs(self.scriptedArmyCqisToAdjust) do
+        table.insert(armyCqis, armyCqi)
+    end
+
+    table.sort(armyCqis)
+
+    local adjustedArmyCount = 0
+
+    for _, armyCqi in ipairs(armyCqis) do
+        local army = TotoWar__Gameplay:getArmy(armyCqi)
+
+        if army == nil then
+            -- The army has been destroyed since its creation
+            self.scriptedArmyCqisToAdjust[armyCqi] = nil
+        elseif army:faction():name() == faction:name() then
+            -- Removed first, so that adjustAiArmy does not skip the army anymore
+            self.scriptedArmyCqisToAdjust[armyCqi] = nil
+
+            if isManagedAiArmy(army) then
+                self:addArmyToAdjustmentQueue(army)
+                adjustedArmyCount = adjustedArmyCount + 1
+            end
+        end
+    end
+
+    logger:logDebug(
+        "onAiFactionTurnStart(%s): COMPLETED => %s | Armies created by script to adjust: %s",
+        function() return faction:name() end,
+        function() return TotoWar__Gameplay:getFactionFullCaption(faction) end,
+        adjustedArmyCount)
 end
 
 ---Reacts to a unit being disbanded by an AI army.
@@ -1197,9 +1343,68 @@ function TotoWar_Cbac_AiManager:onAiUnitUpgraded(unit)
         function() return unit:military_force():command_queue_index() end)
 end
 
+---Reacts to an army being created by script (invasions, endgame crises, ...).
+---Such an army does not trigger the MilitaryForceCreated event, and the ScriptedForceCreated event does not give it.
+---Command queue indexes being increasing, the armies with a command queue index higher than the highest one known are
+---the armies created since the last check, apart from the armies created by the game (onAiArmyCreated). The AI ones
+---are marked as created by script: they are full armies meant to be a threat, so their target army size and the
+---excess of their unit categories are ignored by the adjustments, which remove as few units as possible to fit them
+---into their army supplies.
+---They are adjusted when their lord gains ranks (onAiCharacterRankUp), or at the latest at the start of the turn of
+---their faction (onAiFactionTurnStart), before they act, and not right away: the script that creates them can change
+---them after their creation (the endgame crises give ranks to their lords, which increases their army supplies, but
+---only later).
+function TotoWar_Cbac_AiManager:onArmyCreatedByScript()
+    logger:logDebug("onArmyCreatedByScript(): STARTED => Highest known army CQI: %s", self.highestKnownArmyCqi)
+
+    local previousHighestKnownArmyCqi = self.highestKnownArmyCqi
+    local scriptedArmyCount = 0
+
+    for _, army in ipairs(getAllArmies()) do
+        local armyCqi = army:command_queue_index()
+
+        if armyCqi > previousHighestKnownArmyCqi then
+            self.highestKnownArmyCqi = math.max(self.highestKnownArmyCqi, armyCqi)
+
+            if not self.gameCreatedArmyCqis[armyCqi] and isManagedAiArmy(army) then
+                local aiArmyData = getAiArmyData(armyCqi) or {}
+                aiArmyData.isCreatedByScript = true
+                setAiArmyData(armyCqi, aiArmyData)
+
+                self.scriptedArmyCqisToAdjust[armyCqi] = true
+                scriptedArmyCount = scriptedArmyCount + 1
+            end
+        end
+    end
+
+    -- The armies created by the game before this check have a lower command queue index than the highest one known
+    self.gameCreatedArmyCqis = {}
+
+    logger:logDebug(
+        "onArmyCreatedByScript(): COMPLETED => Highest known army CQI: %s | AI armies created by script: %s",
+        self.highestKnownArmyCqi,
+        scriptedArmyCount)
+end
+
 ---Subscribes to events.
 function TotoWar_Cbac_AiManager:subscribeToEvents()
     logger:logDebug("subscribeToEvents(): STARTED")
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.characterRankUp,
+        ---@param context TotoWar__GameEventContext_CharacterRankUp
+        function(context) self:onAiCharacterRankUp(context:character(), context:ranks_gained()) end,
+        ---@param context TotoWar__GameEventContext_CharacterRankUp
+        function(context)
+            -- Checking first whether an army created by script is waiting for its adjustment, to avoid calls to the game
+            -- for the other characters gaining ranks
+            return
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
+                and next(self.scriptedArmyCqisToAdjust) ~= nil
+                and TotoWar__Gameplay:isLordCharacter(context:character())
+                and context:character():has_military_force()
+                and self.scriptedArmyCqisToAdjust[context:character():military_force():command_queue_index()] == true
+        end)
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.characterTurnEnd,
@@ -1212,6 +1417,20 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
                 and TotoWar__Gameplay:isLordCharacter(context:character())
                 and context:character():has_military_force()
                 and isManagedAiArmy(context:character():military_force())
+        end)
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.factionTurnStart,
+        ---@param context TotoWar__GameEventContext_FactionTurnStart
+        function(context) self:onAiFactionTurnStart(context:faction()) end,
+        ---@param context TotoWar__GameEventContext_FactionTurnStart
+        function(context)
+            -- Checking first whether an army created by script is waiting for its adjustment, to avoid calls to the game
+            -- for the turns of the other factions
+            return
+                TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled
+                and next(self.scriptedArmyCqisToAdjust) ~= nil
+                and not context:faction():is_human()
         end)
 
     TotoWar__EventsManager:subscribe(
@@ -1234,6 +1453,11 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
         function(context)
             return getAiArmyData(context:military_force():command_queue_index()) ~= nil
         end)
+
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.scriptedForceCreated,
+        function() self:onArmyCreatedByScript() end,
+        function() return TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled end)
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitConverted,

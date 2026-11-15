@@ -11,6 +11,17 @@ function TotoWar__GameEventContext_ArmyStanceChanged:military_force() end
 ---@return integer
 function TotoWar__GameEventContext_ArmyStanceChanged:stance_adopted() end
 
+---Context for the CharacterRankUp event.
+---@class TotoWar__GameEventContext_CharacterRankUp
+TotoWar__GameEventContext_CharacterRankUp = {}
+---Gets the character.
+---@return CHARACTER_SCRIPT_INTERFACE
+function TotoWar__GameEventContext_CharacterRankUp:character() end
+
+---Gets the number of ranks gained.
+---@return integer
+function TotoWar__GameEventContext_CharacterRankUp:ranks_gained() end
+
 ---Context for the ComponentLClickUp event.
 ---@class TotoWar__GameEventContext_ComponentLeftClick
 TotoWar__GameEventContext_ComponentLeftClick = {
