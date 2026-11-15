@@ -926,7 +926,6 @@ local function onAiArmyCreated(army)
     -- Adjusting the composition for armies spawned with units already included.
     -- The adjustment is deferred like for recruited units: the army may not be complete yet when this event is triggered
     -- (units and heroes added by the script that created it), and removing units during the event could lead to crashes.
-    TotoWar_Cbac_AiManager.gameCreatedArmyCqis[army:command_queue_index()] = true
     TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(army)
 
     logger:logDebug(
@@ -1007,7 +1006,7 @@ TotoWar_Cbac_AiManager = {
     ---@type TotoWar__Dictionary<integer, TotoWar_Cbac_UnitArmySuppliesCost[]>
     disbandQueue = nil,
 
-    ---Command queue indexes of the AI armies created by the game (MilitaryForceCreated event) since armies were last
+    ---Command queue indexes of the armies created by the game (MilitaryForceCreated event) since armies were last
     ---checked by onArmyCreatedByScript, which must not consider them as created by script.
     ---@type table<integer, boolean>
     gameCreatedArmyCqis = nil,
@@ -1346,7 +1345,7 @@ end
 ---Reacts to an army being created by script (invasions, endgame crises, ...).
 ---Such an army does not trigger the MilitaryForceCreated event, and the ScriptedForceCreated event does not give it.
 ---Command queue indexes being increasing, the armies with a command queue index higher than the highest one known are
----the armies created since the last check, apart from the armies created by the game (onAiArmyCreated). The AI ones
+---the armies created since the last check, apart from the armies created by the game (gameCreatedArmyCqis). The AI ones
 ---are marked as created by script: they are full armies meant to be a threat, so their target army size and the
 ---excess of their unit categories are ignored by the adjustments, which remove as few units as possible to fit them
 ---into their army supplies.
@@ -1444,6 +1443,15 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
                 and isManagedAiArmy(context:military_force_created())
         end)
 
+    -- Not depending on the option nor on the army being managed: onArmyCreatedByScript considers as created by script
+    -- all the new armies that are not known as created by the game
+    TotoWar__EventsManager:subscribe(
+        TotoWar__Enum_GameEvents.militaryForceCreated,
+        ---@param context TotoWar__GameEventContext_MilitaryForceCreated
+        function(context)
+            self.gameCreatedArmyCqis[context:military_force_created():command_queue_index()] = true
+        end)
+
     -- Not depending on the option: stored data must be removed even if AI restrictions are disabled
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.militaryForceDestroyed,
@@ -1454,10 +1462,11 @@ function TotoWar_Cbac_AiManager:subscribeToEvents()
             return getAiArmyData(context:military_force():command_queue_index()) ~= nil
         end)
 
+    -- Not depending on the option: the armies created while AI restrictions are disabled must also be known, otherwise
+    -- the armies created by the game during that time would be considered as created by script once they are enabled
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.scriptedForceCreated,
-        function() self:onArmyCreatedByScript() end,
-        function() return TotoWar_Cbac_Mod.options.aiArmySuppliesEnabled end)
+        function() self:onArmyCreatedByScript() end)
 
     TotoWar__EventsManager:subscribe(
         TotoWar__Enum_GameEvents.unitConverted,
