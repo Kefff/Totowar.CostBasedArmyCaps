@@ -1192,6 +1192,10 @@ end
 function TotoWar_Cbac_PlayerManager:updateUnitExchangeArmySuppliesCosts()
     logger:logDebug("updateUnitExchangeArmySuppliesCosts(): STARTED")
 
+    -- Reset first: if the calculation fails, the costs of a previous unit exchange must not be applied when it is confirmed
+    self.unitExchangeArmySuppliesCost1 = nil
+    self.unitExchangeArmySuppliesCost2 = nil
+
     local unitCards1 = TotoWar_Cbac_UIManager:getUnitExchangePoolCards(TotoWar__UI.uiComponentQueries.unitExchange_pool1)
     local unitCards2 = TotoWar_Cbac_UIManager:getUnitExchangePoolCards(TotoWar__UI.uiComponentQueries.unitExchange_pool2)
 
