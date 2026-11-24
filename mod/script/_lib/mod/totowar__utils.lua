@@ -28,13 +28,13 @@ TotoWar__Utils.__index = TotoWar__Utils
 ---  Only when it is scheduled on every client, from a game event: scheduled from a UI event (click, selection...), it only runs on the client of the player who triggered it.
 ---- To use for everything that changes the game (units, characters, effect bundles, movement...) or relies on its state.
 ---@param callback fun() Function to execute with a delay.
----@param delay number Delay in seconds. A delay of 0 or less executes the function immediately.
-function TotoWar__Utils:delay(callback, delay)
-    logger:logDebug("delay(callback, %s): STARTED", delay)
+---@param delayInMs integer Delay in milliseconds. A delay of 1 executes the function at the next model update, a delay of 0 or less immediately.
+function TotoWar__Utils:delay(callback, delayInMs)
+    logger:logDebug("delay(callback, %s): STARTED", delayInMs)
 
-    cm:callback(function() executeDelayedCallback(callback) end, delay)
+    cm:callback(function() executeDelayedCallback(callback) end, delayInMs / 1000)
 
-    logger:logDebug("delay(callback, %s): COMPLETED", delay)
+    logger:logDebug("delay(callback, %s): COMPLETED", delayInMs)
 end
 
 ---Executes a function after a delay in real time.
@@ -43,11 +43,11 @@ end
 ---- To use only for UI changes of the local player (displaying, resizing...), never to change the game:
 ---  in multiplayer, a game change made at different moments on each client desynchronises the game.
 ---@param callback fun() Function to execute with a delay.
----@param delay integer Delay in milliseconds. A delay of 1 executes the function at the next UI update, a delay of 0 or less immediately.
-function TotoWar__Utils:delayInRealTime(callback, delay)
-    logger:logDebug("delayInRealTime(callback, %s): STARTED", delay)
+---@param delayInMs integer Delay in milliseconds. A delay of 1 executes the function at the next UI update, a delay of 0 or less immediately.
+function TotoWar__Utils:delayInRealTime(callback, delayInMs)
+    logger:logDebug("delayInRealTime(callback, %s): STARTED", delayInMs)
 
-    core:get_tm():real_callback(function() executeDelayedCallback(callback) end, delay)
+    core:get_tm():real_callback(function() executeDelayedCallback(callback) end, delayInMs)
 
-    logger:logDebug("delayInRealTime(callback, %s): COMPLETED", delay)
+    logger:logDebug("delayInRealTime(callback, %s): COMPLETED", delayInMs)
 end

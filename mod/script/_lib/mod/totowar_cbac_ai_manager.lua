@@ -1060,7 +1060,7 @@ function TotoWar_Cbac_AiManager:addArmyToAdjustmentQueue(army)
                 TotoWar__Linq:remove(self.armyAdjustmentQueue, function(cqi) return cqi == armyCqi end)
                 adjustAiArmy(armyCqi)
             end,
-            0.001)
+            1)
     end
 
     logger:logDebug(
@@ -1122,7 +1122,7 @@ function TotoWar_Cbac_AiManager:addUnitToDisbandQueue(disbandedUnit)
                 self.disbandQueue:remove(armyCqi)
                 self:cancelDisbandIfAlreadyAdjusted(armyCqi, disbandedUnits)
             end,
-            0.001)
+            1)
     end
 
     logger:logDebug(

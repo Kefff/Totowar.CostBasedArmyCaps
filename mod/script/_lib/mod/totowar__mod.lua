@@ -41,7 +41,7 @@ local function onMctMultiplayerInitialLoadReceived()
             logger:logInfo("Settings of the host received from the Mod Configuration Tool: reloading the options")
             TotoWar__EventsManager:trigger(TotoWar__Enum_ModEvents.mctOptionsSynchronized)
         end,
-        0.1)
+        100)
 
     logger:logDebug("onMctMultiplayerInitialLoadReceived(): COMPLETED")
 end

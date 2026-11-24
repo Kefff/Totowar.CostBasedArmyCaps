@@ -395,12 +395,12 @@ function TotoWar_Cbac_PlayerManager:onCharacterSelected(character)
 
         if cm:get_campaign_ui_manager():is_panel_open(TotoWar__Enum_Panels.unitsPanel) then
             -- Delay otherwise the units_panel is not up to date and still contains the units of the previously selected lord army
-            TotoWar__Utils:delay(
+            TotoWar__Utils:delayInRealTime(
                 function()
                     --- Initializing the army supplies cost for the newly selected army
                     self:initializeArmySuppliesCost(character)
                 end,
-                0.25)
+                1)
         else
             --- Adding a one-time listener that waits for the unit_panel to open before
             --- initializing the army supplies cost because we need to get the cost of the
