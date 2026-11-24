@@ -67,7 +67,6 @@ local function setAiArmyData(armyCqi, aiArmyData)
 end
 
 ---Adjusts the units in an army to stay within maximum number of units allowed in each unit category and within army supplies cost and target army size.
----The maximum number of units by unit category and the target army size are ignored for armies created by script (see `TotoWar_Cbac_AiManager:onArmyCreatedByScript`).
 ---
 ---The units to remove are selected by `TotoWar_Cbac_AiManagerUnitSelection` (dynamic programming knapsack algorithm), to find the best subset of removable units that covers the cost deficit while respecting the ideal size reduction when possible.
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
@@ -122,12 +121,8 @@ local function adjustAiArmyCompositionAndUnits(
         return
     end
 
-    local aiArmyData = getAiArmyData(army:command_queue_index())
-    local isCreatedByScript = aiArmyData ~= nil and aiArmyData.isCreatedByScript == true
     local currentArmySize = #armySuppliesCost.unitArmySuppliesCosts
-
-    -- Target size ignored for armies created by script, see onArmyCreatedByScript
-    local requiredRemovalsForSize = isCreatedByScript and 0 or math.max(0, currentArmySize - targetArmySize)
+    local requiredRemovalsForSize = math.max(0, currentArmySize - targetArmySize)
     local deficit = -armySuppliesCost.availableSupplies
 
     logger:logDebug(
@@ -143,15 +138,13 @@ local function adjustAiArmyCompositionAndUnits(
 
     -------------------------------------------------------------------------
     -- Number of units in excess by unit category: the units of these categories are removed first, no more than the
-    -- excess of their category. Ignored for armies created by script, see onArmyCreatedByScript
+    -- excess of their category
     -------------------------------------------------------------------------
     ---@type table<string, integer>
     local categoryExcessCounts = {}
 
-    if not isCreatedByScript then
-        for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
-            categoryExcessCounts[category] = unitCategoryExcessCounts:get(category)
-        end
+    for _, category in ipairs(unitCategoryExcessCounts:getKeys()) do
+        categoryExcessCounts[category] = unitCategoryExcessCounts:get(category)
     end
 
     logger:logDebug(
@@ -160,10 +153,6 @@ local function adjustAiArmyCompositionAndUnits(
         targetArmySize,
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         function()
-            if isCreatedByScript then
-                return "ignored (army created by script)"
-            end
-
             if #unitCategoryExcessCounts.entries == 0 then
                 return "none"
             end
@@ -474,11 +463,13 @@ end
 ---Gets a target army composition by providing unit counts by category.
 ---
 ---If a target army composition has already been affected to an army, it is read from the game state.
+---Armies created by script get their actual composition (see `TotoWar_Cbac_AiManager:onArmyCreatedByScript`).
 ---@param army MILITARY_FORCE_SCRIPT_INTERFACE Army.
+---@param armySuppliesCost TotoWar_Cbac_ArmySuppliesCost Army supplies cost of the army.
 ---@return TotoWar__Dictionary<string, integer>
-local function getTargetArmyComposition(army)
+local function getTargetArmyComposition(army, armySuppliesCost)
     logger:logDebug(
-        "getTargetArmyComposition(%s): STARTED => %s",
+        "getTargetArmyComposition(%s, armySuppliesCost): STARTED => %s",
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
@@ -492,7 +483,7 @@ local function getTargetArmyComposition(army)
 
     if aiArmyData ~= nil and aiArmyData.composition ~= nil then
         logger:logDebug(
-            "getTargetArmyComposition(%s): READING EXISTING COMPOSITION => %s",
+            "getTargetArmyComposition(%s, armySuppliesCost): READING EXISTING COMPOSITION => %s",
             function() return army:command_queue_index() end,
             function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
@@ -509,24 +500,38 @@ local function getTargetArmyComposition(army)
         end
 
         armySize = TotoWar__Linq:sum(categoryUnitCounts:getValues(), function(v) return v end)
+    elseif aiArmyData ~= nil and aiArmyData.isCreatedByScript == true then
+        logger:logDebug(
+            "getTargetArmyComposition(%s, armySuppliesCost): USING ACTUAL COMPOSITION => %s",
+            function() return army:command_queue_index() end,
+            function() return TotoWar__Gameplay:getArmyCaption(army) end)
+
+        -- Armies created by script are full armies meant to be a threat: their actual composition is kept as their
+        -- target composition, so that they can only recruit again what they lose (see onArmyCreatedByScript)
+        categoryUnitCounts:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord, 0)
+
+        for index, unitCategory in ipairs(TotoWar_Cbac_Constant.randomUnitCategories) do
+            categoryUnitCounts:set(unitCategory, 0)
+        end
+
+        for index, unitArmySuppliesCost in ipairs(armySuppliesCost.unitArmySuppliesCosts) do
+            categoryUnitCounts:set(
+                unitArmySuppliesCost.unitCategory,
+                categoryUnitCounts:get(unitArmySuppliesCost.unitCategory) + 1)
+        end
+
+        armySize = #armySuppliesCost.unitArmySuppliesCosts
     else
         logger:logDebug(
-            "getTargetArmyComposition(%s): GENERATING NEW COMPOSITION => %s",
+            "getTargetArmyComposition(%s, armySuppliesCost): GENERATING NEW COMPOSITION => %s",
             function() return army:command_queue_index() end,
             function() return TotoWar__Gameplay:getArmyCaption(army) end)
 
         -- Generating an army target composition
         local maximumPercentages = getTargetArmyCompositionUnitCategoryMaximumPercentages(army:faction())
-
-        if aiArmyData ~= nil and aiArmyData.isCreatedByScript == true then
-            -- Armies created by script get the maximum target army size instead of a random one: it is ignored by the
-            -- adjustments (see onArmyCreatedByScript), but it is used for the maximum number of heroes
-            armySize = TotoWar_Cbac_Constant.maximumTargetArmySize
-        else
-            armySize = cm:random_number(
-                TotoWar_Cbac_Constant.maximumTargetArmySize,
-                TotoWar_Cbac_Constant.minimumTargetArmySize)
-        end
+        armySize = cm:random_number(
+            TotoWar_Cbac_Constant.maximumTargetArmySize,
+            TotoWar_Cbac_Constant.minimumTargetArmySize)
 
         local lordUnitAmount = 1
         local nonLordUnitCount = armySize - lordUnitAmount
@@ -585,7 +590,7 @@ local function getTargetArmyComposition(army)
         end
 
         logger:logDebug(
-            "getTargetArmyComposition(%s): TARGET PERCENTAGES => %s | %s",
+            "getTargetArmyComposition(%s, armySuppliesCost): TARGET PERCENTAGES => %s | %s",
             function() return army:command_queue_index() end,
             function() return TotoWar__Gameplay:getArmyCaption(army) end,
             function()
@@ -616,7 +621,9 @@ local function getTargetArmyComposition(army)
         end
 
         categoryUnitCounts:set(TotoWar_Cbac_Enum_ArmyCompositionUnitCategories.lord, lordUnitAmount)
+    end
 
+    if aiArmyData == nil or aiArmyData.composition == nil then
         local composition = {}
 
         for index, entry in ipairs(categoryUnitCounts.entries) do
@@ -639,7 +646,7 @@ local function getTargetArmyComposition(army)
     end
 
     logger:logDebug(
-        "getTargetArmyComposition(%s): COMPLETED => %s | Target army size: %s | %s",
+        "getTargetArmyComposition(%s, armySuppliesCost): COMPLETED => %s | Target army size: %s | %s",
         function() return army:command_queue_index() end,
         function() return TotoWar__Gameplay:getArmyCaption(army) end,
         armySize,
@@ -832,7 +839,7 @@ local function adjustAiArmy(armyCqi)
         TotoWar_Cbac_AiManagerUnitSelection.compareUnitArmySuppliesCosts)
 
     -- Getting the target army composition and the unit categories that have excess units
-    local targetArmyComposition = getTargetArmyComposition(army)
+    local targetArmyComposition = getTargetArmyComposition(army, armySuppliesCost)
     local targetArmySize = TotoWar__Linq:sum(targetArmyComposition:getValues(), function(v) return v end)
     local unitCategoryExcessCounts = getUnitCategoryExcessCounts(armySuppliesCost, targetArmyComposition)
     local initialArmySize = #armySuppliesCost.unitArmySuppliesCosts
@@ -1353,9 +1360,9 @@ end
 ---Such an army does not trigger the MilitaryForceCreated event, and the ScriptedForceCreated event does not give it.
 ---Command queue indexes being increasing, the armies with a command queue index higher than the highest one known are
 ---the armies created since the last check, apart from the armies created by the game (gameCreatedArmyCqis). The AI ones
----are marked as created by script: they are full armies meant to be a threat, so their target army size and the
----excess of their unit categories are ignored by the adjustments, which remove as few units as possible to fit them
----into their army supplies.
+---are marked as created by script: they are full armies meant to be a threat, so their actual composition is kept as
+---their target composition at their first adjustment, which only removes as few units as possible to fit them into
+---their army supplies, while the next ones prevent them from recruiting more than what they lose.
 ---They are adjusted when their lord gains ranks (onAiCharacterRankUp), or at the latest at the start of the turn of
 ---their faction (onAiFactionTurnStart), before they act, and not right away: the script that creates them can change
 ---them after their creation (the endgame crises give ranks to their lords, which increases their army supplies, but
