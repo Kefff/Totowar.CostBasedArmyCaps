@@ -428,6 +428,18 @@ function TotoWar__UI:resizeUIComponentOnce(uiComponent, widthToAdd, heightToAdd,
         heightToAdd,
         sizePropertyName)
 
+    if widthToAdd == 0 and heightToAdd == 0 then
+        -- Not marked as resized, so that it is resized when there is something to add (cards added to an empty list)
+        logger:logDebug(
+            "resizeUIComponentOnce(%s, %s, %s, %s): COMPLETED => Nothing to add",
+            function() return uiComponent:Id() end,
+            widthToAdd,
+            heightToAdd,
+            sizePropertyName)
+
+        return false
+    end
+
     local width, height = uiComponent:Dimensions()
 
     if tostring(uiComponent:GetProperty(sizePropertyName)) == string.format("%sx%s", width, height) then
