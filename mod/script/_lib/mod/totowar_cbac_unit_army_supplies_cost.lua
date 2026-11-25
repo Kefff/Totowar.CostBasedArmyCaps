@@ -36,10 +36,11 @@ local function getBaseUnitKey(unitKey)
     local baseUnitKey = _baseUnitKeysByUnitKey[unitKey]
 
     if baseUnitKey == nil then
+        -- A unit without unmounted unit record (like some characters) is its own base unit
         baseUnitKey = common.get_context_value(
             TotoWar__Enum_CcoContextTypeIds.mainUnitRecord,
             unitKey,
-            "UnmountedUnitRecordContext.Key")
+            "UnmountedUnitRecordContext.Key") or unitKey
         _baseUnitKeysByUnitKey[unitKey] = baseUnitKey
     end
 
