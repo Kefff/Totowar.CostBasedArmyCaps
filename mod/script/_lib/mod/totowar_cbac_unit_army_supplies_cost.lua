@@ -64,6 +64,15 @@ local function getUnitRecordCost(unitKey)
         end
 
         _recordCostsByUnitKey[unitKey] = cost or false
+
+        -- Logged once per unit, when the cost is read for the first time, see getUnitCost
+        if cost == nil or cost <= 0 then
+            logger:logWarning(
+                "%s (%s): invalid recruitment cost (%s), not counted in army supplies",
+                TotoWar__Gameplay:getUnitCaption(unitKey),
+                unitKey,
+                cost ~= nil and cost or "not found")
+        end
     end
 
     return cost or nil
@@ -322,11 +331,6 @@ function TotoWar_Cbac_UnitArmySuppliesCost:getUnitCost(unitKey)
     -- No other campaign data matches it.
     -- A zero cost is also invalid: no unit should consume no army supplies.
     if cost == nil or cost <= 0 then
-        logger:logWarning(
-            "%s (%s): invalid recruitment cost (%s), not counted in army supplies",
-            TotoWar__Gameplay:getUnitCaption(unitKey),
-            unitKey,
-            cost ~= nil and cost or "not found")
         logger:logDebug("getUnitCost(%s): COMPLETED => Cost: 0 (invalid recruitment cost)", unitKey)
 
         return 0
